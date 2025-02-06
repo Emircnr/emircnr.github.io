@@ -5,16 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Harita Fetih Oyunu - Online</title>
   
-  <!-- External Kütüphaneler -->
+  <!-- External CSS Kütüphaneler -->
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
-  <!-- FontAwesome -->
+  <!-- FontAwesome (Simgeler için) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer" />
   <!-- Animate.css -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+  <!-- Firebase Kütüphaneleri (Compat Sürümü) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
   
-  <!-- Inline CSS (Stil ayarları) -->
+  <!-- Socket.io CDN (4.5.4 örneği) -->
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  
+  <!-- Inline CSS (Stil Ayarları) -->
   <style>
     /* ==================================================
        Genel Sıfırlama ve Global Ayarlar
@@ -480,7 +487,7 @@
             <h3>Para Gönder</h3>
             <input type="number" id="money-to-send" placeholder="Miktar" min="1" />
             <select id="recipient-player">
-              <!-- Oyuncu seçenekleri dinamik eklenecek -->
+              <!-- Dinamik oyuncu seçenekleri -->
             </select>
             <button id="send-money-btn"><i class="fas fa-hand-holding-usd"></i> Para Gönder</button>
           </div>
@@ -489,7 +496,7 @@
             <h3>Petrol Gönder</h3>
             <input type="number" id="petrol-to-send" placeholder="Varil" min="1" />
             <select id="recipient-player-petrol">
-              <!-- Oyuncu seçenekleri dinamik eklenecek -->
+              <!-- Dinamik oyuncu seçenekleri -->
             </select>
             <button id="send-petrol-btn"><i class="fas fa-gas-pump"></i> Petrol Gönder</button>
           </div>
@@ -504,7 +511,7 @@
     </div>
   </div>
   
-  <!-- Ülke Tooltip Şablonu -->
+  <!-- Ülke Popup Şablonu -->
   <template id="country-popup-template">
     <div class="country-popup">
       <p><span class="emoji"><i class="fas fa-money-bill-wave"></i></span> Gelir: <span class="income"></span>$</p>
@@ -518,12 +525,25 @@
   </template>
   
   <!-- External JS Kütüphaneleri -->
-  <!-- Socket.io (Sunucu ile haberleşme) -->
-  <script src="/socket.io/socket.io.js"></script>
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   
-  <!-- Inline JS: Oyun İşlevleri ve Online Entegrasyon -->
+  <!-- Firebase yapılandırması -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCINihMNGs-qRYIIBLzXyeaLnM_Lhp-iwg",
+      authDomain: "warmapg-77acb.firebaseapp.com",
+      projectId: "warmapg-77acb",
+      storageBucket: "warmapg-77acb.firebasestorage.app",
+      messagingSenderId: "895613631339",
+      appId: "1:895613631339:web:9441b6185ad1a14ee02a2e",
+      measurementId: "G-3MYC7P9PZC"
+    };
+    firebase.initializeApp(firebaseConfig);
+    firebase.analytics();
+  </script>
+  
+  <!-- Main JS: Oyun İşlevleri ve Socket.io Entegrasyonu -->
   <script>
     /*****************************************************************
      * GLOBAL DEĞİŞKENLER VE YARDIMCI FONKSİYONLAR
@@ -540,7 +560,6 @@
     let playerColors = { 1: "red", 2: "blue", 3: "green", 4: "yellow", 5: "purple" };
     const availableColors = ["red", "blue", "green", "yellow", "purple"];
     
-    // Animate.css ile animasyon ekleme fonksiyonu
     function animateWithAnimateCSS(element, animationName, callback) {
       element.classList.add("animate__animated", animationName);
       function handleAnimationEnd(event) {
@@ -552,7 +571,6 @@
       element.addEventListener("animationend", handleAnimationEnd);
     }
     
-    // Popup bildirimlerini gösterir
     function showNotification(message, duration = 3000) {
       const notificationArea = document.getElementById("notification-area");
       notificationArea.innerHTML = `<div class="popup">${message}</div>`;
@@ -573,7 +591,6 @@
       }, duration);
     }
     
-    // Butonlara ripple efekti ekler
     function createRipple(e) {
       const button = e.currentTarget;
       const circle = document.createElement("span");
@@ -594,7 +611,6 @@
     /*****************************************************************
      * LOBİ (ODA) ARAYÜZÜ İŞLEVLERİ
      *****************************************************************/
-    // Renk seçeneklerini lobi alanına ekle
     function initLobbyColorOptions() {
       const lobbyColorDiv = document.getElementById("lobby-color-options");
       availableColors.forEach(color => {
@@ -624,9 +640,7 @@
       });
     }
     
-    // Lobi arayüzündeki butonlara olay dinleyicileri ekle
     function initLobbyUI() {
-      // Oda Oluşturma
       document.getElementById("create-room-btn").addEventListener("click", () => {
         const roomName = document.getElementById("room-name").value.trim();
         const maxPlayers = parseInt(document.getElementById("max-players").value);
@@ -639,7 +653,7 @@
         const playerColor = selectedColorElem.dataset.color;
         socket.emit("createRoom", { roomName, maxPlayers, playerName, playerColor });
       });
-      // Odaya Katılma
+      
       document.getElementById("join-room-btn").addEventListener("click", () => {
         const roomCode = document.getElementById("join-room-code").value.trim();
         const playerName = document.getElementById("join-player-name").value.trim();
@@ -688,15 +702,16 @@
     });
     
     socket.on("gameUpdate", (data) => {
-      // Sunucudan gelen güncel oyun durumunu alıp UI'ı güncelle
       playerData = data.playerData;
       countryData = data.countryData;
       currentPlayer = data.currentPlayer;
       currentRound = data.currentRound;
       totalPlayers = data.totalPlayers;
+      
       updateUI();
       updateCurrentPlayerUI();
       updateSelectedCountryInfo();
+      
       document.getElementById("current-round").textContent = currentRound;
       let totalPetrol = 0;
       for (let i = 1; i <= totalPlayers; i++) {
@@ -706,7 +721,7 @@
     });
     
     /*****************************************************************
-     * OYUN ARAYÜZÜ İŞLEVLERİ (Oyun içi UI Güncellemeleri)
+     * OYUN ARAYÜZÜ İŞLEVLERİ
      *****************************************************************/
     function initializePlayersUI() {
       const playersInfoDiv = document.getElementById("players-info");
@@ -901,21 +916,9 @@
       }
     }
     
-    // Sayfa yüklendiğinde lobi renk seçenekleri ve UI olayları başlatılsın
-    window.addEventListener("load", () => {
-      initLobbyColorOptions();
-      initLobbyUI();
-    });
-  </script>
-  <!-- İlk 500 satır burada sonlanıyor -->
-</body>
-</html>
-  <!-- İkinci Kısım: Oyun İşlevleri ve Socket.io Entegrasyonu -->
-  <script>
     /*****************************************************************
-     * OYUN İŞLEVLERİ (Online Versiyon)
+     * OYUN İŞLEVLERİ (ONLINE VERSİYON)
      *****************************************************************/
-    // Saldırı İşlemi
     function attack() {
       if (!selectedCountry) {
         showNotification("Lütfen bir ülke seçin!");
@@ -934,7 +937,6 @@
       });
     }
     
-    // Asker Satın Alma İşlemi
     function buySoldiers() {
       const count = parseInt(document.getElementById("soldiers-to-buy").value);
       if (isNaN(count) || count <= 0) {
@@ -948,7 +950,6 @@
       });
     }
     
-    // Asker Kışlası Kurma İşlemi
     function buyBarracks() {
       if (!selectedCountry) {
         showNotification("Lütfen bir ülke seçin!");
@@ -961,7 +962,6 @@
       });
     }
     
-    // Fabrika Kurma İşlemi
     function buildFactory() {
       if (!selectedCountry) {
         showNotification("Lütfen bir ülke seçin!");
@@ -974,7 +974,6 @@
       });
     }
     
-    // Rafine Kurma İşlemi
     function buildRefinery() {
       if (!selectedCountry) {
         showNotification("Lütfen bir ülke seçin!");
@@ -987,7 +986,6 @@
       });
     }
     
-    // Asker Çekme İşlemi
     function pullSoldiers() {
       if (!selectedCountry) {
         showNotification("Lütfen bir ülke seçin!");
@@ -1006,7 +1004,6 @@
       });
     }
     
-    // Tur Sonu İşlemi
     function nextTurn() {
       socket.emit("nextTurn", {
         room: currentRoom,
@@ -1014,7 +1011,6 @@
       });
     }
     
-    // Para Gönderme İşlemi
     function sendMoney() {
       const amount = parseInt(document.getElementById("money-to-send").value);
       const recipient = parseInt(document.getElementById("recipient-player").value);
@@ -1034,7 +1030,6 @@
       });
     }
     
-    // Petrol Gönderme İşlemi
     function sendPetrol() {
       const amount = parseInt(document.getElementById("petrol-to-send").value);
       const recipient = parseInt(document.getElementById("recipient-player-petrol").value);
@@ -1055,37 +1050,7 @@
     }
     
     /*****************************************************************
-     * SOCKET.IO OLAYLARI VE GÜNCELLEME YÖNETİMİ
-     *****************************************************************/
-    // Sunucudan gelen aksiyon sonuçları ve bildirimleri
-    socket.on("actionResult", (data) => {
-      // Örneğin; "Saldırı başarılı", "Yeterli paranız yok" gibi mesajları göster
-      showNotification(data.message, data.duration || 3000);
-    });
-    
-    // Sunucudan gelen güncel oyun durumuyla UI'ı senkronize et
-    socket.on("gameUpdate", (data) => {
-      // Sunucunun gönderdiği oyuncu verilerini, ülke verilerini, tur bilgilerini al ve UI'ı güncelle
-      playerData = data.playerData;
-      countryData = data.countryData;
-      currentPlayer = data.currentPlayer;
-      currentRound = data.currentRound;
-      totalPlayers = data.totalPlayers;
-      
-      updateUI();
-      updateCurrentPlayerUI();
-      updateSelectedCountryInfo();
-      
-      document.getElementById("current-round").textContent = currentRound;
-      let totalPetrol = 0;
-      for (let i = 1; i <= totalPlayers; i++) {
-        totalPetrol += playerData[i].petrol;
-      }
-      document.getElementById("total-petrol").textContent = totalPetrol;
-    });
-    
-    /*****************************************************************
-     * OYUN İÇİ OLAY DİNLEYİCİLERİNİN EKLENMESİ
+     * OYUN İÇİ OLAY DİNLEYİCİLERİ
      *****************************************************************/
     document.getElementById("attack-btn").addEventListener("click", attack);
     document.getElementById("buy-soldiers-btn")?.addEventListener("click", buySoldiers);
@@ -1096,4 +1061,11 @@
     document.getElementById("end-turn-btn").addEventListener("click", nextTurn);
     document.getElementById("send-money-btn").addEventListener("click", sendMoney);
     document.getElementById("send-petrol-btn").addEventListener("click", sendPetrol);
+    
+    window.addEventListener("load", () => {
+      initLobbyColorOptions();
+      initLobbyUI();
+    });
   </script>
+</body>
+</html>
