@@ -11,7 +11,7 @@
         crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
   
-  <!-- Inline CSS (Tüm stil ayarları) -->
+  <!-- Inline CSS -->
   <style>
     /* ==================================================
        Genel Sıfırlama ve Global Ayarlar
@@ -526,10 +526,10 @@
     </div>
   </template>
   
-  <!-- External JS Kütüphanesi: Leaflet -->
+  <!-- External JS: Leaflet -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   
-  <!-- Inline JS: Multiplayer & Oyun İşlevleri -->
+  <!-- Inline JS: Oyun & Multiplayer İşlevleri -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       /*****************************************************************
@@ -549,7 +549,7 @@
       const availableColors = ["red", "blue", "green", "yellow", "purple"];
       const localPlayerId = Math.random().toString(36).substr(2, 9);
       
-      // Lobi formundaki renk seçeneklerini başlat
+      // Renk seçeneklerini başlat
       function initColorOptions(containerId) {
         const container = document.getElementById(containerId);
         container.innerHTML = "";
@@ -559,7 +559,6 @@
           btn.style.background = color;
           btn.dataset.color = color;
           btn.addEventListener("click", function() {
-            // Aynı kapsamdaki diğer butonlardan seçimi kaldır
             const siblings = container.querySelectorAll(".global-color-option");
             siblings.forEach(sib => sib.classList.remove("selected"));
             btn.classList.add("selected");
@@ -570,7 +569,7 @@
       initColorOptions("player-color-selection");
       initColorOptions("player-color-selection-join");
       
-      // Popup bildirimlerini gösteren fonksiyon
+      // Bildirim fonksiyonu
       function showNotification(message, duration = 3000) {
         const notificationArea = document.getElementById("notification-area");
         notificationArea.innerHTML = `<div class="popup">${message}</div>`;
@@ -591,7 +590,7 @@
         }, duration);
       }
       
-      // Butonlara ripple efekti ekleyen fonksiyon
+      // Butonlara ripple efekti ekle
       function createRipple(e) {
         const button = e.currentTarget;
         const circle = document.createElement("span");
@@ -609,7 +608,7 @@
         btn.addEventListener("click", createRipple);
       });
       
-      // Animate.css animasyonunu ekleyen yardımcı fonksiyon
+      // Animate.css animasyon fonksiyonu
       function animateWithAnimateCSS(element, animationName, callback) {
         element.classList.add("animate__animated", animationName);
         function handleAnimationEnd(event) {
@@ -646,7 +645,7 @@
         createRoomForm.style.display = "none";
       });
       
-      // Oda oluşturma işlemi
+      // Oda oluşturma
       document.getElementById("create-room-submit").addEventListener("click", () => {
         const roomName = document.getElementById("new-room-name").value.trim();
         const capacity = parseInt(document.getElementById("room-capacity").value);
@@ -657,7 +656,7 @@
           return;
         }
         totalPlayers = capacity;
-        // Firestore’da yeni bir oda oluştur
+        // Oda kodunu oluştur
         roomId = Math.random().toString(36).substr(2, 6).toUpperCase();
         roomRef = db.collection("rooms").doc(roomId);
         const roomData = {
@@ -680,7 +679,7 @@
         });
       });
       
-      // Odaya katılma işlemi
+      // Odaya katılma
       document.getElementById("join-room-submit").addEventListener("click", () => {
         const joinCode = document.getElementById("join-room-code").value.trim().toUpperCase();
         const playerName = document.getElementById("player-name-join").value.trim();
@@ -705,7 +704,6 @@
             showNotification("Oda dolu!");
             return;
           }
-          // Sıradaki oyuncu indexini ata
           const nextIndex = data.players.length + 1;
           roomRef.update({
             players: firebase.firestore.FieldValue.arrayUnion({
@@ -810,10 +808,12 @@
             <p>Ülkeler: <span id="countries-${i}">0</span></p>
             <p>Petrol: <span id="petrol-${i}">0</span> varil</p>`;
           playersInfoDiv.appendChild(playerDiv);
+          
           const option = document.createElement("option");
           option.value = i;
           option.textContent = playerData[i].name;
           recipientSelect.appendChild(option);
+          
           const option2 = document.createElement("option");
           option2.value = i;
           option2.textContent = playerData[i].name;
@@ -1245,16 +1245,143 @@
         updateUI();
       }
       
-      // Event Listener'ların eklenmesi
-      document.getElementById("attack-btn").addEventListener("click", attack);
-      document.getElementById("buy-soldiers-btn")?.addEventListener("click", buySoldiers);
-      document.getElementById("buy-barracks-btn").addEventListener("click", buyBarracks);
-      document.getElementById("build-factory-btn").addEventListener("click", buildFactory);
-      document.getElementById("build-refinery-btn").addEventListener("click", buildRefinery);
-      document.getElementById("send-money-btn").addEventListener("click", sendMoney);
-      document.getElementById("send-petrol-btn").addEventListener("click", sendPetrol);
-      document.getElementById("end-turn-btn").addEventListener("click", nextTurn);
-      document.getElementById("pull-soldiers-btn").addEventListener("click", pullSoldiers);
+      // Yardımcı: Harita katmanına flash/attack efekti uygula
+      function flashLayer(layer, flashColor) {
+        const originalStyle = {
+          fillColor: layer.options.fillColor,
+          weight: layer.options.weight,
+          color: layer.options.color,
+        };
+        layer.setStyle({ fillColor: flashColor, weight: 3 });
+        if (layer.getElement) {
+          const elem = layer.getElement();
+          if (elem) {
+            elem.classList.add("attack-effect");
+            setTimeout(() => elem.classList.remove("attack-effect"), 600);
+          }
+        }
+        setTimeout(() => layer.setStyle(originalStyle), 600);
+      }
+      
+      /*****************************************************************
+       * FIRESTORE ODA & GAME STATE SENKRONİZASYONU
+       *****************************************************************/
+      // Yalnızca saklanabilir (serialize edilebilir) alanları gönderelim.
+      function getSerializableCountryData() {
+        const serializable = {};
+        for (const country in countryData) {
+          if (countryData.hasOwnProperty(country)) {
+            serializable[country] = {
+              soldiers: countryData[country].soldiers,
+              owner: countryData[country].owner,
+              barracksCount: countryData[country].barracksCount || 0,
+              factories: countryData[country].factories || 0,
+              refineries: countryData[country].refineries || 0
+            };
+          }
+        }
+        return serializable;
+      }
+      
+      // Oyun durumunu Firestore’a yaz
+      function syncGameState() {
+        if (!roomRef) return;
+        const gameState = {
+          currentPlayer: currentPlayer,
+          currentRound: currentRound,
+          playerData: playerData,
+          countryData: getSerializableCountryData()
+        };
+        roomRef.update({ gameState: gameState }).catch(err => {
+          console.error("Game state sync error:", err);
+        });
+      }
+      
+      // Oda belgesindeki değişiklikleri dinle ve yerel durumu güncelle (host olmayan oyuncular için)
+      if (roomRef) {
+        roomRef.onSnapshot(doc => {
+          const data = doc.data();
+          if (data && data.gameState) {
+            if (!isHost) {
+              currentPlayer = data.gameState.currentPlayer;
+              currentRound = data.gameState.currentRound;
+              Object.assign(playerData, data.gameState.playerData);
+              const remoteCountryData = data.gameState.countryData;
+              for (const country in remoteCountryData) {
+                if (countryData[country]) {
+                  countryData[country].soldiers = remoteCountryData[country].soldiers;
+                  countryData[country].owner = remoteCountryData[country].owner;
+                  countryData[country].barracksCount = remoteCountryData[country].barracksCount;
+                  countryData[country].factories = remoteCountryData[country].factories;
+                  countryData[country].refineries = remoteCountryData[country].refineries;
+                }
+              }
+              updateUI();
+              updateCurrentPlayerUI();
+              updateSelectedCountryInfo();
+            }
+          }
+        });
+      }
+      
+      /*****************************************************************
+       * EYLEM FONKSİYONLARININ SENKRONİZE EDİLMESİ
+       * (Her eylem sonrası syncGameState() çağrılarak güncel durum Firestore’a yazılır)
+       *****************************************************************/
+      const originalAttack = attack;
+      attack = function() {
+        originalAttack();
+        syncGameState();
+      };
+      
+      const originalBuySoldiers = buySoldiers;
+      buySoldiers = function() {
+        originalBuySoldiers();
+        syncGameState();
+      };
+      
+      const originalBuyBarracks = buyBarracks;
+      buyBarracks = function() {
+        originalBuyBarracks();
+        syncGameState();
+      };
+      
+      const originalBuildFactory = buildFactory;
+      buildFactory = function() {
+        originalBuildFactory();
+        syncGameState();
+      };
+      
+      const originalBuildRefinery = buildRefinery;
+      buildRefinery = function() {
+        originalBuildRefinery();
+        syncGameState();
+      };
+      
+      const originalPullSoldiers = pullSoldiers;
+      pullSoldiers = function() {
+        originalPullSoldiers();
+        syncGameState();
+      };
+      
+      const originalNextTurn = nextTurn;
+      nextTurn = function() {
+        originalNextTurn();
+        syncGameState();
+      };
+      
+      const originalSendMoney = sendMoney;
+      sendMoney = function() {
+        originalSendMoney();
+        syncGameState();
+      };
+      
+      const originalSendPetrol = sendPetrol;
+      sendPetrol = function() {
+        originalSendPetrol();
+        syncGameState();
+      };
+      
     });
   </script>
 </body>
