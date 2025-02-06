@@ -561,6 +561,13 @@
       return code;
     }
     
+    // Yalnızca sırada olan oyuncu işlem yapabilsin
+    function isMyTurn() {
+      if (!roomData || !roomData.playerOrder) return false;
+      const currentTurnIndex = roomData.currentTurnIndex || 0;
+      return roomData.playerOrder[currentTurnIndex] === localPlayerId;
+    }
+    
     /*****************************************************************
      * DOMContentLoaded – Lobby Arayüzü ve Oda Oluştur/Katılma
      *****************************************************************/
@@ -909,6 +916,10 @@
      * OYUN İŞLEVLERİ (Firebase verisini güncelleyen fonksiyonlar)
      *****************************************************************/
     function attack() {
+      if (!isMyTurn()) {
+        showNotification("Sıranız değil!");
+        return;
+      }
       if (!selectedCountry) {
         showNotification("Bir ülke seçin!");
         return;
@@ -953,6 +964,10 @@
     }
     
     function buySoldiers() {
+      if (!isMyTurn()) {
+        showNotification("Sıranız değil!");
+        return;
+      }
       const count = parseInt(document.getElementById("soldiers-to-buy").value);
       if (isNaN(count) || count <= 0) {
         showNotification("Geçerli bir asker sayısı girin!");
@@ -974,6 +989,10 @@
     }
     
     function buyBarracks() {
+      if (!isMyTurn()) {
+        showNotification("Sıranız değil!");
+        return;
+      }
       if (!selectedCountry) {
         showNotification("Lütfen bir ülke seçin!");
         return;
@@ -1003,6 +1022,10 @@
     }
     
     function buildFactory() {
+      if (!isMyTurn()) {
+        showNotification("Sıranız değil!");
+        return;
+      }
       if (!selectedCountry) {
         showNotification("Lütfen bir ülke seçin!");
         return;
@@ -1032,6 +1055,10 @@
     }
     
     function buildRefinery() {
+      if (!isMyTurn()) {
+        showNotification("Sıranız değil!");
+        return;
+      }
       if (!selectedCountry) {
         showNotification("Lütfen bir ülke seçin!");
         return;
@@ -1065,6 +1092,10 @@
     }
     
     function pullSoldiers() {
+      if (!isMyTurn()) {
+        showNotification("Sıranız değil!");
+        return;
+      }
       if (!selectedCountry) {
         showNotification("Bir ülke seçin!");
         return;
@@ -1094,6 +1125,10 @@
     
     // Tur sonunda; her oyuncunun sahip olduğu ülkelerde kışla, gelir ve petrol güncellemesi yapılıyor.
     function nextTurn() {
+      if (!isMyTurn()) {
+        showNotification("Sıranız değil!");
+        return;
+      }
       const currentTurnIndex = roomData.currentTurnIndex || 0;
       const currentPlayerId = roomData.playerOrder[currentTurnIndex];
       const player = roomData.players[currentPlayerId];
@@ -1128,6 +1163,10 @@
     }
     
     function sendMoney() {
+      if (!isMyTurn()) {
+        showNotification("Sıranız değil!");
+        return;
+      }
       const amount = parseInt(document.getElementById("money-to-send").value);
       const recipientId = document.getElementById("recipient-player").value;
       if (isNaN(amount) || amount <= 0) {
@@ -1153,6 +1192,10 @@
     }
     
     function sendPetrol() {
+      if (!isMyTurn()) {
+        showNotification("Sıranız değil!");
+        return;
+      }
       const amount = parseInt(document.getElementById("petrol-to-send").value);
       const recipientId = document.getElementById("recipient-player-petrol").value;
       if (isNaN(amount) || amount <= 0) {
