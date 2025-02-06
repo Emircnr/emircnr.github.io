@@ -611,7 +611,7 @@
     const availableColors = ["red", "blue", "green", "yellow", "purple"];
     let localPlayerColor = null;
     let chatListenerAdded = false;
-    // Ülkelerin geometrilerini saklamak için (neighbor kontrolü için)
+    // Ülkelerin geometrilerini saklamak için (komşuluk kontrolü için)
     window.countryGeometries = {};
     
     // Basit popup bildirimleri
@@ -1057,8 +1057,8 @@
     /*****************************************************************
      * OYUN İŞLEVLERİ (Firebase verisini güncelleyen fonksiyonlar)
      *****************************************************************/
-    // Saldırı yapılmadan önce; eğer saldırı hedefi (yabancı ülke) ise, oyuncunun sahip olduğu ülkelerden en az birinin
-    // hedef ülke ile sınırı (komşuluğu) olup olmadığını turf.js ile kontrol ediyoruz.
+    // Saldırı yapılmadan önce; eğer hedef ülke oyuncuya ait değilse,
+    // oyuncunun sahip olduğu ülkelerden en az birinin hedef ülke ile sınırı olup olmadığını kontrol ediyoruz.
     function attack() {
       if (!isMyTurn()) {
         showNotification("Sıranız değil!");
@@ -1082,16 +1082,16 @@
       }
       const target = roomData.countryData[selectedCountry];
       const updates = {};
-      // Eğer hedef ülke oyuncuya ait değilse, saldırı öncesi komşuluk kontrolü yapalım.
+      // Eğer hedef ülke oyuncuya ait değilse, komşuluk kontrolü yapalım.
       if (target.owner !== currentPlayerId) {
         let adjacent = false;
         const playerCountries = currentPlayerData.countries || [];
+        const targetFeature = window.countryGeometries[selectedCountry];
         playerCountries.forEach(ownedCountry => {
           const ownedFeature = window.countryGeometries[ownedCountry];
-          const targetFeature = window.countryGeometries[selectedCountry];
           if (ownedFeature && targetFeature) {
-            // turf.booleanIntersects, iki ülke poligonlarının dokunup dokunmadığını kontrol eder.
-            if (turf.booleanIntersects(ownedFeature, targetFeature)) {
+            // Eğer iki ülke dokunuyorsa veya kesişiyorsa, adjacent true olur.
+            if (turf.booleanIntersects(ownedFeature, targetFeature) || turf.booleanTouches(ownedFeature, targetFeature)) {
               adjacent = true;
             }
           }
