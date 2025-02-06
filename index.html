@@ -40,6 +40,12 @@
       background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
       color: #eee;
       overflow-x: hidden;
+      transition: background 0.5s;
+    }
+    /* Savaş temalı Lobby arka planı */
+    body.lobby {
+      background: url('https://source.unsplash.com/1600x900/?war,military') no-repeat center center fixed;
+      background-size: cover;
     }
     a {
       text-decoration: none;
@@ -64,16 +70,17 @@
     }
 
     /* ==================================================
-       Lobby Ekranı (Oda Oluşturma & Katılma)
+       Lobby Ekranı (Oda Oluşturma & Katılma) – Savaş Temalı
        ================================================== */
     #lobby-container {
       max-width: 500px;
       margin: 50px auto;
       padding: 20px;
-      background: rgba(0, 0, 0, 0.4);
+      background: rgba(0, 0, 0, 0.6);
       border-radius: 12px;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.8);
       backdrop-filter: blur(8px);
+      border: 2px solid #f1c40f;
     }
     #lobby-container h1,
     #lobby-container h2 {
@@ -82,6 +89,7 @@
       color: #f1c40f;
       text-transform: uppercase;
       letter-spacing: 1px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
     }
     #lobby-container input[type="text"],
     #lobby-container input[type="number"] {
@@ -164,7 +172,7 @@
       padding: 6px 10px;
       cursor: pointer;
     }
-    /* Sağ Panel – Daha İnce Tasarım */
+    /* Sağ Panel – İnce Tasarım */
     #side-panel {
       flex: 2;
       max-width: 300px;
@@ -332,6 +340,8 @@
     /* ==================================================
        Leaflet Tooltip & Ülke Popup – Yeni Tasarım
        ================================================== */
+    /* Burada, tooltip’ler başlangıçta permanent olarak gösterilir.
+       toggle ile permanent değeri değiştirilecektir. */
     .leaflet-tooltip {
       background: transparent;
       border: none;
@@ -346,13 +356,9 @@
       text-align: center;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
     }
-    /* Eğer bilgi kartları gizlenmek isteniyorsa */
-    body.hide-info-cards .leaflet-tooltip.country-popup-tooltip {
-      display: none !important;
-    }
 
     /* ==================================================
-       Buton Ripple Efekti ve Diğer Animasyonlar (Orijinal Koddan)
+       Buton Ripple Efekti ve Diğer Animasyonlar
        ================================================== */
     .button-click-effect {
       position: relative;
@@ -573,7 +579,7 @@
     }
   </style>
 </head>
-<body>
+<body class="lobby">
   <!-- ===================== LOBBY (Oda Oluşturma & Katılma) ===================== -->
   <div id="lobby-container">
     <h1>GLOBAL CONQUEST</h1>
@@ -852,6 +858,8 @@
     const availableColors = ["red", "blue", "green", "yellow", "purple"];
     let localPlayerColor = null;
     let chatListenerAdded = false;
+    // Bilgi kartlarının permanent olup olmama durumu; başlangıçta permanent (true)
+    let infoCardsPermanent = true;
 
     function showNotification(message, duration = 3000) {
       const notificationArea = document.getElementById("notification-area");
@@ -997,6 +1005,8 @@
             localStorage.setItem("roomCode", roomCode);
             loadAndInitializeGeoJson();
             joinRoomAndListen();
+            // Lobby'den çıkınca lobby arka planını kaldırıyoruz.
+            document.body.classList.remove("lobby");
             document.getElementById("lobby-container").style.display = "none";
             document.getElementById("game-container").style.display = "block";
             document.getElementById("display-room-code").textContent = roomCode;
@@ -1057,6 +1067,7 @@
               showNotification("Odaya katıldınız!");
               localStorage.setItem("roomCode", roomCodeInput);
               joinRoomAndListen();
+              document.body.classList.remove("lobby");
               document.getElementById("lobby-container").style.display = "none";
               document.getElementById("game-container").style.display = "block";
               document.getElementById("display-room-code").textContent = roomCodeInput;
@@ -1068,15 +1079,12 @@
       // Otomatik Bağlanma
       autoReconnect();
 
-      // Toggle butonuna tıklanınca bilgi kartlarını göster/gizle
+      // Toggle butonuna tıklanırsa bilgi kartlarının permanent durumunu güncelleyelim
       document.getElementById("toggle-info-cards").addEventListener("click", () => {
-        document.body.classList.toggle("hide-info-cards");
+        infoCardsPermanent = !infoCardsPermanent;
+        updateTooltipsPermanent();
         const icon = document.querySelector("#toggle-info-cards i");
-        if (document.body.classList.contains("hide-info-cards")) {
-          icon.className = "fas fa-eye-slash";
-        } else {
-          icon.className = "fas fa-eye";
-        }
+        icon.className = infoCardsPermanent ? "fas fa-eye" : "fas fa-eye-slash";
       });
     });
 
@@ -1091,6 +1099,7 @@
           currentRoomCode = savedRoomCode;
           roomRef = refCheck;
           joinRoomAndListen();
+          document.body.classList.remove("lobby");
           document.getElementById("lobby-container").style.display = "none";
           document.getElementById("game-container").style.display = "block";
           document.getElementById("display-room-code").textContent = savedRoomCode;
@@ -1206,6 +1215,7 @@
             } else {
               layer.setStyle({ fillColor: "#ccc", fillOpacity: 0.7 });
             }
+            // Güncel tooltip içeriğini ayarla
             layer.setTooltipContent(getCountryPopupContent(countryName, country));
           }
         });
@@ -1851,10 +1861,11 @@
     document.getElementById("send-money-btn").addEventListener("click", sendMoney);
     document.getElementById("send-petrol-btn").addEventListener("click", sendPetrol);
     document.getElementById("end-turn-btn").addEventListener("click", nextTurn);
+    // Odadan çık: Oyun ekranından çıkınca tekrar lobby ekranı gösterilsin ve lobby arka planı eklensin.
     document.getElementById("exit-room-btn").addEventListener("click", () => {
-      // İsteğe bağlı: localStorage.removeItem("roomCode");
       document.getElementById("game-container").style.display = "none";
       document.getElementById("lobby-container").style.display = "block";
+      document.body.classList.add("lobby");
     });
 
     /*****************************************************************
@@ -1878,15 +1889,14 @@
             }),
             onEachFeature: (feature, layer) => {
               const countryName = feature.properties.name;
+              // İlk başta tooltip permanent olarak bağlı (infoCardsPermanent true)
               layer.bindTooltip(
                 getCountryPopupContent(
                   countryName,
-                  roomData && roomData.countryData
-                    ? roomData.countryData[countryName]
-                    : {}
+                  roomData && roomData.countryData ? roomData.countryData[countryName] : {}
                 ),
                 {
-                  permanent: true,
+                  permanent: infoCardsPermanent,
                   direction: "center",
                   className: "country-popup-tooltip"
                 }
@@ -1895,6 +1905,24 @@
             }
           }).addTo(map);
         });
+    }
+
+    // Bu fonksiyon, toggle durumuna göre tooltip’leri yeniden bağlar.
+    function updateTooltipsPermanent() {
+      if (!geoJsonLayer) return;
+      geoJsonLayer.eachLayer(function(layer) {
+        layer.unbindTooltip();
+        const countryName = layer.feature.properties.name;
+        const tooltipContent = getCountryPopupContent(
+          countryName,
+          roomData && roomData.countryData ? roomData.countryData[countryName] : {}
+        );
+        layer.bindTooltip(tooltipContent, {
+          permanent: infoCardsPermanent,
+          direction: "center",
+          className: "country-popup-tooltip"
+        });
+      });
     }
 
     function selectCountry(countryName, layer) {
