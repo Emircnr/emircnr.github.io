@@ -9,10 +9,11 @@
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
   <!-- FontAwesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <!-- Animate.css -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+  <!-- Turf.js (mekânsal hesaplamalar için) -->
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
   
   <!-- Inline CSS -->
   <style>
@@ -610,6 +611,8 @@
     const availableColors = ["red", "blue", "green", "yellow", "purple"];
     let localPlayerColor = null;
     let chatListenerAdded = false;
+    // Ülkelerin geometrilerini saklamak için (neighbor kontrolü için)
+    window.countryGeometries = {};
     
     // Basit popup bildirimleri
     function showNotification(message, duration = 3000) {
@@ -659,6 +662,32 @@
       if (!roomData || !roomData.playerOrder) return false;
       const currentTurnIndex = roomData.currentTurnIndex || 0;
       return roomData.playerOrder[currentTurnIndex] === localPlayerId;
+    }
+    
+    /*****************************************************************
+     * İLK ÜLKE ATAMASI – Oda dolduğunda (oyuncu sayısı eşit olduğunda) ve oyun henüz başlamadıysa,
+     * oda kurucusu tarafından (playerOrder[0]) çalıştırılarak her oyuncuya rastgele bir ilk ülke atanır.
+     *****************************************************************/
+    function assignInitialCountries() {
+      if (!roomData || roomData.gameState !== "waiting") return;
+      const players = roomData.players;
+      const playerIds = Object.keys(players);
+      const countryNames = Object.keys(roomData.countryData);
+      // Rastgele ülke listesi oluşturmak için karıştır
+      countryNames.sort(() => Math.random() - 0.5);
+      const updates = {};
+      for (let i = 0; i < playerIds.length; i++) {
+        const pid = playerIds[i];
+        const countryName = countryNames[i]; // ilk N ülke, N = oyuncu sayısı
+        updates["countryData/" + countryName + "/owner"] = pid;
+        // Oyuncunun ülkeler listesine ekle
+        const playerCountries = players[pid].countries || [];
+        playerCountries.push(countryName);
+        updates["players/" + pid + "/countries"] = playerCountries;
+      }
+      // Oyun durumunu "playing" olarak güncelleyelim
+      updates["gameState"] = "playing";
+      roomRef.update(updates);
     }
     
     /*****************************************************************
@@ -813,6 +842,12 @@
       fetch("https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json")
         .then(response => response.json())
         .then(geoJsonData => {
+          // Ülkelerin geometrilerini global alanda saklayalım
+          geoJsonData.features.forEach(feature => {
+            const countryName = feature.properties.name;
+            window.countryGeometries[countryName] = feature;
+          });
+          // İlk atama için oilProduction vs. ve diğer özellikleri de ayarlayalım:
           const features = geoJsonData.features;
           let oilIndexes = [];
           if (features.length > 43) {
@@ -854,6 +889,12 @@
       roomRef.on("value", (snapshot) => {
         roomData = snapshot.val();
         updateGameUI();
+        // Eğer oda dolduysa ve oyun henüz başlamadıysa, oda kurucusu tarafından ilk ülkeler atanır.
+        if (roomData && roomData.gameState === "waiting" && Object.keys(roomData.players).length === roomData.maxPlayers) {
+          if (roomData.playerOrder[0] === localPlayerId) {
+            assignInitialCountries();
+          }
+        }
       });
       // Chat listener – yalnızca bir kez ekleniyor.
       if (!chatListenerAdded) {
@@ -1016,6 +1057,8 @@
     /*****************************************************************
      * OYUN İŞLEVLERİ (Firebase verisini güncelleyen fonksiyonlar)
      *****************************************************************/
+    // Saldırı yapılmadan önce; eğer saldırı hedefi (yabancı ülke) ise, oyuncunun sahip olduğu ülkelerden en az birinin
+    // hedef ülke ile sınırı (komşuluğu) olup olmadığını turf.js ile kontrol ediyoruz.
     function attack() {
       if (!isMyTurn()) {
         showNotification("Sıranız değil!");
@@ -1039,7 +1082,27 @@
       }
       const target = roomData.countryData[selectedCountry];
       const updates = {};
+      // Eğer hedef ülke oyuncuya ait değilse, saldırı öncesi komşuluk kontrolü yapalım.
+      if (target.owner !== currentPlayerId) {
+        let adjacent = false;
+        const playerCountries = currentPlayerData.countries || [];
+        playerCountries.forEach(ownedCountry => {
+          const ownedFeature = window.countryGeometries[ownedCountry];
+          const targetFeature = window.countryGeometries[selectedCountry];
+          if (ownedFeature && targetFeature) {
+            // turf.booleanIntersects, iki ülke poligonlarının dokunup dokunmadığını kontrol eder.
+            if (turf.booleanIntersects(ownedFeature, targetFeature)) {
+              adjacent = true;
+            }
+          }
+        });
+        if (!adjacent) {
+          showNotification("Hedef ülke sizin topraklarınıza komşu değil!");
+          return;
+        }
+      }
       if (target.owner === currentPlayerId) {
+        // Aynı ülkeye asker ekleme
         updates["countryData/" + selectedCountry + "/soldiers"] = target.soldiers + soldiersToSend;
         updates["players/" + currentPlayerId + "/soldiers"] = currentPlayerData.soldiers - soldiersToSend;
         showNotification(selectedCountry + " ülkesine " + soldiersToSend + " asker ekleniyor.");
