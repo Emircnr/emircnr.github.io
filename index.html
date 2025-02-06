@@ -561,13 +561,6 @@
       return code;
     }
     
-    // Yalnızca sırada olan oyuncu işlem yapabilsin
-    function isMyTurn() {
-      if (!roomData || !roomData.playerOrder) return false;
-      const currentTurnIndex = roomData.currentTurnIndex || 0;
-      return roomData.playerOrder[currentTurnIndex] === localPlayerId;
-    }
-    
     /*****************************************************************
      * DOMContentLoaded – Lobby Arayüzü ve Oda Oluştur/Katılma
      *****************************************************************/
@@ -818,6 +811,18 @@
       }
       updateSelectedCountryInfo();
       updateRecipientSelects();
+      
+      // Sadece sırası gelen oyuncu için butonları aktif edelim
+      const isMyTurn = roomData.playerOrder[roomData.currentTurnIndex] === localPlayerId;
+      document.getElementById("attack-btn").disabled = !isMyTurn;
+      document.getElementById("buy-soldiers-btn").disabled = !isMyTurn;
+      document.getElementById("buy-barracks-btn").disabled = !isMyTurn;
+      document.getElementById("build-factory-btn").disabled = !isMyTurn;
+      document.getElementById("build-refinery-btn").disabled = !isMyTurn;
+      document.getElementById("pull-soldiers-btn").disabled = !isMyTurn;
+      document.getElementById("send-money-btn").disabled = !isMyTurn;
+      document.getElementById("send-petrol-btn").disabled = !isMyTurn;
+      document.getElementById("end-turn-btn").disabled = !isMyTurn;
     }
     
     // Seçili ülke bilgilerini güncelleme
@@ -915,9 +920,11 @@
     /*****************************************************************
      * OYUN İŞLEVLERİ (Firebase verisini güncelleyen fonksiyonlar)
      *****************************************************************/
+    // Her işlem fonksiyonunun başında, sadece sırası gelen oyuncunun işlem yapabilmesi için kontrol eklenmiştir.
+    
     function attack() {
-      if (!isMyTurn()) {
-        showNotification("Sıranız değil!");
+      if (roomData.playerOrder[roomData.currentTurnIndex] !== localPlayerId) {
+        showNotification("Sıra sizde değil!");
         return;
       }
       if (!selectedCountry) {
@@ -964,8 +971,8 @@
     }
     
     function buySoldiers() {
-      if (!isMyTurn()) {
-        showNotification("Sıranız değil!");
+      if (roomData.playerOrder[roomData.currentTurnIndex] !== localPlayerId) {
+        showNotification("Sıra sizde değil!");
         return;
       }
       const count = parseInt(document.getElementById("soldiers-to-buy").value);
@@ -989,8 +996,8 @@
     }
     
     function buyBarracks() {
-      if (!isMyTurn()) {
-        showNotification("Sıranız değil!");
+      if (roomData.playerOrder[roomData.currentTurnIndex] !== localPlayerId) {
+        showNotification("Sıra sizde değil!");
         return;
       }
       if (!selectedCountry) {
@@ -1022,8 +1029,8 @@
     }
     
     function buildFactory() {
-      if (!isMyTurn()) {
-        showNotification("Sıranız değil!");
+      if (roomData.playerOrder[roomData.currentTurnIndex] !== localPlayerId) {
+        showNotification("Sıra sizde değil!");
         return;
       }
       if (!selectedCountry) {
@@ -1055,8 +1062,8 @@
     }
     
     function buildRefinery() {
-      if (!isMyTurn()) {
-        showNotification("Sıranız değil!");
+      if (roomData.playerOrder[roomData.currentTurnIndex] !== localPlayerId) {
+        showNotification("Sıra sizde değil!");
         return;
       }
       if (!selectedCountry) {
@@ -1092,8 +1099,8 @@
     }
     
     function pullSoldiers() {
-      if (!isMyTurn()) {
-        showNotification("Sıranız değil!");
+      if (roomData.playerOrder[roomData.currentTurnIndex] !== localPlayerId) {
+        showNotification("Sıra sizde değil!");
         return;
       }
       if (!selectedCountry) {
@@ -1123,10 +1130,9 @@
       showNotification(selectedCountry + " ülkesinden " + count + " asker çekildi.");
     }
     
-    // Tur sonunda; her oyuncunun sahip olduğu ülkelerde kışla, gelir ve petrol güncellemesi yapılıyor.
     function nextTurn() {
-      if (!isMyTurn()) {
-        showNotification("Sıranız değil!");
+      if (roomData.playerOrder[roomData.currentTurnIndex] !== localPlayerId) {
+        showNotification("Sıra sizde değil!");
         return;
       }
       const currentTurnIndex = roomData.currentTurnIndex || 0;
@@ -1163,8 +1169,8 @@
     }
     
     function sendMoney() {
-      if (!isMyTurn()) {
-        showNotification("Sıranız değil!");
+      if (roomData.playerOrder[roomData.currentTurnIndex] !== localPlayerId) {
+        showNotification("Sıra sizde değil!");
         return;
       }
       const amount = parseInt(document.getElementById("money-to-send").value);
@@ -1192,8 +1198,8 @@
     }
     
     function sendPetrol() {
-      if (!isMyTurn()) {
-        showNotification("Sıranız değil!");
+      if (roomData.playerOrder[roomData.currentTurnIndex] !== localPlayerId) {
+        showNotification("Sıra sizde değil!");
         return;
       }
       const amount = parseInt(document.getElementById("petrol-to-send").value);
