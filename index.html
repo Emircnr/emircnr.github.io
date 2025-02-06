@@ -350,86 +350,10 @@
         opacity: 1;
       }
     }
-    
-    /* ==================================================
-       Chat Popup Stilleri
-       ================================================== */
-    .chat-popup {
-      position: fixed;
-      bottom: 70px;
-      right: 20px;
-      width: 300px;
-      max-height: 400px;
-      background: #2a2a3d;
-      border: 1px solid #444;
-      border-radius: 8px;
-      display: none;
-      flex-direction: column;
-      z-index: 3000;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-    }
-    .chat-header {
-      background: #1e1e2f;
-      padding: 10px;
-      border-top-left-radius: 8px;
-      border-top-right-radius: 8px;
-      color: #f1c40f;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .chat-header button {
-      background: transparent;
-      border: none;
-      color: #f1c40f;
-      font-size: 20px;
-      cursor: pointer;
-    }
-    .chat-messages {
-      flex: 1;
-      padding: 10px;
-      overflow-y: auto;
-      background: #2a2a3d;
-      color: #eee;
-      font-size: 14px;
-    }
-    .chat-input-container {
-      display: flex;
-      border-top: 1px solid #444;
-    }
-    .chat-input-container input[type="text"] {
-      flex: 1;
-      padding: 10px;
-      border: none;
-      outline: none;
-      background: #1e1e2f;
-      color: #eee;
-    }
-    .chat-input-container button {
-      padding: 10px;
-      background: linear-gradient(45deg, #f39c12, #e67e22);
-      border: none;
-      cursor: pointer;
-      color: #fff;
-    }
-    .open-chat-btn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: linear-gradient(45deg, #f39c12, #e67e22);
-      border: none;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      color: #fff;
-      font-size: 24px;
-      cursor: pointer;
-      z-index: 3000;
-    }
   </style>
 </head>
 <body>
-  <!-- ===================== LOBBY (Oda Oluşturma & Katılma) ===================== -->
+  <!-- ===================== LOBBY (ODA OLUŞTURMA & KATILMA) ===================== -->
   <div id="lobby-container">
     <h1>Harita Fetih Oyunu</h1>
     <!-- Oda Oluşturma Bölümü -->
@@ -557,22 +481,6 @@
     </div>
   </div>
   
-  <!-- ===================== CHAT POPUP ===================== -->
-  <div id="chat-popup" class="chat-popup">
-    <div class="chat-header">
-      <span>Sohbet</span>
-      <button id="close-chat-btn">&times;</button>
-    </div>
-    <div id="chat-messages" class="chat-messages">
-      <!-- Chat mesajları burada listelenecek -->
-    </div>
-    <div class="chat-input-container">
-      <input type="text" id="chat-input" placeholder="Mesajınızı yazın..." />
-      <button id="send-chat-btn"><i class="fas fa-paper-plane"></i></button>
-    </div>
-  </div>
-  <button id="open-chat-btn" class="open-chat-btn"><i class="fas fa-comments"></i></button>
-  
   <!-- ===================== Firebase & Diğer JS Kütüphaneleri ===================== -->
   <!-- Firebase App ve Database (compat sürümü) -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -609,12 +517,11 @@
     let map, geoJsonLayer = null;
     const availableColors = ["red", "blue", "green", "yellow", "purple"];
     let localPlayerColor = null;
-    let chatListenerAdded = false;
     
     // Basit popup bildirimleri
     function showNotification(message, duration = 3000) {
       const notificationArea = document.getElementById("notification-area");
-      notificationArea.innerHTML = <div class="popup">${message}</div>;
+      notificationArea.innerHTML = `<div class="popup">${message}</div>`;
       notificationArea.style.display = "flex";
       notificationArea.style.opacity = 0;
       notificationArea.style.transform = "translateY(-20px)";
@@ -652,13 +559,6 @@
         code += chars.charAt(Math.floor(Math.random() * chars.length));
       }
       return code;
-    }
-    
-    // Yalnızca sırada olan oyuncu işlem yapabilsin
-    function isMyTurn() {
-      if (!roomData || !roomData.playerOrder) return false;
-      const currentTurnIndex = roomData.currentTurnIndex || 0;
-      return roomData.playerOrder[currentTurnIndex] === localPlayerId;
     }
     
     /*****************************************************************
@@ -855,14 +755,6 @@
         roomData = snapshot.val();
         updateGameUI();
       });
-      // Chat listener – yalnızca bir kez ekleniyor.
-      if (!chatListenerAdded) {
-        roomRef.child("chat").on("child_added", (snapshot) => {
-          const message = snapshot.val();
-          appendChatMessage(message);
-        });
-        chatListenerAdded = true;
-      }
     }
     
     // Oyun ekranındaki bilgileri Firebase verilerine göre güncelleyelim.
@@ -919,6 +811,18 @@
       }
       updateSelectedCountryInfo();
       updateRecipientSelects();
+      
+      // Sadece sırası gelen oyuncu için butonları aktif edelim
+      const isMyTurn = roomData.playerOrder[roomData.currentTurnIndex] === localPlayerId;
+      document.getElementById("attack-btn").disabled = !isMyTurn;
+      document.getElementById("buy-soldiers-btn").disabled = !isMyTurn;
+      document.getElementById("buy-barracks-btn").disabled = !isMyTurn;
+      document.getElementById("build-factory-btn").disabled = !isMyTurn;
+      document.getElementById("build-refinery-btn").disabled = !isMyTurn;
+      document.getElementById("pull-soldiers-btn").disabled = !isMyTurn;
+      document.getElementById("send-money-btn").disabled = !isMyTurn;
+      document.getElementById("send-petrol-btn").disabled = !isMyTurn;
+      document.getElementById("end-turn-btn").disabled = !isMyTurn;
     }
     
     // Seçili ülke bilgilerini güncelleme
@@ -1016,9 +920,11 @@
     /*****************************************************************
      * OYUN İŞLEVLERİ (Firebase verisini güncelleyen fonksiyonlar)
      *****************************************************************/
+    // Her işlem fonksiyonunun başında, sadece sırası gelen oyuncunun işlem yapabilmesi için kontrol eklenmiştir.
+    
     function attack() {
-      if (!isMyTurn()) {
-        showNotification("Sıranız değil!");
+      if (roomData.playerOrder[roomData.currentTurnIndex] !== localPlayerId) {
+        showNotification("Sıra sizde değil!");
         return;
       }
       if (!selectedCountry) {
@@ -1065,8 +971,8 @@
     }
     
     function buySoldiers() {
-      if (!isMyTurn()) {
-        showNotification("Sıranız değil!");
+      if (roomData.playerOrder[roomData.currentTurnIndex] !== localPlayerId) {
+        showNotification("Sıra sizde değil!");
         return;
       }
       const count = parseInt(document.getElementById("soldiers-to-buy").value);
@@ -1090,8 +996,8 @@
     }
     
     function buyBarracks() {
-      if (!isMyTurn()) {
-        showNotification("Sıranız değil!");
+      if (roomData.playerOrder[roomData.currentTurnIndex] !== localPlayerId) {
+        showNotification("Sıra sizde değil!");
         return;
       }
       if (!selectedCountry) {
@@ -1123,8 +1029,8 @@
     }
     
     function buildFactory() {
-      if (!isMyTurn()) {
-        showNotification("Sıranız değil!");
+      if (roomData.playerOrder[roomData.currentTurnIndex] !== localPlayerId) {
+        showNotification("Sıra sizde değil!");
         return;
       }
       if (!selectedCountry) {
@@ -1156,8 +1062,8 @@
     }
     
     function buildRefinery() {
-      if (!isMyTurn()) {
-        showNotification("Sıranız değil!");
+      if (roomData.playerOrder[roomData.currentTurnIndex] !== localPlayerId) {
+        showNotification("Sıra sizde değil!");
         return;
       }
       if (!selectedCountry) {
@@ -1193,8 +1099,8 @@
     }
     
     function pullSoldiers() {
-      if (!isMyTurn()) {
-        showNotification("Sıranız değil!");
+      if (roomData.playerOrder[roomData.currentTurnIndex] !== localPlayerId) {
+        showNotification("Sıra sizde değil!");
         return;
       }
       if (!selectedCountry) {
@@ -1224,10 +1130,9 @@
       showNotification(selectedCountry + " ülkesinden " + count + " asker çekildi.");
     }
     
-    // Tur sonunda; her oyuncunun sahip olduğu ülkelerde kışla, gelir ve petrol güncellemesi yapılıyor.
     function nextTurn() {
-      if (!isMyTurn()) {
-        showNotification("Sıranız değil!");
+      if (roomData.playerOrder[roomData.currentTurnIndex] !== localPlayerId) {
+        showNotification("Sıra sizde değil!");
         return;
       }
       const currentTurnIndex = roomData.currentTurnIndex || 0;
@@ -1264,8 +1169,8 @@
     }
     
     function sendMoney() {
-      if (!isMyTurn()) {
-        showNotification("Sıranız değil!");
+      if (roomData.playerOrder[roomData.currentTurnIndex] !== localPlayerId) {
+        showNotification("Sıra sizde değil!");
         return;
       }
       const amount = parseInt(document.getElementById("money-to-send").value);
@@ -1293,8 +1198,8 @@
     }
     
     function sendPetrol() {
-      if (!isMyTurn()) {
-        showNotification("Sıranız değil!");
+      if (roomData.playerOrder[roomData.currentTurnIndex] !== localPlayerId) {
+        showNotification("Sıra sizde değil!");
         return;
       }
       const amount = parseInt(document.getElementById("petrol-to-send").value);
@@ -1319,62 +1224,6 @@
       updates["players/" + recipientId + "/petrol"] = roomData.players[recipientId].petrol + amount;
       roomRef.update(updates);
       showNotification(amount + " varil, " + roomData.players[recipientId].name + " oyuncusuna gönderildi.");
-    }
-    
-    /*****************************************************************
-     * CHAT SISTEMİ
-     *****************************************************************/
-    // Chat popup aç/kapa işlevi
-    function toggleChat(show) {
-      const chatPopup = document.getElementById("chat-popup");
-      if (show) {
-        chatPopup.style.display = "flex";
-      } else {
-        chatPopup.style.display = "none";
-      }
-    }
-    document.getElementById("open-chat-btn").addEventListener("click", () => {
-      toggleChat(true);
-    });
-    document.getElementById("close-chat-btn").addEventListener("click", () => {
-      toggleChat(false);
-    });
-    document.getElementById("send-chat-btn").addEventListener("click", () => {
-      sendChatMessage();
-    });
-    document.getElementById("chat-input").addEventListener("keypress", (e) => {
-      if (e.key === "Enter") {
-        sendChatMessage();
-      }
-    });
-    
-    function sendChatMessage() {
-      const input = document.getElementById("chat-input");
-      const messageText = input.value.trim();
-      if (!messageText) return;
-      if (!roomRef) {
-        showNotification("Oda verisi yüklenmedi.");
-        return;
-      }
-      const chatMessage = {
-        sender: (roomData && roomData.players && roomData.players[localPlayerId] ? roomData.players[localPlayerId].name : "Anon"),
-        text: messageText,
-        timestamp: firebase.database.ServerValue.TIMESTAMP
-      };
-      roomRef.child("chat").push(chatMessage, (error) => {
-        if (!error) {
-          input.value = "";
-        }
-      });
-    }
-    
-    function appendChatMessage(message) {
-      const chatMessagesDiv = document.getElementById("chat-messages");
-      const messageDiv = document.createElement("div");
-      const time = new Date(message.timestamp).toLocaleTimeString();
-      messageDiv.innerHTML = <strong>${message.sender}</strong> [${time}]: ${message.text};
-      chatMessagesDiv.appendChild(messageDiv);
-      chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
     }
     
     /*****************************************************************
