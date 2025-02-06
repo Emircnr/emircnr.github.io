@@ -6,21 +6,22 @@
   <title>Harita Fetih Oyunu - Online</title>
   
   <!-- External Libraries -->
-  <!-- Leaflet CSS (harita için) -->
+  <!-- Leaflet CSS (harita için, eğer harita kullanılacaksa) -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
-  <!-- FontAwesome (simgeler) -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer"/>
+  <!-- FontAwesome (ikonlar için) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
   <!-- Animate.css -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
   
   <!-- Inline CSS -->
   <style>
-    /* Genel Reset ve Temel Stil Ayarları */
+    /* Genel Reset ve Temel Stiller */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #1e1e2f, #2a2a3d); color: #eee; }
     a { text-decoration: none; color: inherit; }
     
-    /* Bildirim (Popup) Alanı */
+    /* Bildirim (Popup) */
     #notification-area {
       position: fixed; top: 20px; right: 20px; z-index: 2000;
       display: none; padding: 10px 20px;
@@ -29,7 +30,7 @@
       font-size: 14px;
     }
     
-    /* Lobby UI */
+    /* LOBBY UI */
     #lobby-container { padding: 20px; }
     #lobby-container h2, #lobby-container h3 { margin-bottom: 10px; }
     #lobby-container input { padding: 8px; margin-bottom: 10px; width: 100%; border-radius: 4px; border: none; }
@@ -53,9 +54,10 @@
     #game-info { margin-bottom: 20px; background: #2a2a3d; padding: 15px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
     #game-info h2 { margin-bottom: 10px; font-size: 20px; color: #f1c40f; border-bottom: 1px solid #444; padding-bottom: 5px; }
     #game-info p { font-size: 14px; margin: 6px 0; color: #ddd; }
-    #player-info-section h2, #country-info-section h2, #market-section h2 { margin-bottom: 10px; font-size: 20px; color: #f1c40f; border-bottom: 1px solid #444; padding-bottom: 5px; }
+    /* Oyuncu Kartları */
     .player-info { background: #24243a; padding: 10px; margin-bottom: 10px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); font-size: 14px; }
     .player-info p { margin: 4px 0; color: #ddd; }
+    /* Action (İşlem) Grubu */
     .action-group { margin-bottom: 15px; background: #24243a; padding: 12px; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
     .action-group h3 { font-size: 16px; color: #ccc; margin-bottom: 8px; }
     .action-group input[type="number"], .action-group select { width: 100%; padding: 8px; margin-bottom: 10px; border: none; border-radius: 4px; font-size: 14px; }
@@ -73,7 +75,7 @@
   </style>
 </head>
 <body>
-  <!-- Lobby (Oda) UI -->
+  <!-- LOBBY (Oda) UI -->
   <div id="lobby-container">
     <h2>Online Lobby</h2>
     <!-- Oda Oluşturma Formu -->
@@ -96,14 +98,14 @@
     </div>
   </div>
   
-  <!-- Oyun UI -->
+  <!-- OYUN UI -->
   <div id="game-container">
     <div id="main-content">
-      <!-- Harita Bölgesi (Örnek: Haritanızı buraya ekleyin) -->
+      <!-- Harita Bölgesi (Örneğin: Harita veya diğer oyun görselleri) -->
       <div id="map-container">
         <div id="map"></div>
       </div>
-      <!-- Yan Panel -->
+      <!-- Yan Panel: Oyun bilgileri, oyuncu listesi, işlem menüsü -->
       <div id="side-panel">
         <section id="game-info">
           <h2>Oyun Bilgileri</h2>
@@ -129,7 +131,7 @@
         </section>
         <section id="market-section">
           <h2>İşlemler</h2>
-          <!-- Örnek işlem grupları -->
+          <!-- İşlem Grubu Örnekleri -->
           <div class="action-group">
             <h3>Saldırı</h3>
             <input type="number" id="attack-soldiers" placeholder="Asker sayısı" min="1" />
@@ -160,13 +162,17 @@
           <div class="action-group">
             <h3>Para Gönder</h3>
             <input type="number" id="money-to-send" placeholder="Miktar" min="1" />
-            <select id="recipient-player"><!-- Oyuncu seçenekleri --></select>
+            <select id="recipient-player">
+              <!-- Oyuncu seçenekleri dinamik olarak doldurulacak -->
+            </select>
             <button id="send-money-btn"><i class="fas fa-hand-holding-usd"></i> Para Gönder</button>
           </div>
           <div class="action-group">
             <h3>Petrol Gönder</h3>
             <input type="number" id="petrol-to-send" placeholder="Varil" min="1" />
-            <select id="recipient-player-petrol"><!-- Oyuncu seçenekleri --></select>
+            <select id="recipient-player-petrol">
+              <!-- Oyuncu seçenekleri dinamik olarak doldurulacak -->
+            </select>
             <button id="send-petrol-btn"><i class="fas fa-gas-pump"></i> Petrol Gönder</button>
           </div>
           <div class="action-group turn-info">
@@ -178,7 +184,7 @@
             <button id="leave-room-btn">Odayı Terk Et</button>
           </div>
         </section>
-        <!-- Host Kontrolleri -->
+        <!-- Host Kontrolleri (Sadece host görür) -->
         <div id="host-controls">
           <button id="start-game-btn">Oyunu Başlat (Host)</button>
         </div>
@@ -200,41 +206,42 @@
   </template>
   
   <!-- External JS Libraries -->
+  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   
-  <!-- Firebase SDK (Compat versiyonları) -->
+  <!-- Firebase SDK (compat sürümleri) -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
   <script>
-    // Firebase config: Bu bilgileri Firebase Console > Proje Ayarları > Genel bölümünden alın.
+    // Firebase Konfigürasyonu (Kendi projenizden alınan bilgiler)
     const firebaseConfig = {
       apiKey: "AIzaSyCINihMNGs-qRYIIBLzXyeaLnM_Lhp-iwg",
-    authDomain: "warmapg-77acb.firebaseapp.com",
-    projectId: "warmapg-77acb",
-    storageBucket: "warmapg-77acb.firebasestorage.app",
-    messagingSenderId: "895613631339",
-    appId: "1:895613631339:web:9441b6185ad1a14ee02a2e",
-    measurementId: "G-3MYC7P9PZC"
+      authDomain: "warmapg-77acb.firebaseapp.com",
+      projectId: "warmapg-77acb",
+      storageBucket: "warmapg-77acb.firebasestorage.app",
+      messagingSenderId: "895613631339",
+      appId: "1:895613631339:web:9441b6185ad1a14ee02a2e",
+      measurementId: "G-3MYC7P9PZC"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
   </script>
   
-  <!-- Main JS: Lobby & Game Logic -->
+  <!-- MAIN JS: LOBBY ve OYUN LOGİĞİ -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       /*****************************************************************
-       * GLOBAL VARIABLES & UTILITY FUNCTIONS
+       * GLOBAL DEĞİŞKENLER & UTILITY FUNCTIONS
        *****************************************************************/
       let totalPlayers;
       let currentPlayer = 1;
       let currentRound = 1;
       let selectedCountry = null;
       let map;
-      const playerData = {};  // { playerId: { name, money, soldiers, countries, petrol } }
-      const countryData = {}; // { countryName: { income, soldiers, owner, layer, barracksCount, factories, refineries, oilProduction } }
+      const playerData = {};  // Örnek: { playerId: { name, money, soldiers, countries, petrol } }
+      const countryData = {}; // Örnek: { countryName: { income, soldiers, owner, layer, barracksCount, factories, refineries, oilProduction } }
+      // playerColors: İhtiyaca göre oyuncu numarasına göre renk ataması yapılabilir.
       const playerColors = { 1: "red", 2: "blue", 3: "green", 4: "yellow", 5: "purple" };
-      let selectedPlayerColor = null;
       const localPlayerId = firebase.database().ref().push().key;
       
       // Available renkler (Setup aşamasında kullanılacak)
@@ -273,12 +280,12 @@
         }, duration);
       }
       
-      // Harita katmanında kısa flash/attack efekti uygular
+      // Harita efektleri
       function flashLayer(layer, flashColor) {
         const originalStyle = {
           fillColor: layer.options.fillColor,
           weight: layer.options.weight,
-          color: layer.options.color
+          color: layer.options.color,
         };
         layer.setStyle({ fillColor: flashColor, weight: 3 });
         if (layer.getElement) {
@@ -291,7 +298,7 @@
         setTimeout(() => layer.setStyle(originalStyle), 600);
       }
       
-      // Butonlara ripple efekti ekler
+      // Buton ripple efekti
       function createRipple(e) {
         const button = e.currentTarget;
         const circle = document.createElement("span");
@@ -310,7 +317,7 @@
       });
       
       /*****************************************************************
-       * LOBBY / ROOM LOGIC
+       * LOBBY / ROOM LOGIC (Firebase Realtime Database ile)
        *****************************************************************/
       let currentRoomId = null;
       let currentRoomData = null;
@@ -325,8 +332,9 @@
           alert("Lütfen tüm alanları doğru doldurun.");
           return;
         }
-        // Yeni oda oluştur: benzersiz oda id'si
+        // Yeni oda oluştur: benzersiz oda ID'si
         currentRoomId = db.ref("rooms").push().key;
+        // Host bilgileri
         playerInfo = { id: localPlayerId, name: hostName, color: selectedHostColor, isHost: true };
         const roomData = {
           roomName: roomName,
@@ -381,15 +389,15 @@
         db.ref("rooms/" + currentRoomId).on("value", (snapshot) => {
           currentRoomData = snapshot.val();
           console.log("Oda güncellendi:", currentRoomData);
-          // Oda dolduysa ya da host oyunu başlattıysa, oyun ekranı tetiklenir
+          updatePlayersListUI();
+          // Eğer oda içinde gameStarted true ise, oyunu başlat
           if (currentRoomData && currentRoomData.gameStarted) {
             startGameUI();
           }
-          updatePlayersListUI();
         });
       }
       
-      // Oyuncu listesini güncelle (yan panelde göster)
+      // Oda içindeki oyuncu listesini güncelle (yan panel)
       function updatePlayersListUI() {
         const playersInfoDiv = document.getElementById("players-info");
         playersInfoDiv.innerHTML = "";
@@ -403,7 +411,7 @@
         }
       }
       
-      // Host oyunu başlatırsa
+      // Host oyunu başlatırsa: Sadece host "Oyunu Başlat" butonunu görebilir.
       document.getElementById("start-game-btn").addEventListener("click", () => {
         if (!playerInfo.isHost) return;
         db.ref("rooms/" + currentRoomId + "/gameStarted").set(true);
@@ -417,20 +425,20 @@
         }
       });
       
-      // Başlatılan oyun ekranı
+      // Oyun başladığında: Basit örnek olarak harita ve oyun ekranını başlatıyoruz.
       function startGameUI() {
         document.getElementById("game-info").innerHTML += "<p>Oyun başladı! Tüm oyuncular senkronize oldu.</p>";
         initializeMap();
       }
       
       /*****************************************************************
-       * GAME LOGIC (Önceki offline oyun kodundan uyarlanmış)
+       * HARİTA VE OYUN LOGİĞİ (Önceki offline kodundan uyarlanmış)
        *****************************************************************/
       function initializeMap() {
         map = L.map("map").setView([20, 0], 2);
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18 }).addTo(map);
     
-        // Ülkeler: Sadece 43 ülkeye rastgele oilProduction atanacak.
+        // Ülkeler: Sadece 43 ülkeye rastgele oilProduction atanıyor.
         fetch("https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json")
           .then(response => response.json())
           .then(geoJsonData => {
@@ -530,7 +538,7 @@
       }
       
       /*****************************************************************
-       * GAME ACTIONS
+       * OYUN İŞLEVLERİ & EVENT HANDLERLARI
        *****************************************************************/
       function attack() {
         if (!selectedCountry) {
@@ -658,7 +666,6 @@
         updateSelectedCountryInfo();
       }
       
-      // Rafine: 250 varil + 800$, kurulunca üretim kapasitesi %20 artar.
       function buildRefinery() {
         if (!selectedCountry) {
           showNotification("Lütfen bir ülke seçin!");
@@ -716,9 +723,8 @@
         updateSelectedCountryInfo();
       }
       
-      // Tur Sonu İşlemleri: Sahip olunan ülkelerden asker üretimi, gelir ve üretim eklenir.
       function nextTurn() {
-        playerData[currentPlayer].countries.forEach((cName) => {
+        playerData[currentPlayer].countries.forEach(cName => {
           const country = countryData[cName];
           if (country.barracksCount) {
             country.soldiers += 5 * country.barracksCount;
