@@ -40,7 +40,7 @@
       font-size: 14px;
     }
     
-    /* Oda/Lobby Ekranı */
+    /* Oda (Lobby) Ekranı */
     #lobby-container {
       max-width: 500px;
       margin: 50px auto;
@@ -98,8 +98,13 @@
     #main-content { display: flex; height: 100%; }
     #map-container { flex: 7; position: relative; }
     #map { width: 100%; height: 100%; }
-    #side-panel { flex: 3; background: #1e1e2f; padding: 20px; overflow-y: auto;
-                  box-shadow: -4px 0 10px rgba(0, 0, 0, 0.4); }
+    #side-panel {
+      flex: 3;
+      background: #1e1e2f;
+      padding: 20px;
+      overflow-y: auto;
+      box-shadow: -4px 0 10px rgba(0, 0, 0, 0.4);
+    }
     #game-info, #player-info-section, #country-info-section, #market-section {
       margin-bottom: 20px;
       background: #2a2a3d;
@@ -108,27 +113,62 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }
     #game-info h2, #player-info-section h2, #country-info-section h2, #market-section h2 {
-      margin-bottom: 10px; font-size: 20px; color: #f1c40f; border-bottom: 1px solid #444; padding-bottom: 5px;
+      margin-bottom: 10px;
+      font-size: 20px;
+      color: #f1c40f;
+      border-bottom: 1px solid #444;
+      padding-bottom: 5px;
     }
     .player-info {
-      background: #24243a; padding: 10px; margin-bottom: 10px; border-radius: 6px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.2); font-size: 14px;
+      background: #24243a;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      font-size: 14px;
     }
-    .action-group { margin-bottom: 15px; background: #24243a; padding: 12px; border-radius: 6px; }
+    .action-group {
+      margin-bottom: 15px;
+      background: #24243a;
+      padding: 12px;
+      border-radius: 6px;
+    }
     .action-group h3 { font-size: 16px; color: #ccc; margin-bottom: 8px; }
     .action-group input[type="number"], .action-group select {
-      width: 100%; padding: 8px; margin-bottom: 10px; border: none; border-radius: 4px; font-size: 14px;
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
     }
     .action-group button {
-      width: 100%; padding: 10px; background: linear-gradient(45deg, #f39c12, #e67e22);
-      border: none; border-radius: 4px; font-size: 14px; color: #fff; cursor: pointer; transition: background 0.3s;
+      width: 100%;
+      padding: 10px;
+      background: linear-gradient(45deg, #f39c12, #e67e22);
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.3s;
     }
-    .action-group button:hover { background: linear-gradient(45deg, #e67e22, #d35400); }
-    .turn-info { display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: #ddd; margin-bottom: 10px; }
+    .action-group button:hover {
+      background: linear-gradient(45deg, #e67e22, #d35400);
+    }
+    .turn-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      color: #ddd;
+      margin-bottom: 10px;
+    }
     .turn-info span { font-weight: 600; color: #f1c40f; }
     
     /* Ülke Tooltip & Popup */
-    .leaflet-tooltip, .country-popup-tooltip {
+    .leaflet-tooltip,
+    .country-popup-tooltip {
       background: rgba(0,0,0,0.7);
       color: #fff;
       border: none;
@@ -137,14 +177,21 @@
       padding: 4px 8px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.4);
     }
-    .country-popup-tooltip { border-radius: 6px; padding: 6px 10px; text-align: left; }
+    .country-popup-tooltip {
+      border-radius: 6px;
+      padding: 6px 10px;
+      text-align: left;
+    }
     .country-popup-tooltip .emoji { margin-right: 4px; }
     
     /* Buton Ripple Efekti */
     .button-click-effect { position: relative; overflow: hidden; }
     .button-click-effect .ripple {
-      position: absolute; border-radius: 50%; background: rgba(255,255,255,0.6);
-      transform: scale(0); animation: ripple-animation 0.6s linear;
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.6);
+      transform: scale(0);
+      animation: ripple-animation 0.6s linear;
     }
     @keyframes ripple-animation { to { transform: scale(4); opacity: 0; } }
     
@@ -165,6 +212,9 @@
   </style>
 </head>
 <body>
+  <!-- Bildirim Alanı -->
+  <div id="notification-area"></div>
+  
   <!-- Oda (Lobby) Ekranı -->
   <div id="lobby-container">
     <h2>Online Oyun Lobby</h2>
@@ -335,7 +385,7 @@
     let isHost = false;
     let localGameState = null;
     let localPlayers = null;
-    let localCountryLayers = {};  // Harita katmanlarını saklamak için
+    let localCountryLayers = {};  // Harita katman referansları
     let selectedCountry = null;
     let map;
     let selectedColor = null;
@@ -344,7 +394,7 @@
     /*****************************************************************
      * Yardımcı Fonksiyonlar
      *****************************************************************/
-    // Basit animate.css ile animasyon ekleme
+    // animate.css animasyon fonksiyonu
     function animateWithAnimateCSS(element, animationName, callback) {
       element.classList.add("animate__animated", animationName);
       function handleAnimationEnd(event) {
@@ -356,7 +406,7 @@
       element.addEventListener("animationend", handleAnimationEnd);
     }
     
-    // Butonlarda ripple efekti
+    // Buton ripple efekti
     function createRipple(e) {
       const button = e.currentTarget;
       const circle = document.createElement("span");
@@ -370,7 +420,7 @@
       setTimeout(() => circle.remove(), 500);
     }
     
-    // Bildirim gösterme
+    // Bildirim gösterme fonksiyonu
     function showNotification(message, duration = 3000) {
       const notificationArea = document.getElementById("notification-area");
       notificationArea.innerHTML = `<div class="popup">${message}</div>`;
@@ -411,6 +461,7 @@
      * Oda (Lobby) İşlemleri
      *****************************************************************/
     document.addEventListener("DOMContentLoaded", () => {
+      // Tüm butonlara ripple efekti ekle
       document.querySelectorAll("button").forEach((btn) => {
         btn.classList.add("button-click-effect");
         btn.addEventListener("click", createRipple);
@@ -620,7 +671,7 @@
             db.ref("rooms/" + roomCode + "/gameState").set(localGameState);
             db.ref("rooms/" + roomCode).update({ gameStarted: true });
           });
-      }
+      });
     }
     
     /*****************************************************************
@@ -630,7 +681,7 @@
       // Haritayı başlat
       map = L.map("map").setView([20, 0], 2);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18 }).addTo(map);
-      // GeoJSON ile ülke katmanlarını oluştur ve katman referanslarını sakla
+      // GeoJSON ile ülke katmanlarını oluştur ve referansları sakla
       fetch("https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json")
         .then(response => response.json())
         .then(geoJsonData => {
@@ -658,7 +709,7 @@
             }
           }).addTo(map);
         });
-      // Firebase dinleyicileri: oyun durumu ve oyuncu verileri
+      // Oyun durumunu ve oyuncu verilerini Firebase’den dinle
       db.ref("rooms/" + roomCode + "/gameState").on("value", snapshot => {
         localGameState = snapshot.val();
         updateGameUI();
@@ -832,7 +883,10 @@
           }
           localPlayers[playerId].countries.push(selectedCountry);
           const layer = localCountryLayers[selectedCountry];
-          if(layer) { layer.setStyle({ fillColor: localPlayers[playerId].color, fillOpacity: 0.7 }); flashLayer(layer, "#FF6347"); }
+          if(layer) {
+            layer.setStyle({ fillColor: localPlayers[playerId].color, fillOpacity: 0.7 });
+            flashLayer(layer, "#FF6347");
+          }
           showNotification(`${selectedCountry} fethedildi!`);
         } else {
           target.soldiers -= soldiersToSend;
@@ -980,7 +1034,7 @@
       db.ref("rooms/" + roomCode + "/players").set(localPlayers);
     }
     
-    // Buton event listener’larını ekle
+    // Event listener'ları ekle
     document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("attack-btn").addEventListener("click", attack);
       document.getElementById("buy-soldiers-btn").addEventListener("click", buySoldiers);
