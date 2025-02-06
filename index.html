@@ -11,11 +11,9 @@
         crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
   
-  <!-- Inline CSS -->
+  <!-- Inline CSS (Stil ayarları) -->
   <style>
-    /* ==================================================
-       Genel Sıfırlama ve Global Ayarlar
-       ================================================== */
+    /* Genel Sıfırlama ve Global Ayarlar */
     * {
       margin: 0;
       padding: 0;
@@ -32,9 +30,7 @@
       color: inherit;
     }
     
-    /* ==================================================
-       Bildirim (Popup) Alanı
-       ================================================== */
+    /* Bildirim Alanı */
     #notification-area {
       position: fixed;
       top: 20px;
@@ -49,9 +45,7 @@
       font-size: 14px;
     }
     
-    /* ==================================================
-       Lobi (Lobby) Stilleri
-       ================================================== */
+    /* Lobi (Lobby) Stilleri */
     #lobby-container {
       display: flex;
       flex-direction: column;
@@ -105,9 +99,7 @@
       margin: 5px 0;
     }
     
-    /* ==================================================
-       Renk Seçenekleri
-       ================================================== */
+    /* Renk Seçenekleri */
     .global-color-option {
       width: 25px;
       height: 25px;
@@ -126,11 +118,9 @@
       border-color: #f1c40f;
     }
     
-    /* ==================================================
-       Oyun Ekranı Stilleri
-       ================================================== */
+    /* Oyun Ekranı Stilleri */
     #game-container {
-      display: none; /* Oyun başlamadan görünmez */
+      display: none; /* Oyun başlamadan gizli */
       height: 100vh;
     }
     #main-content {
@@ -154,7 +144,7 @@
       overflow-y: auto;
       box-shadow: -4px 0 10px rgba(0, 0, 0, 0.4);
     }
-    /* Üst Bilgi (Oyun Bilgileri) */
+    /* Oyun Bilgileri */
     #game-info {
       margin-bottom: 20px;
       background: #2a2a3d;
@@ -354,24 +344,6 @@
       }
     }
   </style>
-  
-  <!-- Firebase Script'leri -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script>
-    // Firebase yapılandırması
-    const firebaseConfig = {
-      apiKey: "AIzaSyCINihMNGs-qRYIIBLzXyeaLnM_Lhp-iwg",
-      authDomain: "warmapg-77acb.firebaseapp.com",
-      projectId: "warmapg-77acb",
-      storageBucket: "warmapg-77acb.firebasestorage.app",
-      messagingSenderId: "895613631339",
-      appId: "1:895613631339:web:9441b6185ad1a14ee02a2e",
-      measurementId: "G-3MYC7P9PZC"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-  </script>
 </head>
 <body>
   <!-- Bildirim Alanı -->
@@ -384,31 +356,27 @@
       <button id="create-room-btn" class="button-click-effect">Oda Oluştur</button>
       <button id="join-room-btn" class="button-click-effect">Odaya Katıl</button>
     </div>
-    <div id="room-form" style="display:none;">
+    <div id="room-form" style="display: none;">
       <!-- Oda Oluşturma Formu -->
-      <div id="create-room-form" style="display:none;">
-        <input type="text" id="new-room-name" placeholder="Oda İsmi" />
-        <input type="number" id="room-capacity" min="2" max="5" placeholder="Oda Kapasitesi (2-5)" />
-        <input type="text" id="player-name" placeholder="Oyuncu İsminiz" />
-        <div id="player-color-selection">
-          <!-- Renk seçenekleri buraya eklenecek -->
-        </div>
+      <div id="create-room-form" style="display: none;">
+        <input type="text" id="new-room-name" placeholder="Oda İsmi">
+        <input type="number" id="room-capacity" min="2" max="5" placeholder="Oda Kapasitesi (2-5)">
+        <input type="text" id="player-name" placeholder="Oyuncu İsminiz">
+        <div id="player-color-selection"></div>
         <button id="create-room-submit" class="button-click-effect">Odayı Oluştur</button>
       </div>
       <!-- Odaya Katılma Formu -->
-      <div id="join-room-form" style="display:none;">
-        <input type="text" id="join-room-code" placeholder="Oda Kodu" />
-        <input type="text" id="player-name-join" placeholder="Oyuncu İsminiz" />
-        <div id="player-color-selection-join">
-          <!-- Renk seçenekleri buraya eklenecek -->
-        </div>
+      <div id="join-room-form" style="display: none;">
+        <input type="text" id="join-room-code" placeholder="Oda Kodu">
+        <input type="text" id="player-name-join" placeholder="Oyuncu İsminiz">
+        <div id="player-color-selection-join"></div>
         <button id="join-room-submit" class="button-click-effect">Odaya Katıl</button>
       </div>
     </div>
-    <div id="waiting-room" style="display:none;">
+    <div id="waiting-room" style="display: none;">
       <h3>Oda: <span id="room-name-display"></span></h3>
       <ul id="players-list"></ul>
-      <button id="start-game-btn" class="button-click-effect" style="display:none;">Oyunu Başlat</button>
+      <button id="start-game-btn" class="button-click-effect" style="display: none;">Oyunu Başlat</button>
     </div>
   </div>
   
@@ -421,7 +389,7 @@
       </div>
       <!-- Sağ Panel -->
       <div id="side-panel">
-        <!-- Üst Bilgi: Tur ve Toplam Petrol -->
+        <!-- Oyun Bilgileri -->
         <section id="game-info">
           <h2>Oyun Bilgileri</h2>
           <p>Tur: <span id="current-round">1</span></p>
@@ -430,11 +398,9 @@
         <!-- Oyuncu Bilgileri -->
         <section id="player-info-section">
           <h2>Oyuncular</h2>
-          <div id="players-info">
-            <!-- Oyuncu kartları dinamik olarak oluşturulacak -->
-          </div>
+          <div id="players-info"></div>
         </section>
-        <!-- Seçili Ülke Bilgileri -->
+        <!-- Ülke Detayları -->
         <section id="country-info-section">
           <h2>Ülke Detayları</h2>
           <div id="country-info">
@@ -448,61 +414,48 @@
             <p>Üretim Kapasitesi: <span id="selected-country-oilProduction">0</span> varil</p>
           </div>
         </section>
-        <!-- İşlem ve Market Bölümü -->
+        <!-- İşlemler -->
         <section id="market-section">
           <h2>İşlemler</h2>
-          <!-- Saldırı İşlemi -->
           <div class="action-group">
             <h3>Saldırı</h3>
-            <input type="number" id="attack-soldiers" placeholder="Asker sayısı" min="1" />
+            <input type="number" id="attack-soldiers" placeholder="Asker sayısı" min="1">
             <button id="attack-btn" class="button-click-effect"><i class="fas fa-crosshairs"></i> Saldırı Yap</button>
           </div>
-          <!-- Asker Satın Alma -->
           <div class="action-group">
             <h3>Asker Satın Alma</h3>
-            <input type="number" id="soldiers-to-buy" placeholder="Adet" min="1" />
+            <input type="number" id="soldiers-to-buy" placeholder="Adet" min="1">
             <button id="buy-soldiers-btn" class="button-click-effect"><i class="fas fa-user-plus"></i> Satın Al (10$/adet)</button>
           </div>
-          <!-- Asker Kışlası Kurma -->
           <div class="action-group">
             <h3>Asker Kışlası Kur</h3>
             <button id="buy-barracks-btn" class="button-click-effect"><i class="fas fa-fort-awesome"></i> Kışla Kur (130$ + 40 varil)</button>
           </div>
-          <!-- Fabrika Kurma -->
           <div class="action-group">
             <h3>Fabrika Kur</h3>
             <button id="build-factory-btn" class="button-click-effect"><i class="fas fa-industry"></i> Fabrika Kur (250$ + 90 varil)</button>
           </div>
-          <!-- Rafine Kurma -->
           <div class="action-group">
             <h3>Rafine Kur</h3>
             <button id="build-refinery-btn" class="button-click-effect"><i class="fas fa-oil-can"></i> Rafine Kur (250 varil + 800$)</button>
           </div>
-          <!-- Asker Çekme -->
           <div class="action-group">
             <h3>Asker Çek</h3>
-            <input type="number" id="pull-soldiers-count" placeholder="Asker sayısı" min="1" />
+            <input type="number" id="pull-soldiers-count" placeholder="Asker sayısı" min="1">
             <button id="pull-soldiers-btn" class="button-click-effect"><i class="fas fa-running"></i> Asker Çek</button>
           </div>
-          <!-- Para Gönderme -->
           <div class="action-group">
             <h3>Para Gönder</h3>
-            <input type="number" id="money-to-send" placeholder="Miktar" min="1" />
-            <select id="recipient-player">
-              <!-- Dinamik oyuncu seçenekleri eklenecek -->
-            </select>
+            <input type="number" id="money-to-send" placeholder="Miktar" min="1">
+            <select id="recipient-player"></select>
             <button id="send-money-btn" class="button-click-effect"><i class="fas fa-hand-holding-usd"></i> Para Gönder</button>
           </div>
-          <!-- Petrol Gönderme -->
           <div class="action-group">
             <h3>Petrol Gönder</h3>
-            <input type="number" id="petrol-to-send" placeholder="Varil" min="1" />
-            <select id="recipient-player-petrol">
-              <!-- Dinamik oyuncu seçenekleri eklenecek -->
-            </select>
+            <input type="number" id="petrol-to-send" placeholder="Varil" min="1">
+            <select id="recipient-player-petrol"></select>
             <button id="send-petrol-btn" class="button-click-effect"><i class="fas fa-gas-pump"></i> Petrol Gönder</button>
           </div>
-          <!-- Tur Bilgisi ve Tur Sonu -->
           <div class="action-group">
             <h3>Tur</h3>
             <p>Sıra: <span id="current-player">Oyuncu Adı</span></p>
@@ -526,14 +479,16 @@
     </div>
   </template>
   
-  <!-- External JS: Leaflet -->
+  <!-- Firebase & Leaflet Script'leri -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   
-  <!-- Inline JS: Oyun & Multiplayer İşlevleri -->
+  <!-- Ana JavaScript Kodları -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       /*****************************************************************
-       * GLOBAL DEĞİŞKENLER & YARDIMCI FONKSİYONLAR
+       * GLOBAL VARIABLES & HELPER FUNCTIONS
        *****************************************************************/
       let roomId = null;
       let roomRef = null;
@@ -543,12 +498,12 @@
       let currentRound = 1;
       let selectedCountry = null;
       let map;
-      const playerData = {};  // Örnek: { 1: { name, money, soldiers, countries, petrol } }
-      const countryData = {}; // Örnek: { "Ülke Adı": { income, soldiers, owner, layer, barracksCount, factories, refineries, oilProduction } }
+      const playerData = {};    // Örnek: { 1: { name, money, soldiers, countries, petrol } }
+      const countryData = {};   // Örnek: { "Ülke Adı": { income, soldiers, owner, layer, barracksCount, factories, refineries, oilProduction } }
       const playerColors = { 1: "red", 2: "blue", 3: "green", 4: "yellow", 5: "purple" };
       const availableColors = ["red", "blue", "green", "yellow", "purple"];
       const localPlayerId = Math.random().toString(36).substr(2, 9);
-      
+
       // Renk seçeneklerini başlat
       function initColorOptions(containerId) {
         const container = document.getElementById(containerId);
@@ -568,7 +523,7 @@
       }
       initColorOptions("player-color-selection");
       initColorOptions("player-color-selection-join");
-      
+
       // Bildirim fonksiyonu
       function showNotification(message, duration = 3000) {
         const notificationArea = document.getElementById("notification-area");
@@ -589,8 +544,8 @@
           }, 500);
         }, duration);
       }
-      
-      // Butonlara ripple efekti ekle
+
+      // Buton ripple efekti
       function createRipple(e) {
         const button = e.currentTarget;
         const circle = document.createElement("span");
@@ -607,8 +562,8 @@
         btn.classList.add("button-click-effect");
         btn.addEventListener("click", createRipple);
       });
-      
-      // Animate.css animasyon fonksiyonu
+
+      // Animate.css yardımcı fonksiyonu
       function animateWithAnimateCSS(element, animationName, callback) {
         element.classList.add("animate__animated", animationName);
         function handleAnimationEnd(event) {
@@ -619,9 +574,9 @@
         }
         element.addEventListener("animationend", handleAnimationEnd);
       }
-      
+
       /*****************************************************************
-       * LOBİ (ROOM) LOGİĞİ: ODA OLUŞTURMA & KATILMA
+       * LOBBY (ROOM) LOGİĞİ: ODA OLUŞTURMA & KATILMA
        *****************************************************************/
       const createRoomBtn = document.getElementById("create-room-btn");
       const joinRoomBtn = document.getElementById("join-room-btn");
@@ -632,19 +587,19 @@
       const roomNameDisplay = document.getElementById("room-name-display");
       const playersList = document.getElementById("players-list");
       const startGameBtn = document.getElementById("start-game-btn");
-      
+
       createRoomBtn.addEventListener("click", () => {
         roomForm.style.display = "block";
         createRoomForm.style.display = "block";
         joinRoomForm.style.display = "none";
       });
-      
+
       joinRoomBtn.addEventListener("click", () => {
         roomForm.style.display = "block";
         joinRoomForm.style.display = "block";
         createRoomForm.style.display = "none";
       });
-      
+
       // Oda oluşturma
       document.getElementById("create-room-submit").addEventListener("click", () => {
         const roomName = document.getElementById("new-room-name").value.trim();
@@ -656,7 +611,6 @@
           return;
         }
         totalPlayers = capacity;
-        // Oda kodunu oluştur
         roomId = Math.random().toString(36).substr(2, 6).toUpperCase();
         roomRef = db.collection("rooms").doc(roomId);
         const roomData = {
@@ -670,15 +624,17 @@
             index: 1
           }]
         };
-        roomRef.set(roomData).then(() => {
-          isHost = true;
-          showNotification("Oda oluşturuldu! Oda Kodu: " + roomId);
-          enterWaitingRoom(roomData);
-        }).catch(err => {
-          showNotification("Oda oluşturulurken hata: " + err.message);
-        });
+        roomRef.set(roomData)
+          .then(() => {
+            isHost = true;
+            showNotification("Oda oluşturuldu! Oda Kodu: " + roomId);
+            enterWaitingRoom(roomData);
+          })
+          .catch(err => {
+            showNotification("Oda oluşturulurken hata: " + err.message);
+          });
       });
-      
+
       // Odaya katılma
       document.getElementById("join-room-submit").addEventListener("click", () => {
         const joinCode = document.getElementById("join-room-code").value.trim().toUpperCase();
@@ -690,39 +646,42 @@
         }
         roomId = joinCode;
         roomRef = db.collection("rooms").doc(roomId);
-        roomRef.get().then(docSnapshot => {
-          if (!docSnapshot.exists) {
-            showNotification("Oda bulunamadı!");
-            return;
-          }
-          const data = docSnapshot.data();
-          if (data.gameStarted) {
-            showNotification("Oyun zaten başladı!");
-            return;
-          }
-          if (data.players.length >= data.capacity) {
-            showNotification("Oda dolu!");
-            return;
-          }
-          const nextIndex = data.players.length + 1;
-          roomRef.update({
-            players: firebase.firestore.FieldValue.arrayUnion({
-              id: localPlayerId,
-              name: playerName,
-              color: colorBtn.dataset.color,
-              index: nextIndex
+        roomRef.get()
+          .then(docSnapshot => {
+            if (!docSnapshot.exists) {
+              showNotification("Oda bulunamadı!");
+              return;
+            }
+            const data = docSnapshot.data();
+            if (data.gameStarted) {
+              showNotification("Oyun zaten başladı!");
+              return;
+            }
+            if (data.players.length >= data.capacity) {
+              showNotification("Oda dolu!");
+              return;
+            }
+            const nextIndex = data.players.length + 1;
+            roomRef.update({
+              players: firebase.firestore.FieldValue.arrayUnion({
+                id: localPlayerId,
+                name: playerName,
+                color: colorBtn.dataset.color,
+                index: nextIndex
+              })
             })
-          }).then(() => {
-            totalPlayers = data.capacity;
-            isHost = false;
-            showNotification("Odaya katıldınız!");
-            enterWaitingRoom();
-          }).catch(err => {
-            showNotification("Odaya katılırken hata: " + err.message);
+            .then(() => {
+              totalPlayers = data.capacity;
+              isHost = false;
+              showNotification("Odaya katıldınız!");
+              enterWaitingRoom();
+            })
+            .catch(err => {
+              showNotification("Odaya katılırken hata: " + err.message);
+            });
           });
-        });
       });
-      
+
       // Bekleme odasına geçiş
       function enterWaitingRoom(initialData) {
         document.getElementById("lobby-container").style.display = "none";
@@ -735,7 +694,6 @@
             roomNameDisplay.textContent = data.roomName + " (" + roomId + ")";
           });
         }
-        // Oda güncellemelerini dinle
         roomRef.onSnapshot(doc => {
           const data = doc.data();
           updatePlayersList(data.players);
@@ -749,7 +707,7 @@
           }
         });
       }
-      
+
       function updatePlayersList(players) {
         playersList.innerHTML = "";
         players.forEach(p => {
@@ -758,16 +716,17 @@
           playersList.appendChild(li);
         });
       }
-      
+
       // Oda sahibi oyunu başlatır
       startGameBtn.addEventListener("click", () => {
-        roomRef.update({ gameStarted: true }).then(() => {
-          showNotification("Oyun başlatılıyor...");
-        });
+        roomRef.update({ gameStarted: true })
+          .then(() => {
+            showNotification("Oyun başlatılıyor...");
+          });
       });
-      
+
       /*****************************************************************
-       * OYUN İŞLEYİŞİ: İLK BAŞLATMA VE MULTİPLAYER SENKRONİZASYON
+       * OYUN İŞLEYİŞİ: BAŞLATMA VE MULTİPLAYER SENKRONİZASYONU
        *****************************************************************/
       function enterGame(roomData) {
         waitingRoom.style.display = "none";
@@ -790,7 +749,7 @@
           initializeMap();
         });
       }
-      
+
       function initializePlayersUI() {
         const playersInfoDiv = document.getElementById("players-info");
         playersInfoDiv.innerHTML = "";
@@ -820,13 +779,13 @@
           recipientPetrolSelect.appendChild(option2);
         }
       }
-      
+
       function updateCurrentPlayerUI() {
         const currentPlayerElem = document.getElementById("current-player");
         currentPlayerElem.textContent = playerData[currentPlayer].name;
         animateWithAnimateCSS(currentPlayerElem, "animate__pulse");
       }
-      
+
       function updateSelectedCountryInfo() {
         if (selectedCountry && countryData[selectedCountry]) {
           const c = countryData[selectedCountry];
@@ -854,7 +813,7 @@
           document.getElementById("selected-country-oilProduction").textContent = 0;
         }
       }
-      
+
       function updateUI() {
         for (let i = 1; i <= totalPlayers; i++) {
           if (document.getElementById("money-" + i))
@@ -878,7 +837,7 @@
           }
         }
       }
-      
+
       /*****************************************************************
        * HARİTA & ÜLKE İŞLEMLERİ
        *****************************************************************/
@@ -886,8 +845,8 @@
         map = L.map("map").setView([20, 0], 2);
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18 }).addTo(map);
         fetch("https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json")
-          .then((response) => response.json())
-          .then((geoJsonData) => {
+          .then(response => response.json())
+          .then(geoJsonData => {
             const features = geoJsonData.features;
             let oilIndexes = [];
             if (features.length > 43) {
@@ -929,14 +888,14 @@
                 layer.bindTooltip(getCountryPopupContent(countryName), {
                   permanent: true,
                   direction: "center",
-                  className: "country-popup-tooltip",
+                  className: "country-popup-tooltip"
                 });
                 layer.on("click", () => selectCountry(countryName, layer));
-              },
+              }
             }).addTo(map);
           });
       }
-      
+
       function selectCountry(countryName, layer) {
         selectedCountry = countryName;
         showNotification("Seçilen ülke: " + countryName, 1500);
@@ -948,7 +907,7 @@
               fillColor: playerColors[owner] || "#ccc",
               fillOpacity: 0.7,
               weight: 1,
-              color: "#555",
+              color: "#555"
             });
           } else {
             layer.setStyle({ fillColor: "#ccc", fillOpacity: 0.7, weight: 1, color: "#555" });
@@ -956,7 +915,7 @@
         }, 800);
         updateSelectedCountryInfo();
       }
-      
+
       function getCountryPopupContent(countryName) {
         const c = countryData[countryName];
         const ownerText = c.owner ? playerData[c.owner].name : "Yok";
@@ -972,14 +931,14 @@
             <p><span class="emoji"><i class="fas fa-crown"></i></span> Sahip: ${ownerText}</p>
           </div>`;
       }
-      
+
       function updateCountryTooltip(countryName) {
         const c = countryData[countryName];
         if (c.layer && c.layer.getTooltip && c.layer.getTooltip()) {
           c.layer.setTooltipContent(getCountryPopupContent(countryName));
         }
       }
-      
+
       /*****************************************************************
        * OYUN İŞLEVLERİ & OLAY DİNLEYİCİLERİ
        *****************************************************************/
@@ -1033,7 +992,7 @@
         updateUI();
         updateSelectedCountryInfo();
       }
-      
+
       function buySoldiers() {
         const count = parseInt(document.getElementById("soldiers-to-buy").value);
         if (isNaN(count) || count <= 0) {
@@ -1054,7 +1013,7 @@
         updateUI();
         updateSelectedCountryInfo();
       }
-      
+
       function buyBarracks() {
         if (!selectedCountry) {
           showNotification("Lütfen bir ülke seçin!");
@@ -1081,7 +1040,7 @@
         updateUI();
         updateSelectedCountryInfo();
       }
-      
+
       function buildFactory() {
         if (!selectedCountry) {
           showNotification("Lütfen bir ülke seçin!");
@@ -1108,7 +1067,7 @@
         updateUI();
         updateSelectedCountryInfo();
       }
-      
+
       function buildRefinery() {
         if (!selectedCountry) {
           showNotification("Lütfen bir ülke seçin!");
@@ -1139,7 +1098,7 @@
         updateUI();
         updateSelectedCountryInfo();
       }
-      
+
       function pullSoldiers() {
         if (!selectedCountry) {
           showNotification("Bir ülke seçin!");
@@ -1165,7 +1124,7 @@
         updateUI();
         updateSelectedCountryInfo();
       }
-      
+
       function nextTurn() {
         playerData[currentPlayer].countries.forEach((cName) => {
           const country = countryData[cName];
@@ -1198,7 +1157,7 @@
         updateUI();
         updateSelectedCountryInfo();
       }
-      
+
       function sendMoney() {
         const amount = parseInt(document.getElementById("money-to-send").value);
         const recipient = parseInt(document.getElementById("recipient-player").value);
@@ -1222,7 +1181,7 @@
         animateWithAnimateCSS(document.getElementById("money-" + recipient), "animate__bounce");
         updateUI();
       }
-      
+
       function sendPetrol() {
         const amount = parseInt(document.getElementById("petrol-to-send").value);
         const recipient = parseInt(document.getElementById("recipient-player-petrol").value);
@@ -1244,13 +1203,13 @@
         showNotification(amount + " varil, " + playerData[recipient].name + " oyuncusuna gönderildi.");
         updateUI();
       }
-      
-      // Yardımcı: Harita katmanına flash/attack efekti uygula
+
+      // Harita layer'ına flash (attack) efekti uygulayan yardımcı fonksiyon
       function flashLayer(layer, flashColor) {
         const originalStyle = {
           fillColor: layer.options.fillColor,
           weight: layer.options.weight,
-          color: layer.options.color,
+          color: layer.options.color
         };
         layer.setStyle({ fillColor: flashColor, weight: 3 });
         if (layer.getElement) {
@@ -1262,11 +1221,10 @@
         }
         setTimeout(() => layer.setStyle(originalStyle), 600);
       }
-      
+
       /*****************************************************************
-       * FIRESTORE ODA & GAME STATE SENKRONİZASYONU
+       * FIRESTORE GAME STATE SENKRONİZASYONU
        *****************************************************************/
-      // Yalnızca saklanabilir (serialize edilebilir) alanları gönderelim.
       function getSerializableCountryData() {
         const serializable = {};
         for (const country in countryData) {
@@ -1276,14 +1234,15 @@
               owner: countryData[country].owner,
               barracksCount: countryData[country].barracksCount || 0,
               factories: countryData[country].factories || 0,
-              refineries: countryData[country].refineries || 0
+              refineries: countryData[country].refineries || 0,
+              oilProduction: countryData[country].oilProduction || 0,
+              income: countryData[country].income || 0
             };
           }
         }
         return serializable;
       }
-      
-      // Oyun durumunu Firestore’a yaz
+
       function syncGameState() {
         if (!roomRef) return;
         const gameState = {
@@ -1296,8 +1255,8 @@
           console.error("Game state sync error:", err);
         });
       }
-      
-      // Oda belgesindeki değişiklikleri dinle ve yerel durumu güncelle (host olmayan oyuncular için)
+
+      // Oda belgesindeki değişiklikleri dinle (host olmayan oyuncular için)
       if (roomRef) {
         roomRef.onSnapshot(doc => {
           const data = doc.data();
@@ -1323,65 +1282,77 @@
           }
         });
       }
-      
-      /*****************************************************************
-       * EYLEM FONKSİYONLARININ SENKRONİZE EDİLMESİ
-       * (Her eylem sonrası syncGameState() çağrılarak güncel durum Firestore’a yazılır)
-       *****************************************************************/
+
+      // Eylem fonksiyonlarının senkronize edilmiş versiyonları (her aksiyondan sonra sync çağrılır)
       const originalAttack = attack;
       attack = function() {
         originalAttack();
         syncGameState();
       };
-      
+
       const originalBuySoldiers = buySoldiers;
       buySoldiers = function() {
         originalBuySoldiers();
         syncGameState();
       };
-      
+
       const originalBuyBarracks = buyBarracks;
       buyBarracks = function() {
         originalBuyBarracks();
         syncGameState();
       };
-      
+
       const originalBuildFactory = buildFactory;
       buildFactory = function() {
         originalBuildFactory();
         syncGameState();
       };
-      
+
       const originalBuildRefinery = buildRefinery;
       buildRefinery = function() {
         originalBuildRefinery();
         syncGameState();
       };
-      
+
       const originalPullSoldiers = pullSoldiers;
       pullSoldiers = function() {
         originalPullSoldiers();
         syncGameState();
       };
-      
+
       const originalNextTurn = nextTurn;
       nextTurn = function() {
         originalNextTurn();
         syncGameState();
       };
-      
+
       const originalSendMoney = sendMoney;
       sendMoney = function() {
         originalSendMoney();
         syncGameState();
       };
-      
+
       const originalSendPetrol = sendPetrol;
       sendPetrol = function() {
         originalSendPetrol();
         syncGameState();
       };
-      
+
+      /*****************************************************************
+       * Firebase Initialization
+       *****************************************************************/
+      const firebaseConfig = {
+        apiKey: "AIzaSyCINihMNGs-qRYIIBLzXyeaLnM_Lhp-iwg",
+        authDomain: "warmapg-77acb.firebaseapp.com",
+        projectId: "warmapg-77acb",
+        storageBucket: "warmapg-77acb.firebasestorage.app",
+        messagingSenderId: "895613631339",
+        appId: "1:895613631339:web:9441b6185ad1a14ee02a2e",
+        measurementId: "G-3MYC7P9PZC"
+      };
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+
     });
   </script>
 </body>
