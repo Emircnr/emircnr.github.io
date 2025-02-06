@@ -15,7 +15,7 @@
   
   <!-- Inline CSS -->
   <style>
-    /* Global Reset and Styles */
+    /* Genel Reset ve Global Stil */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Poppins', sans-serif;
@@ -33,14 +33,14 @@
       z-index: 2000;
       display: none;
       padding: 10px 20px;
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0,0,0,0.8);
       color: #fff;
       border-radius: 8px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.3);
       font-size: 14px;
     }
     
-    /* Lobby (Oda) Ekranı */
+    /* Lobby (Oda) Stilleri */
     #lobby-container {
       max-width: 500px;
       margin: 50px auto;
@@ -162,7 +162,7 @@
     }
     .turn-info span { font-weight: 600; color: #f1c40f; }
     
-    /* Tooltip & Popup Styles */
+    /* Tooltip & Popup */
     .leaflet-tooltip,
     .country-popup-tooltip {
       background: rgba(0,0,0,0.7);
@@ -211,7 +211,7 @@
   <!-- Bildirim Alanı -->
   <div id="notification-area"></div>
   
-  <!-- Lobby Ekranı -->
+  <!-- Lobby (Oda) Ekranı -->
   <div id="lobby-container">
     <h2>Online Oyun Lobby</h2>
     <button id="create-room-btn">Oda Oluştur</button>
@@ -264,15 +264,9 @@
         <section id="player-info-section">
           <h2>Oyuncular</h2>
           <div id="players-info">
-            <!-- Oyuncu kartları dinamik olarak eklenecek; örneğin:
-                 <div class="player-info">
-                   <p><strong>Oyuncu İsmi</strong></p>
-                   <p>Para: 1000$</p>
-                   <p>Ülkeler: 2</p>
-                   <p>Petrol: 300 varil</p>
-                 </div>
-            -->
+            <!-- Dinamik oyuncu kartları buraya eklenecek -->
           </div>
+          <p>Şu anki sıra: <span id="current-player">-</span></p>
         </section>
         <!-- Ülke Bilgileri -->
         <section id="country-info-section">
@@ -336,7 +330,7 @@
           </div>
           <div class="action-group">
             <h3>Tur</h3>
-            <p>Sıra: <span id="current-player">Oyuncu Adı</span></p>
+            <p>Sıra: <span id="current-turn-display">-</span></p>
             <button id="end-turn-btn"><i class="fas fa-forward"></i> Tur Sonu</button>
           </div>
         </section>
@@ -367,7 +361,7 @@
   <!-- Main JS -->
   <script>
     /*****************************************************************
-     * Firebase Configuration and Global Variables
+     * Firebase Ayarları ve Global Değişkenler
      *****************************************************************/
     const firebaseConfig = {
       apiKey: "AIzaSyCINihMNGs-qRYIIBLzXyeaLnM_Lhp-iwg",
@@ -382,22 +376,22 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    // Global online game variables
+    // Global online game değişkenleri
     let roomCode = null;
     let playerId = null;
     let isHost = false;
     let localGameState = null;
     let localPlayers = null;
-    let localCountryLayers = {};  // Country layer referansları
+    let localCountryLayers = {}; // Ülke katman referansları
     let selectedCountry = null;
     let map;
     let selectedColor = null;
     const availableColors = ["red", "blue", "green", "yellow", "purple"];
     
     /*****************************************************************
-     * Helper Functions
+     * Yardımcı Fonksiyonlar
      *****************************************************************/
-    // Animate.css ile animasyon
+    // Animate.css animasyon fonksiyonu
     function animateWithAnimateCSS(element, animationName, callback) {
       element.classList.add("animate__animated", animationName);
       function handleAnimationEnd(event) {
@@ -423,7 +417,7 @@
       setTimeout(() => circle.remove(), 500);
     }
     
-    // Bildirim gösterme
+    // Bildirim gösterme fonksiyonu
     function showNotification(message, duration = 3000) {
       const notificationArea = document.getElementById("notification-area");
       notificationArea.innerHTML = `<div class="popup">${message}</div>`;
@@ -493,7 +487,7 @@
         createRoomForm.style.display = "none";
       });
       
-      // Renk seçeneklerini doldur (hem create hem de join form için)
+      // Renk seçeneklerini doldur (create ve join formu için)
       const createColorDiv = document.getElementById("create-color-options");
       availableColors.forEach(color => {
         const btn = document.createElement("button");
@@ -606,17 +600,10 @@
         document.getElementById("room-waiting").style.display = "block";
         document.getElementById("display-room-code").textContent = roomCode;
         
-        // Oyuncu listesini dinle (dinamik güncelleme)
+        // Oyuncu listesini dinle (Firebase’den güncelle)
         db.ref("rooms/" + roomCode + "/players").on("value", snapshot => {
           localPlayers = snapshot.val();
           updatePlayersList();
-          db.ref("rooms/" + roomCode + "/settings/totalPlayers").once("value").then(snap => {
-            const required = snap.val();
-            if(isHost && snapshot.numChildren() === required)
-              document.getElementById("start-game-btn").style.display = "block";
-            else
-              document.getElementById("start-game-btn").style.display = "none";
-          });
         });
         
         // Oyun başladı mı dinle
@@ -626,6 +613,17 @@
             document.getElementById("game-container").style.display = "block";
             initGame();
           }
+        });
+        
+        // Host ise; oda dolduğunda "Oyunu Başlat" butonu görünür olsun
+        db.ref("rooms/" + roomCode + "/settings/totalPlayers").once("value").then(snap => {
+          const required = snap.val();
+          db.ref("rooms/" + roomCode + "/players").on("value", snapshot => {
+            if(isHost && snapshot.numChildren() === required)
+              document.getElementById("start-game-btn").style.display = "block";
+            else
+              document.getElementById("start-game-btn").style.display = "none";
+          });
         });
       }
       
@@ -639,7 +637,7 @@
         }
       }
       
-      // Host: Oyunu Başlatma (tüm oyuncular odaya girmişse)
+      // Host: Oyunu Başlatma (Tüm oyuncular odada olduğunda)
       document.getElementById("start-game-btn").addEventListener("click", () => {
         if(!isHost) return;
         fetch("https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json")
@@ -678,13 +676,13 @@
     }
     
     /*****************************************************************
-     * Game Operations and UI Updates
+     * Oyun İşlemleri ve UI Güncellemeleri
      *****************************************************************/
     function initGame() {
       // Haritayı başlat
       map = L.map("map").setView([20, 0], 2);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18 }).addTo(map);
-      // GeoJSON üzerinden ülke katmanlarını oluştur ve referanslarını sakla
+      // Ülke katmanlarını GeoJSON ile oluştur ve referanslarını sakla
       fetch("https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json")
         .then(response => response.json())
         .then(geoJsonData => {
@@ -712,7 +710,7 @@
             }
           }).addTo(map);
         });
-      // Firebase dinleyicileri: oyun durumu ve oyuncu verileri
+      // Dinamik güncelleme için Firebase dinleyicileri
       db.ref("rooms/" + roomCode + "/gameState").on("value", snapshot => {
         localGameState = snapshot.val();
         updateGameUI();
@@ -804,27 +802,27 @@
       updateMapStyles();
     }
     
+    // Oyuncu bilgilerini oyun ekranında güncelle (dinamik olarak)
     function updatePlayersUI() {
       const playersInfoDiv = document.getElementById("players-info");
       playersInfoDiv.innerHTML = "";
-      for(let pid in localPlayers) {
-        const player = localPlayers[pid];
-        const playerDiv = document.createElement("div");
-        playerDiv.className = "player-info";
-        playerDiv.id = "player-info-" + pid;
-        // Güncel oyuncu verileri: para, asker sayısı, sahip olduğu ülke sayısı, varil petrol
-        playerDiv.innerHTML = `
-          <p><strong>${player.name}</strong></p>
-          <p>Para: <span id="money-${pid}">${player.money}</span>$</p>
-          <p>Asker: <span id="soldiers-${pid}">${player.soldiers}</span></p>
-          <p>Ülkeler: <span id="countries-${pid}">${player.countries.length}</span></p>
-          <p>Petrol: <span id="petrol-${pid}">${player.petrol}</span> varil</p>
+      // Oyuncuları "order" değerine göre sıralayalım
+      const playersArr = Object.values(localPlayers).sort((a, b) => a.order - b.order);
+      playersArr.forEach(player => {
+        const div = document.createElement("div");
+        div.className = "player-info";
+        div.innerHTML = `
+          <p><strong>${player.name}</strong> (${player.color})</p>
+          <p>Para: <span>${player.money}</span>$</p>
+          <p>Asker: <span>${player.soldiers}</span></p>
+          <p>Ülkeler: <span>${player.countries.length}</span></p>
+          <p>Petrol: <span>${player.petrol}</span> varil</p>
         `;
-        playersInfoDiv.appendChild(playerDiv);
-      }
-      if(localGameState && localGameState.currentPlayer) {
-        document.getElementById("current-player").textContent = getPlayerNameByOrder(localGameState.currentPlayer);
-      }
+        playersInfoDiv.appendChild(div);
+      });
+      // Güncel sıranın hangi oyuncuya ait olduğunu göster
+      document.getElementById("current-player").textContent = getPlayerNameByOrder(localGameState.currentPlayer);
+      document.getElementById("current-turn-display").textContent = getPlayerNameByOrder(localGameState.currentPlayer);
     }
     
     function updateMapStyles() {
@@ -849,30 +847,35 @@
       for(const pid in localPlayers) {
         if(localPlayers[pid].order === order) { return localPlayers[pid].name; }
       }
-      return "";
+      return "-";
     }
     
-    // Güncel para/ petrol gönderme alıcı seçeneklerini güncelle
+    // Para ve petrol gönderme için alıcı seçeneklerini güncelle
     function updateRecipientOptions() {
       const recipientSelect = document.getElementById("recipient-player");
       const recipientPetrolSelect = document.getElementById("recipient-player-petrol");
       recipientSelect.innerHTML = "";
       recipientPetrolSelect.innerHTML = "";
-      for(const pid in localPlayers) {
-        if(pid === playerId) continue; // Kendini listeleme
-        const option = document.createElement("option");
-        option.value = localPlayers[pid].order;
-        option.textContent = localPlayers[pid].name;
-        recipientSelect.appendChild(option);
-        const option2 = document.createElement("option");
-        option2.value = localPlayers[pid].order;
-        option2.textContent = localPlayers[pid].name;
-        recipientPetrolSelect.appendChild(option2);
-      }
+      // Sırada olmayan oyuncuları ekleyelim (kendimizi listelemesin)
+      const playersArr = Object.values(localPlayers).sort((a, b) => a.order - b.order);
+      playersArr.forEach(player => {
+        // Eğer bu oyuncu kendimiz değilse
+        if(player.name !== localPlayers[playerId].name) {
+          const opt = document.createElement("option");
+          opt.value = player.order;
+          opt.textContent = player.name;
+          recipientSelect.appendChild(opt);
+          
+          const opt2 = document.createElement("option");
+          opt2.value = player.order;
+          opt2.textContent = player.name;
+          recipientPetrolSelect.appendChild(opt2);
+        }
+      });
     }
     
     /*****************************************************************
-     * Game Actions
+     * Oyun Aksiyonları
      *****************************************************************/
     function attack() {
       if(!selectedCountry) { showNotification("Bir ülke seçin!"); return; }
@@ -883,7 +886,7 @@
       if(localPlayers[playerId].soldiers < soldiersToSend) { showNotification("Yeterli askeriniz yok!"); return; }
       
       const target = localGameState.countryData[selectedCountry];
-      // Eğer saldırılan ülke zaten saldırıyı yapan oyuncuya aitse
+      // Eğer saldırılan ülke zaten saldırıyı yapan oyuncuya aitse:
       if(target.owner === myOrder) {
         target.soldiers += soldiersToSend;
         localPlayers[playerId].soldiers -= soldiersToSend;
@@ -895,14 +898,14 @@
           target.soldiers = remaining;
           const previousOwner = target.owner;
           target.owner = myOrder;
-          // Eğer başka bir oyuncuya aitse, o oyuncunun ülke listesinden çıkar
+          // Önceki sahibin ülke listesinden çıkar
           for(const pid in localPlayers) {
             if(localPlayers[pid].order === previousOwner) {
               const idx = localPlayers[pid].countries.indexOf(selectedCountry);
               if(idx !== -1) localPlayers[pid].countries.splice(idx, 1);
             }
           }
-          // Saldırıyı yapan oyuncunun ülke listesine ekle
+          // Saldırıyı yapanın ülke listesine ekle
           localPlayers[playerId].countries.push(selectedCountry);
           const layer = localCountryLayers[selectedCountry];
           if(layer) { 
@@ -989,31 +992,31 @@
       updateFirebaseState();
     }
     
+    // Tur sırasını güncelleme (oyuncuların order değerlerine göre)
     function nextTurn() {
-      const currentOrder = localGameState.currentPlayer;
-      // Sıra sahibi oyuncunun sahip olduğu ülkelerde işlem yap
-      for(const pid in localPlayers) {
-        if(localPlayers[pid].order === currentOrder) {
-          localPlayers[pid].countries.forEach(countryName => {
-            const country = localGameState.countryData[countryName];
-            if(country.barracksCount) { country.soldiers += 5 * country.barracksCount; }
-            let effectiveIncome = country.income;
-            if(country.factories) { effectiveIncome = Math.floor(country.income * (1 + 0.25 * country.factories)); }
-            localPlayers[pid].money += effectiveIncome;
-            if(country.oilProduction) {
-              const effectiveProduction = Math.floor(country.oilProduction * (1 + 0.20 * (country.refineries || 0)));
-              localPlayers[pid].petrol += effectiveProduction;
-            }
-          });
+      // Önce sırayı bitiren oyuncunun gelir ve petrol üretimini güncelleyelim
+      const playersArr = Object.entries(localPlayers).sort((a, b) => a[1].order - b[1].order);
+      // playersArr: [ [pid, playerObj], ... ]
+      let currentIndex = playersArr.findIndex(([pid, player]) => player.order === localGameState.currentPlayer);
+      if(currentIndex === -1) currentIndex = 0;
+      const currentPlayerId = playersArr[currentIndex][0];
+      // Güncelle: Bu oyuncunun sahip olduğu ülkelerdeki kışla ve fabrika gelirleri, petrol üretimi
+      localPlayers[currentPlayerId].countries.forEach(countryName => {
+        const country = localGameState.countryData[countryName];
+        if(country.barracksCount) { country.soldiers += 5 * country.barracksCount; }
+        let effectiveIncome = country.income;
+        if(country.factories) { effectiveIncome = Math.floor(country.income * (1 + 0.25 * country.factories)); }
+        localPlayers[currentPlayerId].money += effectiveIncome;
+        if(country.oilProduction) {
+          const effectiveProduction = Math.floor(country.oilProduction * (1 + 0.20 * (country.refineries || 0)));
+          localPlayers[currentPlayerId].petrol += effectiveProduction;
         }
-      }
-      // Tur sırasını güncelle (en yüksek order'a kadar döner)
-      const orders = [];
-      for(const pid in localPlayers) { orders.push(localPlayers[pid].order); }
-      const maxOrder = Math.max(...orders);
-      if(localGameState.currentPlayer === maxOrder) { localGameState.currentRound++; }
-      localGameState.currentPlayer = (localGameState.currentPlayer % maxOrder) + 1;
-      showNotification(`Sıra ${getPlayerNameByOrder(localGameState.currentPlayer)} oyuncuya geçti.`, 1500);
+      });
+      
+      // Sıradaki oyuncuyu hesaplayalım (döngüsel geçiş)
+      const nextIndex = (currentIndex + 1) % playersArr.length;
+      localGameState.currentPlayer = playersArr[nextIndex][1].order;
+      showNotification(`Sıra ${playersArr[nextIndex][1].name} oyuncuya geçti.`, 1500);
       updateFirebaseState();
     }
     
@@ -1054,12 +1057,12 @@
     }
     
     function updateFirebaseState() {
-      // Güncel oyun durumu ve oyuncu bilgilerini Firebase'e aktar
+      // Güncel oyun durumu ve oyuncu verilerini Firebase'e aktar
       db.ref("rooms/" + roomCode + "/gameState").set(localGameState);
       db.ref("rooms/" + roomCode + "/players").set(localPlayers);
     }
     
-    // Oyun içindeki aksiyon butonlarına event listener ekle
+    // Oyun içi aksiyon butonlarına event listener ekle
     document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("attack-btn").addEventListener("click", attack);
       document.getElementById("buy-soldiers-btn").addEventListener("click", buySoldiers);
