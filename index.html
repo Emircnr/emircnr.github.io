@@ -7,7 +7,7 @@
   
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
-  <!-- FontAwesome (Simgeler için) -->
+  <!-- FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer" />
   <!-- Animate.css -->
@@ -15,12 +15,17 @@
   
   <!-- Inline CSS -->
   <style>
-    /* Global Styles */
+    /* Global Reset and Styles */
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #1e1e2f, #2a2a3d); color: #eee; overflow-x: hidden; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #1e1e2f, #2a2a3d);
+      color: #eee;
+      overflow-x: hidden;
+    }
     a { text-decoration: none; color: inherit; }
     
-    /* Notification Area */
+    /* Bildirim Alanı */
     #notification-area {
       position: fixed;
       top: 20px;
@@ -31,11 +36,11 @@
       background: rgba(0, 0, 0, 0.8);
       color: #fff;
       border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
       font-size: 14px;
     }
     
-    /* Lobby Styles */
+    /* Lobby (Oda) Ekranı */
     #lobby-container {
       max-width: 500px;
       margin: 50px auto;
@@ -45,10 +50,7 @@
       box-shadow: 0 8px 16px rgba(0,0,0,0.4);
       text-align: center;
     }
-    #lobby-container h2 {
-      color: #f1c40f;
-      margin-bottom: 15px;
-    }
+    #lobby-container h2 { color: #f1c40f; margin-bottom: 15px; }
     #lobby-container input[type="text"],
     #lobby-container input[type="number"] {
       width: 90%;
@@ -88,7 +90,7 @@
     #room-waiting { margin-top: 20px; }
     #room-waiting ul { list-style: none; margin-top: 10px; text-align: left; }
     
-    /* Game Container Styles */
+    /* Oyun Ekranı */
     #game-container { display: none; height: 100vh; }
     #main-content { display: flex; height: 100%; }
     #map-container { flex: 7; position: relative; }
@@ -98,8 +100,9 @@
       background: #1e1e2f;
       padding: 20px;
       overflow-y: auto;
-      box-shadow: -4px 0 10px rgba(0, 0, 0, 0.4);
+      box-shadow: -4px 0 10px rgba(0,0,0,0.4);
     }
+    /* Panel Bölümleri */
     #game-info, #player-info-section, #country-info-section, #market-section {
       margin-bottom: 20px;
       background: #2a2a3d;
@@ -159,7 +162,7 @@
     }
     .turn-info span { font-weight: 600; color: #f1c40f; }
     
-    /* Tooltip Styles */
+    /* Tooltip & Popup Styles */
     .leaflet-tooltip,
     .country-popup-tooltip {
       background: rgba(0,0,0,0.7);
@@ -205,16 +208,16 @@
   </style>
 </head>
 <body>
-  <!-- Notification Area -->
+  <!-- Bildirim Alanı -->
   <div id="notification-area"></div>
   
-  <!-- Lobby Container -->
+  <!-- Lobby Ekranı -->
   <div id="lobby-container">
     <h2>Online Oyun Lobby</h2>
     <button id="create-room-btn">Oda Oluştur</button>
     <button id="join-room-btn">Odaya Katıl</button>
     
-    <!-- Create Room Form -->
+    <!-- Oda Oluşturma Formu -->
     <div id="create-room-form" style="display:none;">
       <input type="text" id="create-room-code" placeholder="Oda Kodu (boş bırakılırsa otomatik oluşturulur)" />
       <input type="number" id="create-player-count" placeholder="Oyuncu Sayısı (2-5)" min="2" max="5" />
@@ -224,7 +227,7 @@
       <button id="confirm-create-room">Odayı Oluştur</button>
     </div>
     
-    <!-- Join Room Form -->
+    <!-- Odaya Katılma Formu -->
     <div id="join-room-form" style="display:none;">
       <input type="text" id="join-room-code" placeholder="Oda Kodu" />
       <input type="text" id="join-player-name" placeholder="Oyuncu İsminiz" />
@@ -233,7 +236,7 @@
       <button id="confirm-join-room">Odaya Katıl</button>
     </div>
     
-    <!-- Room Waiting Area -->
+    <!-- Oda Bekleme Alanı -->
     <div id="room-waiting" style="display:none;">
       <h3>Oda: <span id="display-room-code"></span></h3>
       <p>Oyuncular:</p>
@@ -242,29 +245,36 @@
     </div>
   </div>
   
-  <!-- Game Container -->
+  <!-- Oyun Ekranı -->
   <div id="game-container">
     <div id="main-content">
-      <!-- Map Container -->
+      <!-- Harita Bölgesi -->
       <div id="map-container">
         <div id="map"></div>
       </div>
-      <!-- Side Panel -->
+      <!-- Sağ Panel -->
       <div id="side-panel">
-        <!-- Game Info -->
+        <!-- Oyun Bilgileri -->
         <section id="game-info">
           <h2>Oyun Bilgileri</h2>
           <p>Tur: <span id="current-round">1</span></p>
           <p>Toplam Petrol: <span id="total-petrol">0</span> varil</p>
         </section>
-        <!-- Player Info Section -->
+        <!-- Oyuncu Bilgileri -->
         <section id="player-info-section">
           <h2>Oyuncular</h2>
           <div id="players-info">
-            <!-- Dinamik oyuncu bilgileri buraya gelecek -->
+            <!-- Oyuncu kartları dinamik olarak eklenecek; örneğin:
+                 <div class="player-info">
+                   <p><strong>Oyuncu İsmi</strong></p>
+                   <p>Para: 1000$</p>
+                   <p>Ülkeler: 2</p>
+                   <p>Petrol: 300 varil</p>
+                 </div>
+            -->
           </div>
         </section>
-        <!-- Country Info Section -->
+        <!-- Ülke Bilgileri -->
         <section id="country-info-section">
           <h2>Ülke Detayları</h2>
           <div id="country-info">
@@ -278,7 +288,7 @@
             <p>Üretim Kapasitesi: <span id="selected-country-oilProduction">0</span> varil</p>
           </div>
         </section>
-        <!-- Market / Actions Section -->
+        <!-- İşlemler (Market) -->
         <section id="market-section">
           <h2>İşlemler</h2>
           <div class="action-group">
@@ -312,7 +322,7 @@
             <h3>Para Gönder</h3>
             <input type="number" id="money-to-send" placeholder="Miktar" min="1" />
             <select id="recipient-player">
-              <!-- Dinamik oyuncu seçenekleri -->
+              <!-- Alıcı oyuncular dinamik olarak listelenecek -->
             </select>
             <button id="send-money-btn"><i class="fas fa-hand-holding-usd"></i> Para Gönder</button>
           </div>
@@ -320,7 +330,7 @@
             <h3>Petrol Gönder</h3>
             <input type="number" id="petrol-to-send" placeholder="Varil" min="1" />
             <select id="recipient-player-petrol">
-              <!-- Dinamik oyuncu seçenekleri -->
+              <!-- Alıcı oyuncular dinamik olarak listelenecek -->
             </select>
             <button id="send-petrol-btn"><i class="fas fa-gas-pump"></i> Petrol Gönder</button>
           </div>
@@ -334,7 +344,7 @@
     </div>
   </div>
   
-  <!-- Country Tooltip Template -->
+  <!-- Ülke Tooltip Şablonu -->
   <template id="country-popup-template">
     <div class="country-popup">
       <p><span class="emoji"><i class="fas fa-money-bill-wave"></i></span> Gelir: <span class="income"></span>$</p>
@@ -348,7 +358,7 @@
   </template>
   
   <!-- Firebase & Leaflet JS -->
-  <!-- Firebase compat sürümü -->
+  <!-- Firebase (v9 compat) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
   <!-- Leaflet JS -->
@@ -378,7 +388,7 @@
     let isHost = false;
     let localGameState = null;
     let localPlayers = null;
-    let localCountryLayers = {};  // Store Leaflet layers by country name
+    let localCountryLayers = {};  // Country layer referansları
     let selectedCountry = null;
     let map;
     let selectedColor = null;
@@ -387,7 +397,7 @@
     /*****************************************************************
      * Helper Functions
      *****************************************************************/
-    // Animate.css helper
+    // Animate.css ile animasyon
     function animateWithAnimateCSS(element, animationName, callback) {
       element.classList.add("animate__animated", animationName);
       function handleAnimationEnd(event) {
@@ -399,7 +409,7 @@
       element.addEventListener("animationend", handleAnimationEnd);
     }
     
-    // Ripple effect for buttons
+    // Butonlara ripple efekti ekle
     function createRipple(e) {
       const button = e.currentTarget;
       const circle = document.createElement("span");
@@ -413,7 +423,7 @@
       setTimeout(() => circle.remove(), 500);
     }
     
-    // Show notification
+    // Bildirim gösterme
     function showNotification(message, duration = 3000) {
       const notificationArea = document.getElementById("notification-area");
       notificationArea.innerHTML = `<div class="popup">${message}</div>`;
@@ -432,7 +442,7 @@
       }, duration);
     }
     
-    // Flash effect for Leaflet layer (attack effect)
+    // Harita katmanına saldırı efektini uygula
     function flashLayer(layer, flashColor) {
       const originalStyle = {
         fillColor: layer.options.fillColor,
@@ -451,10 +461,10 @@
     }
     
     /*****************************************************************
-     * Lobby (Room) Operations
+     * Lobby (Oda) İşlemleri
      *****************************************************************/
     document.addEventListener("DOMContentLoaded", () => {
-      // Add ripple effect to all buttons
+      // Tüm butonlara ripple efekti ekle
       document.querySelectorAll("button").forEach((btn) => {
         btn.classList.add("button-click-effect");
         btn.addEventListener("click", createRipple);
@@ -483,7 +493,7 @@
         createRoomForm.style.display = "none";
       });
       
-      // Populate color options for create and join forms
+      // Renk seçeneklerini doldur (hem create hem de join form için)
       const createColorDiv = document.getElementById("create-color-options");
       availableColors.forEach(color => {
         const btn = document.createElement("button");
@@ -511,7 +521,7 @@
         joinColorDiv.appendChild(btn);
       });
       
-      // Create Room Operation
+      // Oda Oluşturma
       document.getElementById("confirm-create-room").addEventListener("click", () => {
         let inputRoomCode = document.getElementById("create-room-code").value.trim();
         roomCode = inputRoomCode ? inputRoomCode.toUpperCase() : generateRoomCode();
@@ -524,7 +534,7 @@
         if(!playerName) { showNotification("Lütfen isminizi girin!"); return; }
         if(!selectedColor) { showNotification("Lütfen bir renk seçin!"); return; }
         
-        // Generate unique playerId for host
+        // Host için benzersiz playerId üret
         playerId = firebase.database().ref().push().key;
         isHost = true;
         localPlayers = {};
@@ -552,7 +562,7 @@
         });
       });
       
-      // Join Room Operation
+      // Odaya Katılma
       document.getElementById("confirm-join-room").addEventListener("click", () => {
         roomCode = document.getElementById("join-room-code").value.trim().toUpperCase();
         if(!roomCode) { showNotification("Lütfen oda kodunu girin!"); return; }
@@ -596,7 +606,7 @@
         document.getElementById("room-waiting").style.display = "block";
         document.getElementById("display-room-code").textContent = roomCode;
         
-        // Listen for players list changes
+        // Oyuncu listesini dinle (dinamik güncelleme)
         db.ref("rooms/" + roomCode + "/players").on("value", snapshot => {
           localPlayers = snapshot.val();
           updatePlayersList();
@@ -609,7 +619,7 @@
           });
         });
         
-        // Listen for game start flag
+        // Oyun başladı mı dinle
         db.ref("rooms/" + roomCode + "/gameStarted").on("value", snapshot => {
           if(snapshot.val() === true) {
             document.getElementById("lobby-container").style.display = "none";
@@ -629,7 +639,7 @@
         }
       }
       
-      // Host: Start Game Operation
+      // Host: Oyunu Başlatma (tüm oyuncular odaya girmişse)
       document.getElementById("start-game-btn").addEventListener("click", () => {
         if(!isHost) return;
         fetch("https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json")
@@ -671,10 +681,10 @@
      * Game Operations and UI Updates
      *****************************************************************/
     function initGame() {
-      // Initialize map
+      // Haritayı başlat
       map = L.map("map").setView([20, 0], 2);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18 }).addTo(map);
-      // Create country layers from GeoJSON
+      // GeoJSON üzerinden ülke katmanlarını oluştur ve referanslarını sakla
       fetch("https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json")
         .then(response => response.json())
         .then(geoJsonData => {
@@ -702,12 +712,11 @@
             }
           }).addTo(map);
         });
-      // Listen for game state updates
+      // Firebase dinleyicileri: oyun durumu ve oyuncu verileri
       db.ref("rooms/" + roomCode + "/gameState").on("value", snapshot => {
         localGameState = snapshot.val();
         updateGameUI();
       });
-      // Listen for players updates
       db.ref("rooms/" + roomCode + "/players").on("value", snapshot => {
         localPlayers = snapshot.val();
         updatePlayersUI();
@@ -803,6 +812,7 @@
         const playerDiv = document.createElement("div");
         playerDiv.className = "player-info";
         playerDiv.id = "player-info-" + pid;
+        // Güncel oyuncu verileri: para, asker sayısı, sahip olduğu ülke sayısı, varil petrol
         playerDiv.innerHTML = `
           <p><strong>${player.name}</strong></p>
           <p>Para: <span id="money-${pid}">${player.money}</span>$</p>
@@ -842,14 +852,14 @@
       return "";
     }
     
-    // Update recipient options for money and petrol sending selects
+    // Güncel para/ petrol gönderme alıcı seçeneklerini güncelle
     function updateRecipientOptions() {
       const recipientSelect = document.getElementById("recipient-player");
       const recipientPetrolSelect = document.getElementById("recipient-player-petrol");
       recipientSelect.innerHTML = "";
       recipientPetrolSelect.innerHTML = "";
       for(const pid in localPlayers) {
-        if(pid === playerId) continue; // Skip self
+        if(pid === playerId) continue; // Kendini listeleme
         const option = document.createElement("option");
         option.value = localPlayers[pid].order;
         option.textContent = localPlayers[pid].name;
@@ -871,7 +881,9 @@
       const myOrder = localPlayers[playerId].order;
       if(myOrder !== localGameState.currentPlayer) { showNotification("Sıra sizde değil!"); return; }
       if(localPlayers[playerId].soldiers < soldiersToSend) { showNotification("Yeterli askeriniz yok!"); return; }
+      
       const target = localGameState.countryData[selectedCountry];
+      // Eğer saldırılan ülke zaten saldırıyı yapan oyuncuya aitse
       if(target.owner === myOrder) {
         target.soldiers += soldiersToSend;
         localPlayers[playerId].soldiers -= soldiersToSend;
@@ -883,12 +895,14 @@
           target.soldiers = remaining;
           const previousOwner = target.owner;
           target.owner = myOrder;
+          // Eğer başka bir oyuncuya aitse, o oyuncunun ülke listesinden çıkar
           for(const pid in localPlayers) {
             if(localPlayers[pid].order === previousOwner) {
               const idx = localPlayers[pid].countries.indexOf(selectedCountry);
               if(idx !== -1) localPlayers[pid].countries.splice(idx, 1);
             }
           }
+          // Saldırıyı yapan oyuncunun ülke listesine ekle
           localPlayers[playerId].countries.push(selectedCountry);
           const layer = localCountryLayers[selectedCountry];
           if(layer) { 
@@ -977,6 +991,7 @@
     
     function nextTurn() {
       const currentOrder = localGameState.currentPlayer;
+      // Sıra sahibi oyuncunun sahip olduğu ülkelerde işlem yap
       for(const pid in localPlayers) {
         if(localPlayers[pid].order === currentOrder) {
           localPlayers[pid].countries.forEach(countryName => {
@@ -992,6 +1007,7 @@
           });
         }
       }
+      // Tur sırasını güncelle (en yüksek order'a kadar döner)
       const orders = [];
       for(const pid in localPlayers) { orders.push(localPlayers[pid].order); }
       const maxOrder = Math.max(...orders);
@@ -1038,11 +1054,12 @@
     }
     
     function updateFirebaseState() {
+      // Güncel oyun durumu ve oyuncu bilgilerini Firebase'e aktar
       db.ref("rooms/" + roomCode + "/gameState").set(localGameState);
       db.ref("rooms/" + roomCode + "/players").set(localPlayers);
     }
     
-    // Add event listeners for game action buttons
+    // Oyun içindeki aksiyon butonlarına event listener ekle
     document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("attack-btn").addEventListener("click", attack);
       document.getElementById("buy-soldiers-btn").addEventListener("click", buySoldiers);
