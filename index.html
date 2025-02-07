@@ -548,7 +548,7 @@
     <!-- Oda Oluşturma Bölümü -->
     <div id="create-room-section">
       <h2>Oda Oluştur</h2>
-      <input type="text" id="creator-player-name" placeholder="Adınız">
+      <input type="text" id="creator-player-name" placeholder="Adınız" />
       <div class="color-options" id="creator-color-options"></div>
       <input
         type="number"
@@ -556,16 +556,20 @@
         placeholder="Oyuncu Sayısı (2-5)"
         min="2"
         max="5"
-      >
+      />
       <button id="create-room-btn">Oda Oluştur</button>
     </div>
-    <hr>
+    <hr />
     <!-- Odaya Katılma Bölümü -->
     <div id="join-room-section">
       <h2>Odaya Katıl</h2>
-      <input type="text" id="join-player-name" placeholder="Adınız">
+      <input type="text" id="join-player-name" placeholder="Adınız" />
       <div class="color-options" id="join-color-options"></div>
-      <input type="text" id="room-code" placeholder="Oda Kodu (Örn: AB12CD)">
+      <input
+        type="text"
+        id="room-code"
+        placeholder="Oda Kodu (Örn: AB12CD)"
+      />
       <button id="join-room-btn">Odaya Katıl</button>
     </div>
   </div>
@@ -629,7 +633,7 @@
               id="attack-soldiers"
               placeholder="Asker sayısı"
               min="1"
-            >
+            />
             <button id="attack-btn">
               <i class="fas fa-crosshairs"></i> Saldırı Yap
             </button>
@@ -642,7 +646,7 @@
               id="soldiers-to-buy"
               placeholder="Adet"
               min="1"
-            >
+            />
             <button id="buy-soldiers-btn">
               <i class="fas fa-user-plus"></i> Satın Al (10$/adet)
             </button>
@@ -676,7 +680,7 @@
               id="pull-soldiers-count"
               placeholder="Asker sayısı"
               min="1"
-            >
+            />
             <button id="pull-soldiers-btn">
               <i class="fas fa-running"></i> Asker Çek
             </button>
@@ -689,7 +693,7 @@
               id="money-to-send"
               placeholder="Miktar"
               min="1"
-            >
+            />
             <select id="recipient-player"></select>
             <button id="send-money-btn">
               <i class="fas fa-hand-holding-usd"></i> Para Gönder
@@ -703,7 +707,7 @@
               id="petrol-to-send"
               placeholder="Varil"
               min="1"
-            >
+            />
             <select id="recipient-player-petrol"></select>
             <button id="send-petrol-btn">
               <i class="fas fa-gas-pump"></i> Petrol Gönder
@@ -846,12 +850,14 @@
       element.addEventListener("animationend", handleAnimationEnd);
     }
 
+    // Sıra kimde kontrolü
     function isMyTurn() {
       if (!roomData || !roomData.playerOrder) return false;
       const currentTurnIndex = roomData.currentTurnIndex || 0;
       return roomData.playerOrder[currentTurnIndex] === localPlayerId;
     }
 
+    // Saldırmazlık Pakti aktif mi kontrolü
     function hasActivePact(playerA, playerB) {
       if (!roomData || !roomData.pacts) return false;
       const currentRound = roomData.round || 1;
@@ -1245,7 +1251,7 @@
           : "Yok";
       let effectiveIncome = country.factories
         ? Math.floor((country.income || 0) * (1 + 0.25 * country.factories))
-        : country.income || 0;
+        : (country.income || 0);
       const effectiveProduction = country.oilProduction
         ? Math.floor(country.oilProduction * (1 + 0.2 * (country.refineries || 0)))
         : 0;
@@ -1414,7 +1420,7 @@
 
     // Saldırmazlık paktını KABUL
     function acceptPactOffer(offerId) {
-      // İSTEK: Butonun her zaman işlevsel olması için "Sıranız değil" kontrolünü kaldırdık.
+      // Teklifi kim onaylarsa onaylasın (ilgili alıcı), "Sıranız değil" kontrolü kaldırıldı.
       const offer = roomData.pactOffers[offerId];
       if (!offer || offer.status !== "pending") return;
 
@@ -1425,6 +1431,7 @@
       const recipientData = roomData.players[offer.recipientId];
       if (!senderData || !recipientData) return;
 
+      // Gönderenin parası hala yeterli mi kontrolü
       if (senderData.money < offer.cost) {
         showNotification("Teklifi yapan oyuncunun yeterli parası kalmamış. Teklif iptal edildi.");
         roomRef.child("pactOffers").child(offerId).update({ status: "rejected" });
@@ -1432,12 +1439,17 @@
       }
 
       const updates = {};
+      // Teklifin durumu güncelleniyor
       updates["pactOffers/" + offerId + "/status"] = "accepted";
+      // Gönderenin parasından düş, alıcının parasına ekle
       updates["players/" + offer.senderId + "/money"] = senderData.money - offer.cost;
       updates["players/" + offer.recipientId + "/money"] = recipientData.money + offer.cost;
+
+      // Pacts nesnesi yoksa ekleyelim
       if (!roomData.pacts) {
         updates["pacts"] = {};
       }
+      // Paktı ekle
       updates["pacts/" + offerId] = {
         players: [offer.senderId, offer.recipientId],
         endRound: endRound
@@ -1449,7 +1461,7 @@
 
     // Saldırmazlık paktını RED
     function rejectPactOffer(offerId) {
-      // İSTEK: Butonun her zaman işlevsel olması için "Sıranız değil" kontrolünü kaldırdık.
+      // Teklifi kim reddederse etsin, "Sıranız değil" kontrolü kaldırıldı.
       const offer = roomData.pactOffers[offerId];
       if (!offer || offer.status !== "pending") return;
 
