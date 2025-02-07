@@ -50,7 +50,7 @@
     }
 
     /* ==================================================
-       SAVAŞ TEMALI LOBI STILI
+       SAVAŞ TEMALI LOBİ STİLİ
        ================================================== */
     body.lobby {
       background: url('https://source.unsplash.com/1600x900/?war,conflict') no-repeat center center fixed;
@@ -116,7 +116,7 @@
       margin-bottom: 15px;
       text-align: center;
     }
-    /* RENK BUTONLARI DAHA KÜÇÜK YAPILDI */
+    /* RENK BUTONLARI (küçültülmüş, yuvarlak) */
     .global-color-option {
       width: 20px;
       height: 20px;
@@ -136,7 +136,7 @@
     }
 
     /* ==================================================
-       BILDIRIM ALANI (POPUP)
+       BİLDİRİM ALANI (POPUP)
        ================================================== */
     #notification-area {
       position: fixed;
@@ -166,7 +166,7 @@
       height: 100%;
     }
 
-    /* HARITA BÖLGESİ */
+    /* HARİTA BÖLGESİ */
     #map-container {
       flex: 7;
       position: relative;
@@ -191,14 +191,14 @@
     /* SAĞ PANEL - Daha geniş yapmak için max-width büyütüldü */
     #side-panel {
       flex: 2.3;
-      max-width: 350px; /* Biraz daha geniş */
+      max-width: 350px;
       background: #1e1e2f;
       padding: 20px;
       overflow-y: auto;
       box-shadow: -4px 0 10px rgba(0, 0, 0, 0.4);
     }
 
-    /* OYUN BILGILERI KARTI */
+    /* OYUN BİLGİLERİ KARTI */
     #game-info {
       margin-bottom: 20px;
       background: #2a2a3d;
@@ -219,7 +219,7 @@
       color: #ddd;
     }
 
-    /* OYUNCU BILGILERI */
+    /* OYUNCU BİLGİLERİ */
     #player-info-section {
       margin-bottom: 20px;
     }
@@ -243,7 +243,7 @@
       color: #ddd;
     }
 
-    /* SEÇILI ÜLKE BILGILERI */
+    /* SEÇİLİ ÜLKE BİLGİLERİ */
     #country-info-section {
       margin-bottom: 20px;
     }
@@ -264,7 +264,7 @@
       color: #f39c12;
     }
 
-    /* MARKET & ISLEMLER BÖLÜMÜ */
+    /* MARKET & İŞLEMLER BÖLÜMÜ */
     #market-section {
       margin-bottom: 20px;
     }
@@ -540,6 +540,28 @@
       cursor: pointer;
       z-index: 3002;
     }
+
+    /* ==================================================
+       RESPONSIVE DESIGN
+       ================================================== */
+    @media (max-width: 768px) {
+      #main-content {
+        flex-direction: column;
+      }
+      #map-container {
+        height: 50vh;
+      }
+      #side-panel {
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        box-shadow: none;
+      }
+      /* Konumlandırmaları mobilde biraz ayarlayalım */
+      .open-chat-btn, .open-pact-btn {
+        right: 20px;
+      }
+    }
   </style>
 </head>
 <body class="lobby">
@@ -551,13 +573,7 @@
       <h2>Oda Oluştur</h2>
       <input type="text" id="creator-player-name" placeholder="Adınız" />
       <div class="color-options" id="creator-color-options"></div>
-      <input
-        type="number"
-        id="max-players"
-        placeholder="Oyuncu Sayısı (2-5)"
-        min="2"
-        max="5"
-      />
+      <input type="number" id="max-players" placeholder="Oyuncu Sayısı (2-5)" min="2" max="5" />
       <button id="create-room-btn">Oda Oluştur</button>
     </div>
     <hr />
@@ -566,16 +582,12 @@
       <h2>Odaya Katıl</h2>
       <input type="text" id="join-player-name" placeholder="Adınız" />
       <div class="color-options" id="join-color-options"></div>
-      <input
-        type="text"
-        id="room-code"
-        placeholder="Oda Kodu (Örn: AB12CD)"
-      />
+      <input type="text" id="room-code" placeholder="Oda Kodu (Örn: AB12CD)" />
       <button id="join-room-btn">Odaya Katıl</button>
     </div>
   </div>
 
-  <!-- ===================== BILDIRIM ALANI ===================== -->
+  <!-- ===================== BİLDİRİM ALANI ===================== -->
   <div id="notification-area"></div>
 
   <!-- ===================== OYUN EKRANI ===================== -->
@@ -629,12 +641,7 @@
           <!-- Saldırı İşlemi -->
           <div class="action-group">
             <h3>Saldırı</h3>
-            <input
-              type="number"
-              id="attack-soldiers"
-              placeholder="Asker sayısı"
-              min="1"
-            />
+            <input type="number" id="attack-soldiers" placeholder="Asker sayısı" min="1" />
             <button id="attack-btn">
               <i class="fas fa-crosshairs"></i> Saldırı Yap
             </button>
@@ -642,12 +649,7 @@
           <!-- Asker Satın Alma -->
           <div class="action-group">
             <h3>Asker Satın Alma</h3>
-            <input
-              type="number"
-              id="soldiers-to-buy"
-              placeholder="Adet"
-              min="1"
-            />
+            <input type="number" id="soldiers-to-buy" placeholder="Adet" min="1" />
             <button id="buy-soldiers-btn">
               <i class="fas fa-user-plus"></i> Satın Al (10$/adet)
             </button>
@@ -676,12 +678,7 @@
           <!-- Asker Çekme -->
           <div class="action-group">
             <h3>Asker Çek</h3>
-            <input
-              type="number"
-              id="pull-soldiers-count"
-              placeholder="Asker sayısı"
-              min="1"
-            />
+            <input type="number" id="pull-soldiers-count" placeholder="Asker sayısı" min="1" />
             <button id="pull-soldiers-btn">
               <i class="fas fa-running"></i> Asker Çek
             </button>
@@ -689,12 +686,7 @@
           <!-- Para Gönderme -->
           <div class="action-group">
             <h3>Para Gönder</h3>
-            <input
-              type="number"
-              id="money-to-send"
-              placeholder="Miktar"
-              min="1"
-            />
+            <input type="number" id="money-to-send" placeholder="Miktar" min="1" />
             <select id="recipient-player"></select>
             <button id="send-money-btn">
               <i class="fas fa-hand-holding-usd"></i> Para Gönder
@@ -703,12 +695,7 @@
           <!-- Petrol Gönderme -->
           <div class="action-group">
             <h3>Petrol Gönder</h3>
-            <input
-              type="number"
-              id="petrol-to-send"
-              placeholder="Varil"
-              min="1"
-            />
+            <input type="number" id="petrol-to-send" placeholder="Varil" min="1" />
             <select id="recipient-player-petrol"></select>
             <button id="send-petrol-btn">
               <i class="fas fa-gas-pump"></i> Petrol Gönder
@@ -772,10 +759,7 @@
   <!-- ===================== Firebase & Diğer JS Kütüphaneleri ===================== -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    crossorigin=""
-  ></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
   <!-- ===================== OYUN ve ONLINE İŞLEVSİYONLARI ===================== -->
   <script>
@@ -1319,7 +1303,7 @@
     }
 
     /*****************************************************************
-     * PAKT TEKLIFLERI – GÖNDERME, KABUL, REDDET
+     * PAKT TEKLİFLERİ – GÖNDERME, KABUL, REDDET
      *****************************************************************/
     function sendPactOffer() {
       // Saldırmazlık pakti teklifi
@@ -1421,7 +1405,7 @@
 
     // Saldırmazlık paktını KABUL
     function acceptPactOffer(offerId) {
-      // Teklifi kim onaylarsa onaylasın (ilgili alıcı), "Sıranız değil" kontrolü kaldırıldı.
+      // İlgili alıcının teklifi onaylaması için "Sıranız değil" kontrolü kaldırıldı.
       const offer = roomData.pactOffers[offerId];
       if (!offer || offer.status !== "pending") return;
 
@@ -1432,7 +1416,7 @@
       const recipientData = roomData.players[offer.recipientId];
       if (!senderData || !recipientData) return;
 
-      // Gönderenin parası hala yeterli mi kontrolü
+      // Gönderenin parası yeterli mi kontrolü
       if (senderData.money < offer.cost) {
         showNotification("Teklifi yapan oyuncunun yeterli parası kalmamış. Teklif iptal edildi.");
         roomRef.child("pactOffers").child(offerId).update({ status: "rejected" });
@@ -1440,17 +1424,14 @@
       }
 
       const updates = {};
-      // Teklifin durumu güncelleniyor
+      // Teklif durumu güncelleniyor
       updates["pactOffers/" + offerId + "/status"] = "accepted";
-      // Gönderenin parasından düş, alıcının parasına ekle
+      // Gönderenin parasından düşüp alıcının parasına ekleme
       updates["players/" + offer.senderId + "/money"] = senderData.money - offer.cost;
       updates["players/" + offer.recipientId + "/money"] = recipientData.money + offer.cost;
-
-      // Pacts nesnesi yoksa ekleyelim
       if (!roomData.pacts) {
         updates["pacts"] = {};
       }
-      // Paktı ekle
       updates["pacts/" + offerId] = {
         players: [offer.senderId, offer.recipientId],
         endRound: endRound
@@ -1462,7 +1443,7 @@
 
     // Saldırmazlık paktını RED
     function rejectPactOffer(offerId) {
-      // Teklifi kim reddederse etsin, "Sıranız değil" kontrolü kaldırıldı.
+      // İlgili reddeden kişi için "Sıranız değil" kontrolü kaldırıldı.
       const offer = roomData.pactOffers[offerId];
       if (!offer || offer.status !== "pending") return;
 
@@ -1530,7 +1511,7 @@
             currentCountries.push(selectedCountry);
           }
           updates["players/" + currentPlayerId + "/countries"] = currentCountries;
-          // Savunucunun ülkeler listesinden çıkar
+          // Savunucunun ülkeler listesinden çıkarma
           if (target.owner && roomData.players[target.owner]) {
             let defenderCountries = roomData.players[target.owner].countries || [];
             defenderCountries = defenderCountries.filter((c) => c !== selectedCountry);
@@ -1836,7 +1817,7 @@
           (player.petrol || 0) + totalPetrolGained;
       }
 
-      // Bir sonraki oyuncuya geç
+      // Bir sonraki oyuncuya geçiş
       let newTurnIndex = currentTurnIndex + 1;
       if (newTurnIndex >= roomData.playerOrder.length) {
         newTurnIndex = 0;
@@ -1853,7 +1834,7 @@
     }
 
     /*****************************************************************
-     * CHAT SISTEMI
+     * CHAT SİSTEMİ
      *****************************************************************/
     function toggleChat(show) {
       const chatPopup = document.getElementById("chat-popup");
@@ -2022,7 +2003,7 @@
       updateSelectedCountryInfo();
     }
 
-    // Harita görünür hale geldiğinde başlat
+    // Harita görünür hale geldiğinde başlatma
     const gameContainerObserver = new MutationObserver(() => {
       const gameContainer = document.getElementById("game-container");
       if (gameContainer.style.display !== "none") {
@@ -2036,4 +2017,3 @@
   </script>
 </body>
 </html>
-
