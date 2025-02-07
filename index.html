@@ -50,20 +50,20 @@
     }
 
     /* ==================================================
-       SAVAŞ TEMALI LOBI STILI (YENİ TASARIM)
+       SAVAŞ TEMALI LOBİ STİLİ (YENİ TASARIM)
        ================================================== */
     body.lobby {
       background: url("https://source.unsplash.com/1600x900/?war,tanks") no-repeat center center fixed;
       background-size: cover;
     }
-
-    /* LOBBY CONTAINER ESTETIK TASARIM */
+    
+    /* LOBBY CONTAINER */
     #lobby-container {
-      max-width: 500px;
-      margin: 60px auto;
+      max-width: 600px;
+      margin: 40px auto;
       padding: 30px;
       background: rgba(0, 0, 0, 0.8);
-      border: 2px solid #d4af37; /* Daha parlak altın vurgulu */
+      border: 2px solid #d4af37;
       border-radius: 15px;
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.9);
       backdrop-filter: blur(8px);
@@ -79,14 +79,13 @@
         transform: translateY(0);
       }
     }
-
     #lobby-container h1 {
       text-align: center;
-      margin-bottom: 20px;
-      color: #ffd700; /* Daha parlak altın rengi */
+      margin-bottom: 15px;
+      color: #ffd700;
       text-transform: uppercase;
       letter-spacing: 3px;
-      font-size: 38px;
+      font-size: 42px;
       text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
       animation: animateTitle 1s ease;
     }
@@ -100,17 +99,27 @@
         opacity: 1;
       }
     }
-
-    #lobby-container h2 {
-      text-align: center;
+    /* Oyun açıklamaları */
+    #game-instructions {
+      background: rgba(0, 0, 0, 0.7);
+      padding: 15px;
+      border-radius: 8px;
       margin-bottom: 20px;
-      color: #d4af37;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      font-size: 24px;
-      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+      color: #eee;
+      font-size: 16px;
+      line-height: 1.5;
     }
-
+    #game-instructions p, #game-instructions ul {
+      margin-bottom: 10px;
+    }
+    #game-instructions ul {
+      padding-left: 20px;
+      list-style-type: disc;
+    }
+    #game-instructions li {
+      margin-bottom: 5px;
+    }
+    /* Input ve buton stilleri */
     #lobby-container input[type="text"],
     #lobby-container input[type="number"] {
       width: 100%;
@@ -127,7 +136,6 @@
     #lobby-container input[type="number"]:focus {
       box-shadow: 0 0 8px #f1c40f;
     }
-
     #lobby-container button {
       width: 100%;
       padding: 14px;
@@ -146,12 +154,10 @@
       background: linear-gradient(45deg, #ff4500, #8b0000);
       transform: scale(1.02);
     }
-
     .color-options {
       margin-bottom: 15px;
       text-align: center;
     }
-    /* RENK BUTONLARI DAHA KÜÇÜK YAPILDI */
     .global-color-option {
       width: 20px;
       height: 20px;
@@ -171,7 +177,7 @@
     }
 
     /* ==================================================
-       BILDIRIM ALANI (POPUP)
+       BİLDİRİM ALANI (POPUP)
        ================================================== */
     #notification-area {
       position: fixed;
@@ -190,7 +196,7 @@
     }
 
     /* ==================================================
-       OYUN EKRANI STİLLERİ (KALAN KISIMLAR)
+       OYUN EKRANI STİLLERİ
        ================================================== */
     #game-container {
       display: none;
@@ -200,8 +206,7 @@
       display: flex;
       height: 100%;
     }
-
-    /* HARITA BÖLGESİ */
+    /* HARİTA BÖLGESİ */
     #map-container {
       flex: 7;
       position: relative;
@@ -222,18 +227,16 @@
       padding: 6px 10px;
       cursor: pointer;
     }
-
-    /* SAĞ PANEL */
+    /* SAĞ PANEL (oyun bilgileri) */
     #side-panel {
-      flex: 2.3;
-      max-width: 350px;
+      flex: 3;
+      max-width: 400px;
       background: #1e1e2f;
       padding: 20px;
       overflow-y: auto;
       box-shadow: -4px 0 10px rgba(0, 0, 0, 0.4);
     }
-
-    /* OYUN BILGILERI KARTI */
+    /* OYUN BİLGİLERİ KARTI */
     #game-info {
       margin-bottom: 20px;
       background: #2a2a3d;
@@ -253,8 +256,7 @@
       margin: 6px 0;
       color: #ddd;
     }
-
-    /* OYUNCU BILGILERI */
+    /* OYUNCU BİLGİLERİ */
     #player-info-section {
       margin-bottom: 20px;
     }
@@ -277,8 +279,7 @@
       margin: 4px 0;
       color: #ddd;
     }
-
-    /* SEÇILI ÜLKE BILGILERI */
+    /* SEÇILI ÜLKE BİLGİLERİ */
     #country-info-section {
       margin-bottom: 20px;
     }
@@ -298,8 +299,7 @@
       font-weight: 600;
       color: #f39c12;
     }
-
-    /* MARKET & ISLEMLER BÖLÜMÜ */
+    /* MARKET & İŞLEMLER BÖLÜMÜ */
     #market-section {
       margin-bottom: 20px;
     }
@@ -581,18 +581,28 @@
   <!-- ===================== LOBBY (Oda Oluşturma & Katılma) ===================== -->
   <div id="lobby-container" class="animate__animated animate__fadeIn">
     <h1>GLOBAL CONQUEST</h1>
+    
+    <!-- Oyun Hakkında Açıklamalar -->
+    <div id="game-instructions">
+      <p><strong>Global Conquest Nedir?</strong></p>
+      <p>Global Conquest, stratejik düşünme, kaynak yönetimi ve diplomasiye dayalı çevrimiçi çok oyunculu bir savaş oyunudur. Oyuncular, dünya haritasında ülkeleri fethederek; asker, para, petrol gibi kaynakları yönetir, binalar inşa eder ve rakiplerine karşı saldırılar gerçekleştirir.</p>
+      <ul>
+        <li>Oda oluşturun veya mevcut bir odaya katılın.</li>
+        <li>Haritadan bir ülke seçin; seçtiğiniz ülkede asker satın alabilir, kışla, fabrika ve rafine inşa edebilirsiniz.</li>
+        <li>Fabrika, ülkenizin gelirini artırırken; rafine, ülkenizin petrol üretim kapasitesini, başlangıç değerinin %15’i oranında artırır. (Örneğin, başlangıç 100 varil ise; 1 rafine → 115, 2 rafine → 130 varil üretim.)</li>
+        <li>Sıra size geldiğinde saldırı, kaynak transferi gibi hamleler yapabilirsiniz.</li>
+        <li>Chat üzerinden iletişim kurabilir, saldırmazlık paktları teklif edebilirsiniz.</li>
+        <li>Her turda sahip olduğunuz ülkelerden ek gelir ve petrol elde edersiniz.</li>
+      </ul>
+      <p>Stratejinizi belirleyin, rakiplerinizi alt edin ve dünya hâkimiyetine doğru ilerleyin!</p>
+    </div>
+    
     <!-- Oda Oluşturma Bölümü -->
     <div id="create-room-section">
       <h2>Oda Oluştur</h2>
       <input type="text" id="creator-player-name" placeholder="Adınız" />
       <div class="color-options" id="creator-color-options"></div>
-      <input
-        type="number"
-        id="max-players"
-        placeholder="Oyuncu Sayısı (2-5)"
-        min="2"
-        max="5"
-      />
+      <input type="number" id="max-players" placeholder="Oyuncu Sayısı (2-5)" min="2" max="5" />
       <button id="create-room-btn">Oda Oluştur</button>
     </div>
     <hr />
@@ -601,16 +611,12 @@
       <h2>Odaya Katıl</h2>
       <input type="text" id="join-player-name" placeholder="Adınız" />
       <div class="color-options" id="join-color-options"></div>
-      <input
-        type="text"
-        id="room-code"
-        placeholder="Oda Kodu (Örn: AB12CD)"
-      />
+      <input type="text" id="room-code" placeholder="Oda Kodu (Örn: AB12CD)" />
       <button id="join-room-btn">Odaya Katıl</button>
     </div>
   </div>
 
-  <!-- ===================== BILDIRIM ALANI ===================== -->
+  <!-- ===================== BİLDİRİM ALANI ===================== -->
   <div id="notification-area"></div>
 
   <!-- ===================== OYUN EKRANI ===================== -->
@@ -664,12 +670,7 @@
           <!-- Saldırı İşlemi -->
           <div class="action-group">
             <h3>Saldırı</h3>
-            <input
-              type="number"
-              id="attack-soldiers"
-              placeholder="Asker sayısı"
-              min="1"
-            />
+            <input type="number" id="attack-soldiers" placeholder="Asker sayısı" min="1" />
             <button id="attack-btn">
               <i class="fas fa-crosshairs"></i> Saldırı Yap
             </button>
@@ -677,12 +678,7 @@
           <!-- Asker Satın Alma -->
           <div class="action-group">
             <h3>Asker Satın Alma</h3>
-            <input
-              type="number"
-              id="soldiers-to-buy"
-              placeholder="Adet"
-              min="1"
-            />
+            <input type="number" id="soldiers-to-buy" placeholder="Adet" min="1" />
             <button id="buy-soldiers-btn">
               <i class="fas fa-user-plus"></i> Satın Al (10$/adet)
             </button>
@@ -711,12 +707,7 @@
           <!-- Asker Çekme -->
           <div class="action-group">
             <h3>Asker Çek</h3>
-            <input
-              type="number"
-              id="pull-soldiers-count"
-              placeholder="Asker sayısı"
-              min="1"
-            />
+            <input type="number" id="pull-soldiers-count" placeholder="Asker sayısı" min="1" />
             <button id="pull-soldiers-btn">
               <i class="fas fa-running"></i> Asker Çek
             </button>
@@ -724,12 +715,7 @@
           <!-- Para Gönderme -->
           <div class="action-group">
             <h3>Para Gönder</h3>
-            <input
-              type="number"
-              id="money-to-send"
-              placeholder="Miktar"
-              min="1"
-            />
+            <input type="number" id="money-to-send" placeholder="Miktar" min="1" />
             <select id="recipient-player"></select>
             <button id="send-money-btn">
               <i class="fas fa-hand-holding-usd"></i> Para Gönder
@@ -738,12 +724,7 @@
           <!-- Petrol Gönderme -->
           <div class="action-group">
             <h3>Petrol Gönder</h3>
-            <input
-              type="number"
-              id="petrol-to-send"
-              placeholder="Varil"
-              min="1"
-            />
+            <input type="number" id="petrol-to-send" placeholder="Varil" min="1" />
             <select id="recipient-player-petrol"></select>
             <button id="send-petrol-btn">
               <i class="fas fa-gas-pump"></i> Petrol Gönder
@@ -807,12 +788,9 @@
   <!-- ===================== Firebase & Diğer JS Kütüphaneleri ===================== -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    crossorigin=""
-  ></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
-  <!-- ===================== OYUN ve ONLINE İŞLEVSİYONLARI ===================== -->
+  <!-- ===================== OYUN ve ONLINE İŞLEVSELERİ ===================== -->
   <script>
     /*****************************************************************
      * Firebase Başlatma
@@ -842,7 +820,7 @@
     const availableColors = ["red", "blue", "green", "yellow", "purple"];
     let localPlayerColor = null;
     let chatListenerAdded = false;
-    let infoCardsPermanent = true; // Bilgi kartları başlangıçta permanent
+    let infoCardsPermanent = true; // Başlangıçta bilgi kartları sabit
 
     function showNotification(message, duration = 3000) {
       const notificationArea = document.getElementById("notification-area");
@@ -886,7 +864,7 @@
       element.addEventListener("animationend", handleAnimationEnd);
     }
 
-    // Sıra kimde kontrolü
+    // Sıra kontrolü
     function isMyTurn() {
       if (!roomData || !roomData.playerOrder) return false;
       const currentTurnIndex = roomData.currentTurnIndex || 0;
@@ -1263,8 +1241,9 @@
         infoElements.barracks.textContent = c.barracksCount || 0;
         infoElements.factories.textContent = c.factories || 0;
         infoElements.refineries.textContent = c.refineries || 0;
+        // Üretim hesaplaması: Başlangıç değeri artı her rafine %15 oranında artış
         const effectiveProduction = c.oilProduction
-          ? Math.floor(c.oilProduction * (1 + 0.2 * (c.refineries || 0)))
+          ? Math.floor(c.oilProduction * (1 + 0.15 * (c.refineries || 0)))
           : 0;
         infoElements.oilProduction.textContent = effectiveProduction;
       } else {
@@ -1288,8 +1267,9 @@
       let effectiveIncome = country.factories
         ? Math.floor((country.income || 0) * (1 + 0.25 * country.factories))
         : country.income || 0;
+      // Üretim hesaplaması: her rafine %15 artış
       const effectiveProduction = country.oilProduction
-        ? Math.floor(country.oilProduction * (1 + 0.2 * (country.refineries || 0)))
+        ? Math.floor(country.oilProduction * (1 + 0.15 * (country.refineries || 0)))
         : 0;
       return (
         '<div class="country-popup">' +
@@ -1354,7 +1334,7 @@
     }
 
     /*****************************************************************
-     * PAKT TEKLIFLERI – GÖNDERME, KABUL, REDDET
+     * PAKT TEKLIFLERİ – GÖNDERME, KABUL, REDDET
      *****************************************************************/
     function sendPactOffer() {
       if (!isMyTurn()) {
@@ -1825,7 +1805,7 @@
 
             if (country.oilProduction) {
               const effectiveProduction = Math.floor(
-                country.oilProduction * (1 + 0.2 * (country.refineries || 0))
+                country.oilProduction * (1 + 0.15 * (country.refineries || 0))
               );
               totalPetrolGained += effectiveProduction;
             }
@@ -1854,7 +1834,7 @@
     }
 
     /*****************************************************************
-     * CHAT SISTEMI
+     * CHAT SİSTEMİ
      *****************************************************************/
     function toggleChat(show) {
       const chatPopup = document.getElementById("chat-popup");
