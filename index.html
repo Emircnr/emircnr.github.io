@@ -27,8 +27,8 @@
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
   />
-  
-  <!-- Stil ve Animasyonlar için Ek CSS -->
+
+  <!-- Inline CSS -->
   <style>
     /* ==================================================
        GENEL SIFIRLAMA & GLOBAL AYARLAR
@@ -50,45 +50,67 @@
     }
 
     /* ==================================================
-       SAVAŞ TEMALI LOBI STİLLERİ
+       SAVAŞ TEMALI LOBI STILI (YENİ TASARIM)
        ================================================== */
     body.lobby {
-      background: url('https://source.unsplash.com/1600x900/?war,conflict') no-repeat center center fixed;
+      background: url("https://source.unsplash.com/1600x900/?war,tanks") no-repeat center center fixed;
       background-size: cover;
     }
+
+    /* LOBBY CONTAINER ESTETIK TASARIM */
     #lobby-container {
       max-width: 500px;
-      margin: 50px auto;
+      margin: 60px auto;
       padding: 30px;
-      background: rgba(0, 0, 0, 0.85);
-      border: 2px solid #b8860b; /* Altın vurgulu */
-      border-radius: 10px;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.9);
-      backdrop-filter: blur(6px);
-      animation: fadeInDown 0.8s ease-out;
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #d4af37; /* Daha parlak altın vurgulu */
+      border-radius: 15px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.9);
+      backdrop-filter: blur(8px);
+      animation: fadeInLobby 1s ease forwards;
     }
-    @keyframes fadeInDown {
-      from { opacity: 0; transform: translateY(-20px); }
-      to { opacity: 1; transform: translateY(0); }
+    @keyframes fadeInLobby {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
+
     #lobby-container h1 {
       text-align: center;
       margin-bottom: 20px;
-      color: #f1c40f;
+      color: #ffd700; /* Daha parlak altın rengi */
       text-transform: uppercase;
-      letter-spacing: 2px;
-      font-size: 36px;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+      letter-spacing: 3px;
+      font-size: 38px;
+      text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+      animation: animateTitle 1s ease;
     }
+    @keyframes animateTitle {
+      0% {
+        letter-spacing: 8px;
+        opacity: 0;
+      }
+      100% {
+        letter-spacing: 3px;
+        opacity: 1;
+      }
+    }
+
     #lobby-container h2 {
       text-align: center;
       margin-bottom: 20px;
-      color: #b8860b;
+      color: #d4af37;
       text-transform: uppercase;
       letter-spacing: 1px;
       font-size: 24px;
-      text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
     }
+
     #lobby-container input[type="text"],
     #lobby-container input[type="number"] {
       width: 100%;
@@ -99,29 +121,37 @@
       font-size: 16px;
       outline: none;
       color: #333;
+      transition: box-shadow 0.3s;
     }
+    #lobby-container input[type="text"]:focus,
+    #lobby-container input[type="number"]:focus {
+      box-shadow: 0 0 8px #f1c40f;
+    }
+
     #lobby-container button {
       width: 100%;
       padding: 14px;
       margin-bottom: 15px;
       background: linear-gradient(45deg, #8b0000, #ff4500);
       border: 1px solid #b22222;
-      border-radius: 4px;
+      border-radius: 6px;
       font-size: 18px;
       font-weight: bold;
       color: #fff;
       cursor: pointer;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.7);
-      transition: background 0.3s;
+      transition: background 0.3s, transform 0.3s;
     }
     #lobby-container button:hover {
       background: linear-gradient(45deg, #ff4500, #8b0000);
+      transform: scale(1.02);
     }
+
     .color-options {
       margin-bottom: 15px;
       text-align: center;
     }
-    /* RENK BUTONLARI */
+    /* RENK BUTONLARI DAHA KÜÇÜK YAPILDI */
     .global-color-option {
       width: 20px;
       height: 20px;
@@ -160,21 +190,17 @@
     }
 
     /* ==================================================
-       OYUN EKRANI STİLLERİ
+       OYUN EKRANI STİLLERİ (KALAN KISIMLAR)
        ================================================== */
     #game-container {
       display: none;
       height: 100vh;
-      animation: fadeIn 0.8s ease-out;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
     }
     #main-content {
       display: flex;
       height: 100%;
     }
+
     /* HARITA BÖLGESİ */
     #map-container {
       flex: 7;
@@ -196,6 +222,7 @@
       padding: 6px 10px;
       cursor: pointer;
     }
+
     /* SAĞ PANEL */
     #side-panel {
       flex: 2.3;
@@ -205,6 +232,7 @@
       overflow-y: auto;
       box-shadow: -4px 0 10px rgba(0, 0, 0, 0.4);
     }
+
     /* OYUN BILGILERI KARTI */
     #game-info {
       margin-bottom: 20px;
@@ -225,6 +253,7 @@
       margin: 6px 0;
       color: #ddd;
     }
+
     /* OYUNCU BILGILERI */
     #player-info-section {
       margin-bottom: 20px;
@@ -248,6 +277,7 @@
       margin: 4px 0;
       color: #ddd;
     }
+
     /* SEÇILI ÜLKE BILGILERI */
     #country-info-section {
       margin-bottom: 20px;
@@ -268,7 +298,8 @@
       font-weight: 600;
       color: #f39c12;
     }
-    /* MARKET & İŞLEMLER BÖLÜMÜ */
+
+    /* MARKET & ISLEMLER BÖLÜMÜ */
     #market-section {
       margin-bottom: 20px;
     }
@@ -545,13 +576,10 @@
       z-index: 3002;
     }
   </style>
-  
-  <!-- GSAP CDN (Animasyonlar için) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
 </head>
 <body class="lobby">
   <!-- ===================== LOBBY (Oda Oluşturma & Katılma) ===================== -->
-  <div id="lobby-container">
+  <div id="lobby-container" class="animate__animated animate__fadeIn">
     <h1>GLOBAL CONQUEST</h1>
     <!-- Oda Oluşturma Bölümü -->
     <div id="create-room-section">
@@ -816,21 +844,25 @@
     let chatListenerAdded = false;
     let infoCardsPermanent = true; // Bilgi kartları başlangıçta permanent
 
-    // GSAP ile buton animasyonu fonksiyonu
-    function animateButton(buttonSelector) {
-      gsap.fromTo(buttonSelector, {scale: 1}, {scale: 1.2, duration: 0.2, yoyo: true, repeat: 1});
-    }
-
     function showNotification(message, duration = 3000) {
       const notificationArea = document.getElementById("notification-area");
       notificationArea.innerHTML = '<div class="popup">' + message + '</div>';
       notificationArea.style.display = "flex";
-      // GSAP ile fade in animasyonu
-      gsap.fromTo(notificationArea, {opacity: 0, y: -20}, {opacity: 1, y: 0, duration: 0.5});
+      notificationArea.style.opacity = 0;
+      notificationArea.style.transform = "translateY(-20px)";
+
       setTimeout(() => {
-        gsap.to(notificationArea, {opacity: 0, y: -20, duration: 0.5, onComplete: () => {
+        notificationArea.style.transition = "opacity 0.5s, transform 0.5s";
+        notificationArea.style.opacity = 1;
+        notificationArea.style.transform = "translateY(0)";
+      }, 10);
+
+      setTimeout(() => {
+        notificationArea.style.opacity = 0;
+        notificationArea.style.transform = "translateY(-20px)";
+        setTimeout(() => {
           notificationArea.style.display = "none";
-        }});
+        }, 500);
       }, duration);
     }
 
@@ -854,14 +886,14 @@
       element.addEventListener("animationend", handleAnimationEnd);
     }
 
-    // Sıra kontrolü
+    // Sıra kimde kontrolü
     function isMyTurn() {
       if (!roomData || !roomData.playerOrder) return false;
       const currentTurnIndex = roomData.currentTurnIndex || 0;
       return roomData.playerOrder[currentTurnIndex] === localPlayerId;
     }
 
-    // Pakt kontrolü
+    // Saldırmazlık Pakti aktif mi kontrolü
     function hasActivePact(playerA, playerB) {
       if (!roomData || !roomData.pacts) return false;
       const currentRound = roomData.round || 1;
@@ -877,7 +909,7 @@
     }
 
     /*****************************************************************
-     * DOMContentLoaded – Lobi Girişi, Renk Seçimleri ve Otomatik Bağlanma
+     * DOMContentLoaded – Lobi Girişi ve Otomatik Bağlanma
      *****************************************************************/
     document.addEventListener("DOMContentLoaded", () => {
       // Player ID oluştur (localStorage)
@@ -970,10 +1002,8 @@
             document.getElementById("lobby-container").style.display = "none";
             document.getElementById("game-container").style.display = "block";
             document.getElementById("display-room-code").textContent = roomCode;
-            gsap.from("#game-container", {opacity: 0, duration: 0.8});
           }
         });
-        animateButton("#create-room-btn");
       });
 
       // Odaya Katılma
@@ -1035,10 +1065,8 @@
               document.getElementById("lobby-container").style.display = "none";
               document.getElementById("game-container").style.display = "block";
               document.getElementById("display-room-code").textContent = roomCodeInput;
-              gsap.from("#game-container", {opacity: 0, duration: 0.8});
             }
           });
-          animateButton("#join-room-btn");
         });
       });
 
@@ -1051,7 +1079,6 @@
         updateTooltipsPermanent();
         const icon = document.querySelector("#toggle-info-cards i");
         icon.className = infoCardsPermanent ? "fas fa-eye" : "fas fa-eye-slash";
-        gsap.fromTo("#toggle-info-cards", {rotation: 0}, {rotation: 360, duration: 0.5});
       });
     });
 
@@ -1365,7 +1392,6 @@
       };
       pactOfferRef.set(newOffer);
 
-      // Chat'e de yazalım
       const chatMessage = {
         sender: senderData.name,
         text:
@@ -1383,7 +1409,6 @@
       roomRef.child("chat").push(chatMessage);
 
       showNotification("Pakt teklifi gönderildi.");
-      animateButton("#send-pact-btn");
     }
 
     function displayPendingPactOffers() {
@@ -1413,11 +1438,9 @@
 
           div.querySelector(".accept-btn").addEventListener("click", () => {
             acceptPactOffer(offer.offerId);
-            gsap.fromTo(div, {opacity: 1}, {opacity: 0, duration: 0.5});
           });
           div.querySelector(".reject-btn").addEventListener("click", () => {
             rejectPactOffer(offer.offerId);
-            gsap.fromTo(div, {opacity: 1}, {opacity: 0, duration: 0.5});
           });
           container.appendChild(div);
         }
@@ -1428,7 +1451,6 @@
         : "none";
     }
 
-    // Pakt KABUL
     function acceptPactOffer(offerId) {
       const offer = roomData.pactOffers[offerId];
       if (!offer || offer.status !== "pending") return;
@@ -1461,23 +1483,19 @@
 
       roomRef.update(updates);
       showNotification("Saldırmazlık pakti teklifi kabul edildi!");
-      animateButton(".accept-btn");
     }
 
-    // Pakt REDDET
     function rejectPactOffer(offerId) {
       const offer = roomData.pactOffers[offerId];
       if (!offer || offer.status !== "pending") return;
 
       roomRef.child("pactOffers").child(offerId).update({ status: "rejected" });
       showNotification("Saldırmazlık pakti teklifi reddedildi.");
-      animateButton(".reject-btn");
     }
 
     /*****************************************************************
      * OYUN İŞLEVLERİ
      *****************************************************************/
-    // SALDIRI
     function attack() {
       if (!isMyTurn()) {
         showNotification("Sıranız değil!");
@@ -1502,7 +1520,6 @@
       const target = roomData.countryData[selectedCountry];
       if (!target) return;
 
-      // Pakt kontrolü
       if (target.owner && target.owner !== currentPlayerId) {
         if (hasActivePact(currentPlayerId, target.owner)) {
           showNotification("Bu oyuncu ile saldırmazlık paktınız var!");
@@ -1543,10 +1560,8 @@
         nextTurn();
       }
       roomRef.update(updates);
-      animateButton("#attack-btn");
     }
 
-    // ASKER SATIN ALMA
     function buySoldiers() {
       if (!isMyTurn()) {
         showNotification("Sıranız değil!");
@@ -1571,10 +1586,8 @@
         currentPlayerData.soldiers + count;
       roomRef.update(updates);
       showNotification(count + " asker satın alındı.");
-      animateButton("#buy-soldiers-btn");
     }
 
-    // KIŞLA KUR
     function buyBarracks() {
       if (!isMyTurn()) {
         showNotification("Sıranız değil!");
@@ -1607,10 +1620,8 @@
         (target.barracksCount || 0) + 1;
       roomRef.update(updates);
       showNotification("Asker kışlası kuruldu.");
-      animateButton("#buy-barracks-btn");
     }
 
-    // FABRIKA KUR
     function buildFactory() {
       if (!isMyTurn()) {
         showNotification("Sıranız değil!");
@@ -1643,10 +1654,8 @@
         (target.factories || 0) + 1;
       roomRef.update(updates);
       showNotification("Fabrika kuruldu.");
-      animateButton("#build-factory-btn");
     }
 
-    // RAFINE KUR
     function buildRefinery() {
       if (!isMyTurn()) {
         showNotification("Sıranız değil!");
@@ -1683,10 +1692,8 @@
         (target.refineries || 0) + 1;
       roomRef.update(updates);
       showNotification("Rafine kuruldu. Üretim kapasitesi arttı.");
-      animateButton("#build-refinery-btn");
     }
 
-    // ASKER ÇEK
     function pullSoldiers() {
       if (!isMyTurn()) {
         showNotification("Sıranız değil!");
@@ -1718,10 +1725,8 @@
         roomData.players[currentPlayerId].soldiers + count;
       roomRef.update(updates);
       showNotification(selectedCountry + " ülkesinden " + count + " asker çekildi.");
-      animateButton("#pull-soldiers-btn");
     }
 
-    // PARA GÖNDER
     function sendMoney() {
       if (!isMyTurn()) {
         showNotification("Sıranız değil!");
@@ -1749,11 +1754,11 @@
       updates["players/" + recipientId + "/money"] =
         roomData.players[recipientId].money + amount;
       roomRef.update(updates);
-      showNotification(amount + "$, " + roomData.players[recipientId].name + " oyuncusuna gönderildi.");
-      animateButton("#send-money-btn");
+      showNotification(
+        amount + "$, " + roomData.players[recipientId].name + " oyuncusuna gönderildi."
+      );
     }
 
-    // PETROL GÖNDER
     function sendPetrol() {
       if (!isMyTurn()) {
         showNotification("Sıranız değil!");
@@ -1777,14 +1782,18 @@
         return;
       }
       const updates = {};
-      updates["players/" + currentPlayerId + "/petrol"] = currentPlayerData.petrol - amount;
-      updates["players/" + recipientId + "/petrol"] = roomData.players[recipientId].petrol + amount;
+      updates["players/" + currentPlayerId + "/petrol"] =
+        currentPlayerData.petrol - amount;
+      updates["players/" + recipientId + "/petrol"] =
+        roomData.players[recipientId].petrol + amount;
       roomRef.update(updates);
-      showNotification(amount + " varil, " + roomData.players[recipientId].name + " oyuncusuna gönderildi.");
-      animateButton("#send-petrol-btn");
+      showNotification(
+        amount + " varil, " +
+          roomData.players[recipientId].name +
+          " oyuncusuna gönderildi."
+      );
     }
 
-    // TUR SONU
     function nextTurn() {
       if (!isMyTurn()) {
         showNotification("Sıranız değil!");
@@ -1795,7 +1804,6 @@
       const player = roomData.players[currentPlayerId];
       const updates = {};
 
-      // Ülke gelir ve petrol artışı
       if (player.countries && roomData.countryData) {
         let totalMoneyGained = 0;
         let totalPetrolGained = 0;
@@ -1809,21 +1817,27 @@
             }
             let effectiveIncome = country.income || 0;
             if (country.factories) {
-              effectiveIncome = Math.floor(effectiveIncome * (1 + 0.25 * country.factories));
+              effectiveIncome = Math.floor(
+                effectiveIncome * (1 + 0.25 * country.factories)
+              );
             }
             totalMoneyGained += effectiveIncome;
+
             if (country.oilProduction) {
-              const effectiveProduction = Math.floor(country.oilProduction * (1 + 0.2 * (country.refineries || 0)));
+              const effectiveProduction = Math.floor(
+                country.oilProduction * (1 + 0.2 * (country.refineries || 0))
+              );
               totalPetrolGained += effectiveProduction;
             }
           }
         });
 
-        updates["players/" + currentPlayerId + "/money"] = (player.money || 0) + totalMoneyGained;
-        updates["players/" + currentPlayerId + "/petrol"] = (player.petrol || 0) + totalPetrolGained;
+        updates["players/" + currentPlayerId + "/money"] =
+          (player.money || 0) + totalMoneyGained;
+        updates["players/" + currentPlayerId + "/petrol"] =
+          (player.petrol || 0) + totalPetrolGained;
       }
 
-      // Sırayı ilerlet
       let newTurnIndex = currentTurnIndex + 1;
       if (newTurnIndex >= roomData.playerOrder.length) {
         newTurnIndex = 0;
@@ -1833,8 +1847,10 @@
       roomRef.update(updates);
 
       const nextPlayerId = roomData.playerOrder[newTurnIndex];
-      showNotification("Sıra " + roomData.players[nextPlayerId].name + " adlı oyuncuya geçti.", 1500);
-      animateButton("#end-turn-btn");
+      showNotification(
+        "Sıra " + roomData.players[nextPlayerId].name + " adlı oyuncuya geçti.",
+        1500
+      );
     }
 
     /*****************************************************************
@@ -1842,25 +1858,16 @@
      *****************************************************************/
     function toggleChat(show) {
       const chatPopup = document.getElementById("chat-popup");
-      if (show) {
-        chatPopup.style.display = "flex";
-        gsap.from(chatPopup, {opacity: 0, y: 20, duration: 0.5});
-      } else {
-        gsap.to(chatPopup, {opacity: 0, y: 20, duration: 0.5, onComplete: () => {
-          chatPopup.style.display = "none";
-        }});
-      }
+      chatPopup.style.display = show ? "flex" : "none";
     }
     document.getElementById("open-chat-btn").addEventListener("click", () => {
       toggleChat(true);
-      animateButton("#open-chat-btn");
     });
     document.getElementById("close-chat-btn").addEventListener("click", () => {
       toggleChat(false);
     });
     document.getElementById("send-chat-btn").addEventListener("click", () => {
       sendChatMessage();
-      animateButton("#send-chat-btn");
     });
     document.getElementById("chat-input").addEventListener("keypress", (e) => {
       if (e.key === "Enter") {
@@ -1896,7 +1903,6 @@
       messageDiv.textContent = message.sender + ": " + message.text;
       chatMessagesDiv.appendChild(messageDiv);
       chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
-      gsap.from(messageDiv, {opacity: 0, duration: 0.5});
     }
 
     /*****************************************************************
@@ -1904,18 +1910,10 @@
      *****************************************************************/
     function togglePactPopup(show) {
       const pactPopup = document.getElementById("pact-popup");
-      if (show) {
-        pactPopup.style.display = "flex";
-        gsap.from(pactPopup, {opacity: 0, y: 20, duration: 0.5});
-      } else {
-        gsap.to(pactPopup, {opacity: 0, y: 20, duration: 0.5, onComplete: () => {
-          pactPopup.style.display = "none";
-        }});
-      }
+      pactPopup.style.display = show ? "flex" : "none";
     }
     document.getElementById("open-pact-btn").addEventListener("click", () => {
       togglePactPopup(true);
-      animateButton("#open-pact-btn");
     });
     document.getElementById("close-pact-btn").addEventListener("click", () => {
       togglePactPopup(false);
@@ -1939,7 +1937,6 @@
       document.getElementById("game-container").style.display = "none";
       document.getElementById("lobby-container").style.display = "block";
       document.body.classList.add("lobby");
-      gsap.from("#lobby-container", {opacity: 0, duration: 0.5});
     });
 
     /*****************************************************************
@@ -2001,15 +1998,30 @@
     function selectCountry(countryName, layer) {
       selectedCountry = countryName;
       showNotification("Seçilen ülke: " + countryName, 1500);
-      // Eğer DOM elemanı mevcutsa GSAP ile border animasyonu
-      const layerEl = layer.getElement ? layer.getElement() : null;
-      if (layerEl) {
-        gsap.fromTo(layerEl, {strokeWidth: 1}, {strokeWidth: 4, duration: 0.3, yoyo: true, repeat: 1});
-      }
+      layer.setStyle({ weight: 4, color: "#FF4500" });
+
+      setTimeout(() => {
+        const country = roomData.countryData ? roomData.countryData[countryName] : null;
+        if (country && country.owner && roomData.players && roomData.players[country.owner]) {
+          layer.setStyle({
+            fillColor: roomData.players[country.owner].color || "#ccc",
+            fillOpacity: 0.7,
+            weight: 1,
+            color: "#555"
+          });
+        } else {
+          layer.setStyle({
+            fillColor: "#ccc",
+            fillOpacity: 0.7,
+            weight: 1,
+            color: "#555"
+          });
+        }
+      }, 800);
+
       updateSelectedCountryInfo();
     }
 
-    // Harita görünür hale geldiğinde başlat
     const gameContainerObserver = new MutationObserver(() => {
       const gameContainer = document.getElementById("game-container");
       if (gameContainer.style.display !== "none") {
