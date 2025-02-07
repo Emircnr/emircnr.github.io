@@ -1255,19 +1255,14 @@
             ? roomData.players[c.owner].name
             : "Yok";
         infoElements.soldiers.textContent = c.soldiers || 0;
-        
-        // Fabrika: Her fabrika için +%20 gelir
         let effectiveIncome = c.income || 0;
         if (c.factories) {
           effectiveIncome = Math.floor(effectiveIncome * (1 + 0.20 * c.factories));
         }
         infoElements.income.textContent = effectiveIncome;
-
         infoElements.barracks.textContent = c.barracksCount || 0;
         infoElements.factories.textContent = c.factories || 0;
         infoElements.refineries.textContent = c.refineries || 0;
-
-        // Rafine: Her rafine için +%15 petrol üretimi
         const effectiveProduction = c.oilProduction
           ? Math.floor(c.oilProduction * (1 + 0.15 * (c.refineries || 0)))
           : 0;
@@ -1290,27 +1285,35 @@
         country.owner && roomData && roomData.players && roomData.players[country.owner]
           ? roomData.players[country.owner].name
           : "Yok";
-      
-      // Fabrika: Her fabrika için +%20 gelir
-      let effectiveIncome = country.income || 0;
-      if (country.factories) {
-        effectiveIncome = Math.floor(effectiveIncome * (1 + 0.20 * country.factories));
-      }
-
-      // Rafine: Her rafine için +%15 petrol üretimi
+      let effectiveIncome = country.factories
+            ? Math.floor((country.income || 0) * (1 + 0.20 * country.factories))
+            : country.income || 0;
       const effectiveProduction = country.oilProduction
-        ? Math.floor(country.oilProduction * (1 + 0.15 * (country.refineries || 0)))
-        : 0;
-
+            ? Math.floor(country.oilProduction * (1 + 0.15 * (country.refineries || 0)))
+            : 0;
       return (
         '<div class="country-popup">' +
-        '<p><i class="fas fa-money-bill-wave"></i> Gelir: ' + effectiveIncome + '$</p>' +
-        '<p><i class="fas fa-users"></i> Asker: ' + (country.soldiers || 0) + "</p>" +
-        '<p><i class="fas fa-fort-awesome"></i> Kışla: ' + (country.barracksCount || 0) + "</p>" +
-        '<p><i class="fas fa-industry"></i> Fabrika: ' + (country.factories || 0) + "</p>" +
-        '<p><i class="fas fa-oil-can"></i> Rafine: ' + (country.refineries || 0) + "</p>" +
-        '<p><i class="fas fa-gas-pump"></i> Üretim: ' + effectiveProduction + " varil</p>" +
-        '<p><i class="fas fa-crown"></i> Sahip: ' + ownerText + "</p>" +
+        '<p><i class="fas fa-money-bill-wave"></i> Gelir: ' +
+        effectiveIncome +
+        '$</p>' +
+        '<p><i class="fas fa-users"></i> Asker: ' +
+        (country.soldiers || 0) +
+        "</p>" +
+        '<p><i class="fas fa-fort-awesome"></i> Kışla: ' +
+        (country.barracksCount || 0) +
+        "</p>" +
+        '<p><i class="fas fa-industry"></i> Fabrika: ' +
+        (country.factories || 0) +
+        "</p>" +
+        '<p><i class="fas fa-oil-can"></i> Rafine: ' +
+        (country.refineries || 0) +
+        "</p>" +
+        '<p><i class="fas fa-gas-pump"></i> Üretim: ' +
+        effectiveProduction +
+        " varil</p>" +
+        '<p><i class="fas fa-crown"></i> Sahip: ' +
+        ownerText +
+        "</p>" +
         "</div>"
       );
     }
@@ -1666,6 +1669,10 @@
       const currentPlayerId = roomData.playerOrder[currentTurnIndex];
       const currentPlayerData = roomData.players[currentPlayerId];
       const target = roomData.countryData[selectedCountry];
+      if (target.owner !== currentPlayerId) {
+        showNotification("Bu ülke size ait değil!");
+        return;
+      }
       if (!target.oilProduction) {
         showNotification("Bu ülkede petrol üretim kapasitesi yok!");
         return;
@@ -1797,7 +1804,6 @@
       const player = roomData.players[currentPlayerId];
       const updates = {};
 
-      // Tur sonunda gelir ve petrolü toplama
       if (player.countries && roomData.countryData) {
         let totalMoneyGained = 0;
         let totalPetrolGained = 0;
@@ -1805,20 +1811,18 @@
         player.countries.forEach((cName) => {
           const country = roomData.countryData[cName];
           if (country) {
-            // Kışla -> her kışla +5 asker
             if (country.barracksCount) {
               updates["countryData/" + cName + "/soldiers"] =
                 (country.soldiers || 0) + 5 * country.barracksCount;
             }
-
-            // Fabrika -> %20 artış
             let effectiveIncome = country.income || 0;
             if (country.factories) {
-              effectiveIncome = Math.floor(effectiveIncome * (1 + 0.20 * country.factories));
+              effectiveIncome = Math.floor(
+                effectiveIncome * (1 + 0.20 * country.factories)
+              );
             }
             totalMoneyGained += effectiveIncome;
 
-            // Rafine -> %15 artış
             if (country.oilProduction) {
               const effectiveProduction = Math.floor(
                 country.oilProduction * (1 + 0.15 * (country.refineries || 0))
