@@ -27,8 +27,8 @@
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
   />
-
-  <!-- Inline CSS -->
+  
+  <!-- Stil ve Animasyonlar için Ek CSS -->
   <style>
     /* ==================================================
        GENEL SIFIRLAMA & GLOBAL AYARLAR
@@ -50,7 +50,7 @@
     }
 
     /* ==================================================
-       SAVAŞ TEMALI LOBİ STİLİ
+       SAVAŞ TEMALI LOBI STİLLERİ
        ================================================== */
     body.lobby {
       background: url('https://source.unsplash.com/1600x900/?war,conflict') no-repeat center center fixed;
@@ -65,6 +65,11 @@
       border-radius: 10px;
       box-shadow: 0 8px 16px rgba(0, 0, 0, 0.9);
       backdrop-filter: blur(6px);
+      animation: fadeInDown 0.8s ease-out;
+    }
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     #lobby-container h1 {
       text-align: center;
@@ -116,7 +121,7 @@
       margin-bottom: 15px;
       text-align: center;
     }
-    /* RENK BUTONLARI (küçültülmüş, yuvarlak) */
+    /* RENK BUTONLARI */
     .global-color-option {
       width: 20px;
       height: 20px;
@@ -136,7 +141,7 @@
     }
 
     /* ==================================================
-       BİLDİRİM ALANI (POPUP)
+       BILDIRIM ALANI (POPUP)
        ================================================== */
     #notification-area {
       position: fixed;
@@ -160,13 +165,17 @@
     #game-container {
       display: none;
       height: 100vh;
+      animation: fadeIn 0.8s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
     #main-content {
       display: flex;
       height: 100%;
     }
-
-    /* HARİTA BÖLGESİ */
+    /* HARITA BÖLGESİ */
     #map-container {
       flex: 7;
       position: relative;
@@ -187,8 +196,7 @@
       padding: 6px 10px;
       cursor: pointer;
     }
-
-    /* SAĞ PANEL - Daha geniş yapmak için max-width büyütüldü */
+    /* SAĞ PANEL */
     #side-panel {
       flex: 2.3;
       max-width: 350px;
@@ -197,8 +205,7 @@
       overflow-y: auto;
       box-shadow: -4px 0 10px rgba(0, 0, 0, 0.4);
     }
-
-    /* OYUN BİLGİLERİ KARTI */
+    /* OYUN BILGILERI KARTI */
     #game-info {
       margin-bottom: 20px;
       background: #2a2a3d;
@@ -218,8 +225,7 @@
       margin: 6px 0;
       color: #ddd;
     }
-
-    /* OYUNCU BİLGİLERİ */
+    /* OYUNCU BILGILERI */
     #player-info-section {
       margin-bottom: 20px;
     }
@@ -242,8 +248,7 @@
       margin: 4px 0;
       color: #ddd;
     }
-
-    /* SEÇİLİ ÜLKE BİLGİLERİ */
+    /* SEÇILI ÜLKE BILGILERI */
     #country-info-section {
       margin-bottom: 20px;
     }
@@ -263,7 +268,6 @@
       font-weight: 600;
       color: #f39c12;
     }
-
     /* MARKET & İŞLEMLER BÖLÜMÜ */
     #market-section {
       margin-bottom: 20px;
@@ -540,29 +544,10 @@
       cursor: pointer;
       z-index: 3002;
     }
-
-    /* ==================================================
-       RESPONSIVE DESIGN
-       ================================================== */
-    @media (max-width: 768px) {
-      #main-content {
-        flex-direction: column;
-      }
-      #map-container {
-        height: 50vh;
-      }
-      #side-panel {
-        width: 100%;
-        max-width: 100%;
-        height: auto;
-        box-shadow: none;
-      }
-      /* Konumlandırmaları mobilde biraz ayarlayalım */
-      .open-chat-btn, .open-pact-btn {
-        right: 20px;
-      }
-    }
   </style>
+  
+  <!-- GSAP CDN (Animasyonlar için) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
 </head>
 <body class="lobby">
   <!-- ===================== LOBBY (Oda Oluşturma & Katılma) ===================== -->
@@ -573,7 +558,13 @@
       <h2>Oda Oluştur</h2>
       <input type="text" id="creator-player-name" placeholder="Adınız" />
       <div class="color-options" id="creator-color-options"></div>
-      <input type="number" id="max-players" placeholder="Oyuncu Sayısı (2-5)" min="2" max="5" />
+      <input
+        type="number"
+        id="max-players"
+        placeholder="Oyuncu Sayısı (2-5)"
+        min="2"
+        max="5"
+      />
       <button id="create-room-btn">Oda Oluştur</button>
     </div>
     <hr />
@@ -582,12 +573,16 @@
       <h2>Odaya Katıl</h2>
       <input type="text" id="join-player-name" placeholder="Adınız" />
       <div class="color-options" id="join-color-options"></div>
-      <input type="text" id="room-code" placeholder="Oda Kodu (Örn: AB12CD)" />
+      <input
+        type="text"
+        id="room-code"
+        placeholder="Oda Kodu (Örn: AB12CD)"
+      />
       <button id="join-room-btn">Odaya Katıl</button>
     </div>
   </div>
 
-  <!-- ===================== BİLDİRİM ALANI ===================== -->
+  <!-- ===================== BILDIRIM ALANI ===================== -->
   <div id="notification-area"></div>
 
   <!-- ===================== OYUN EKRANI ===================== -->
@@ -641,7 +636,12 @@
           <!-- Saldırı İşlemi -->
           <div class="action-group">
             <h3>Saldırı</h3>
-            <input type="number" id="attack-soldiers" placeholder="Asker sayısı" min="1" />
+            <input
+              type="number"
+              id="attack-soldiers"
+              placeholder="Asker sayısı"
+              min="1"
+            />
             <button id="attack-btn">
               <i class="fas fa-crosshairs"></i> Saldırı Yap
             </button>
@@ -649,7 +649,12 @@
           <!-- Asker Satın Alma -->
           <div class="action-group">
             <h3>Asker Satın Alma</h3>
-            <input type="number" id="soldiers-to-buy" placeholder="Adet" min="1" />
+            <input
+              type="number"
+              id="soldiers-to-buy"
+              placeholder="Adet"
+              min="1"
+            />
             <button id="buy-soldiers-btn">
               <i class="fas fa-user-plus"></i> Satın Al (10$/adet)
             </button>
@@ -678,7 +683,12 @@
           <!-- Asker Çekme -->
           <div class="action-group">
             <h3>Asker Çek</h3>
-            <input type="number" id="pull-soldiers-count" placeholder="Asker sayısı" min="1" />
+            <input
+              type="number"
+              id="pull-soldiers-count"
+              placeholder="Asker sayısı"
+              min="1"
+            />
             <button id="pull-soldiers-btn">
               <i class="fas fa-running"></i> Asker Çek
             </button>
@@ -686,7 +696,12 @@
           <!-- Para Gönderme -->
           <div class="action-group">
             <h3>Para Gönder</h3>
-            <input type="number" id="money-to-send" placeholder="Miktar" min="1" />
+            <input
+              type="number"
+              id="money-to-send"
+              placeholder="Miktar"
+              min="1"
+            />
             <select id="recipient-player"></select>
             <button id="send-money-btn">
               <i class="fas fa-hand-holding-usd"></i> Para Gönder
@@ -695,7 +710,12 @@
           <!-- Petrol Gönderme -->
           <div class="action-group">
             <h3>Petrol Gönder</h3>
-            <input type="number" id="petrol-to-send" placeholder="Varil" min="1" />
+            <input
+              type="number"
+              id="petrol-to-send"
+              placeholder="Varil"
+              min="1"
+            />
             <select id="recipient-player-petrol"></select>
             <button id="send-petrol-btn">
               <i class="fas fa-gas-pump"></i> Petrol Gönder
@@ -759,7 +779,10 @@
   <!-- ===================== Firebase & Diğer JS Kütüphaneleri ===================== -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    crossorigin=""
+  ></script>
 
   <!-- ===================== OYUN ve ONLINE İŞLEVSİYONLARI ===================== -->
   <script>
@@ -793,25 +816,21 @@
     let chatListenerAdded = false;
     let infoCardsPermanent = true; // Bilgi kartları başlangıçta permanent
 
+    // GSAP ile buton animasyonu fonksiyonu
+    function animateButton(buttonSelector) {
+      gsap.fromTo(buttonSelector, {scale: 1}, {scale: 1.2, duration: 0.2, yoyo: true, repeat: 1});
+    }
+
     function showNotification(message, duration = 3000) {
       const notificationArea = document.getElementById("notification-area");
       notificationArea.innerHTML = '<div class="popup">' + message + '</div>';
       notificationArea.style.display = "flex";
-      notificationArea.style.opacity = 0;
-      notificationArea.style.transform = "translateY(-20px)";
-
+      // GSAP ile fade in animasyonu
+      gsap.fromTo(notificationArea, {opacity: 0, y: -20}, {opacity: 1, y: 0, duration: 0.5});
       setTimeout(() => {
-        notificationArea.style.transition = "opacity 0.5s, transform 0.5s";
-        notificationArea.style.opacity = 1;
-        notificationArea.style.transform = "translateY(0)";
-      }, 10);
-
-      setTimeout(() => {
-        notificationArea.style.opacity = 0;
-        notificationArea.style.transform = "translateY(-20px)";
-        setTimeout(() => {
+        gsap.to(notificationArea, {opacity: 0, y: -20, duration: 0.5, onComplete: () => {
           notificationArea.style.display = "none";
-        }, 500);
+        }});
       }, duration);
     }
 
@@ -835,14 +854,14 @@
       element.addEventListener("animationend", handleAnimationEnd);
     }
 
-    // Sıra kimde kontrolü
+    // Sıra kontrolü
     function isMyTurn() {
       if (!roomData || !roomData.playerOrder) return false;
       const currentTurnIndex = roomData.currentTurnIndex || 0;
       return roomData.playerOrder[currentTurnIndex] === localPlayerId;
     }
 
-    // Saldırmazlık Pakti aktif mi kontrolü
+    // Pakt kontrolü
     function hasActivePact(playerA, playerB) {
       if (!roomData || !roomData.pacts) return false;
       const currentRound = roomData.round || 1;
@@ -858,7 +877,7 @@
     }
 
     /*****************************************************************
-     * DOMContentLoaded – Lobi Girişi ve Otomatik Bağlanma
+     * DOMContentLoaded – Lobi Girişi, Renk Seçimleri ve Otomatik Bağlanma
      *****************************************************************/
     document.addEventListener("DOMContentLoaded", () => {
       // Player ID oluştur (localStorage)
@@ -951,8 +970,10 @@
             document.getElementById("lobby-container").style.display = "none";
             document.getElementById("game-container").style.display = "block";
             document.getElementById("display-room-code").textContent = roomCode;
+            gsap.from("#game-container", {opacity: 0, duration: 0.8});
           }
         });
+        animateButton("#create-room-btn");
       });
 
       // Odaya Katılma
@@ -1014,8 +1035,10 @@
               document.getElementById("lobby-container").style.display = "none";
               document.getElementById("game-container").style.display = "block";
               document.getElementById("display-room-code").textContent = roomCodeInput;
+              gsap.from("#game-container", {opacity: 0, duration: 0.8});
             }
           });
+          animateButton("#join-room-btn");
         });
       });
 
@@ -1028,6 +1051,7 @@
         updateTooltipsPermanent();
         const icon = document.querySelector("#toggle-info-cards i");
         icon.className = infoCardsPermanent ? "fas fa-eye" : "fas fa-eye-slash";
+        gsap.fromTo("#toggle-info-cards", {rotation: 0}, {rotation: 360, duration: 0.5});
       });
     });
 
@@ -1303,10 +1327,9 @@
     }
 
     /*****************************************************************
-     * PAKT TEKLİFLERİ – GÖNDERME, KABUL, REDDET
+     * PAKT TEKLIFLERI – GÖNDERME, KABUL, REDDET
      *****************************************************************/
     function sendPactOffer() {
-      // Saldırmazlık pakti teklifi
       if (!isMyTurn()) {
         showNotification("Sıranız değil!");
         return;
@@ -1360,6 +1383,7 @@
       roomRef.child("chat").push(chatMessage);
 
       showNotification("Pakt teklifi gönderildi.");
+      animateButton("#send-pact-btn");
     }
 
     function displayPendingPactOffers() {
@@ -1372,7 +1396,6 @@
       let hasOffer = false;
 
       Object.values(roomData.pactOffers).forEach((offer) => {
-        // Sadece bize gelen ve henüz "pending" olan teklifleri göster
         if (offer.recipientId === localPlayerId && offer.status === "pending") {
           hasOffer = true;
           const div = document.createElement("div");
@@ -1390,9 +1413,11 @@
 
           div.querySelector(".accept-btn").addEventListener("click", () => {
             acceptPactOffer(offer.offerId);
+            gsap.fromTo(div, {opacity: 1}, {opacity: 0, duration: 0.5});
           });
           div.querySelector(".reject-btn").addEventListener("click", () => {
             rejectPactOffer(offer.offerId);
+            gsap.fromTo(div, {opacity: 1}, {opacity: 0, duration: 0.5});
           });
           container.appendChild(div);
         }
@@ -1403,9 +1428,8 @@
         : "none";
     }
 
-    // Saldırmazlık paktını KABUL
+    // Pakt KABUL
     function acceptPactOffer(offerId) {
-      // İlgili alıcının teklifi onaylaması için "Sıranız değil" kontrolü kaldırıldı.
       const offer = roomData.pactOffers[offerId];
       if (!offer || offer.status !== "pending") return;
 
@@ -1416,7 +1440,6 @@
       const recipientData = roomData.players[offer.recipientId];
       if (!senderData || !recipientData) return;
 
-      // Gönderenin parası yeterli mi kontrolü
       if (senderData.money < offer.cost) {
         showNotification("Teklifi yapan oyuncunun yeterli parası kalmamış. Teklif iptal edildi.");
         roomRef.child("pactOffers").child(offerId).update({ status: "rejected" });
@@ -1424,11 +1447,10 @@
       }
 
       const updates = {};
-      // Teklif durumu güncelleniyor
       updates["pactOffers/" + offerId + "/status"] = "accepted";
-      // Gönderenin parasından düşüp alıcının parasına ekleme
       updates["players/" + offer.senderId + "/money"] = senderData.money - offer.cost;
       updates["players/" + offer.recipientId + "/money"] = recipientData.money + offer.cost;
+
       if (!roomData.pacts) {
         updates["pacts"] = {};
       }
@@ -1439,16 +1461,17 @@
 
       roomRef.update(updates);
       showNotification("Saldırmazlık pakti teklifi kabul edildi!");
+      animateButton(".accept-btn");
     }
 
-    // Saldırmazlık paktını RED
+    // Pakt REDDET
     function rejectPactOffer(offerId) {
-      // İlgili reddeden kişi için "Sıranız değil" kontrolü kaldırıldı.
       const offer = roomData.pactOffers[offerId];
       if (!offer || offer.status !== "pending") return;
 
       roomRef.child("pactOffers").child(offerId).update({ status: "rejected" });
       showNotification("Saldırmazlık pakti teklifi reddedildi.");
+      animateButton(".reject-btn");
     }
 
     /*****************************************************************
@@ -1489,20 +1512,15 @@
 
       const updates = {};
       if (target.owner === currentPlayerId) {
-        // Kendi ülkesine asker ekleme
         updates["countryData/" + selectedCountry + "/soldiers"] =
           target.soldiers + soldiersToSend;
         updates["players/" + currentPlayerId + "/soldiers"] =
           currentPlayerData.soldiers - soldiersToSend;
-        showNotification(
-          selectedCountry + " ülkesine " + soldiersToSend + " asker ekleniyor."
-        );
+        showNotification(selectedCountry + " ülkesine " + soldiersToSend + " asker ekleniyor.");
       } else {
-        // Başka ülkeye saldırı
         updates["players/" + currentPlayerId + "/soldiers"] =
           currentPlayerData.soldiers - soldiersToSend;
         if (soldiersToSend > target.soldiers) {
-          // Ülke fethediliyor
           const remaining = soldiersToSend - target.soldiers;
           updates["countryData/" + selectedCountry + "/soldiers"] = remaining;
           updates["countryData/" + selectedCountry + "/owner"] = currentPlayerId;
@@ -1511,7 +1529,6 @@
             currentCountries.push(selectedCountry);
           }
           updates["players/" + currentPlayerId + "/countries"] = currentCountries;
-          // Savunucunun ülkeler listesinden çıkarma
           if (target.owner && roomData.players[target.owner]) {
             let defenderCountries = roomData.players[target.owner].countries || [];
             defenderCountries = defenderCountries.filter((c) => c !== selectedCountry);
@@ -1519,7 +1536,6 @@
           }
           showNotification(selectedCountry + " fethedildi!");
         } else {
-          // Savunma başarılı
           updates["countryData/" + selectedCountry + "/soldiers"] =
             target.soldiers - soldiersToSend;
           showNotification(selectedCountry + " savunuldu!");
@@ -1527,6 +1543,7 @@
         nextTurn();
       }
       roomRef.update(updates);
+      animateButton("#attack-btn");
     }
 
     // ASKER SATIN ALMA
@@ -1554,6 +1571,7 @@
         currentPlayerData.soldiers + count;
       roomRef.update(updates);
       showNotification(count + " asker satın alındı.");
+      animateButton("#buy-soldiers-btn");
     }
 
     // KIŞLA KUR
@@ -1589,6 +1607,7 @@
         (target.barracksCount || 0) + 1;
       roomRef.update(updates);
       showNotification("Asker kışlası kuruldu.");
+      animateButton("#buy-barracks-btn");
     }
 
     // FABRIKA KUR
@@ -1624,6 +1643,7 @@
         (target.factories || 0) + 1;
       roomRef.update(updates);
       showNotification("Fabrika kuruldu.");
+      animateButton("#build-factory-btn");
     }
 
     // RAFINE KUR
@@ -1663,6 +1683,7 @@
         (target.refineries || 0) + 1;
       roomRef.update(updates);
       showNotification("Rafine kuruldu. Üretim kapasitesi arttı.");
+      animateButton("#build-refinery-btn");
     }
 
     // ASKER ÇEK
@@ -1697,6 +1718,7 @@
         roomData.players[currentPlayerId].soldiers + count;
       roomRef.update(updates);
       showNotification(selectedCountry + " ülkesinden " + count + " asker çekildi.");
+      animateButton("#pull-soldiers-btn");
     }
 
     // PARA GÖNDER
@@ -1727,9 +1749,8 @@
       updates["players/" + recipientId + "/money"] =
         roomData.players[recipientId].money + amount;
       roomRef.update(updates);
-      showNotification(
-        amount + "$, " + roomData.players[recipientId].name + " oyuncusuna gönderildi."
-      );
+      showNotification(amount + "$, " + roomData.players[recipientId].name + " oyuncusuna gönderildi.");
+      animateButton("#send-money-btn");
     }
 
     // PETROL GÖNDER
@@ -1756,16 +1777,11 @@
         return;
       }
       const updates = {};
-      updates["players/" + currentPlayerId + "/petrol"] =
-        currentPlayerData.petrol - amount;
-      updates["players/" + recipientId + "/petrol"] =
-        roomData.players[recipientId].petrol + amount;
+      updates["players/" + currentPlayerId + "/petrol"] = currentPlayerData.petrol - amount;
+      updates["players/" + recipientId + "/petrol"] = roomData.players[recipientId].petrol + amount;
       roomRef.update(updates);
-      showNotification(
-        amount + " varil, " +
-          roomData.players[recipientId].name +
-          " oyuncusuna gönderildi."
-      );
+      showNotification(amount + " varil, " + roomData.players[recipientId].name + " oyuncusuna gönderildi.");
+      animateButton("#send-petrol-btn");
     }
 
     // TUR SONU
@@ -1787,37 +1803,27 @@
         player.countries.forEach((cName) => {
           const country = roomData.countryData[cName];
           if (country) {
-            // Kışla -> asker eklenir
             if (country.barracksCount) {
               updates["countryData/" + cName + "/soldiers"] =
                 (country.soldiers || 0) + 5 * country.barracksCount;
             }
-            // Gelir & Fabrika etkisi
             let effectiveIncome = country.income || 0;
             if (country.factories) {
-              effectiveIncome = Math.floor(
-                effectiveIncome * (1 + 0.25 * country.factories)
-              );
+              effectiveIncome = Math.floor(effectiveIncome * (1 + 0.25 * country.factories));
             }
             totalMoneyGained += effectiveIncome;
-
-            // Petrol üretimi & Rafine etkisi
             if (country.oilProduction) {
-              const effectiveProduction = Math.floor(
-                country.oilProduction * (1 + 0.2 * (country.refineries || 0))
-              );
+              const effectiveProduction = Math.floor(country.oilProduction * (1 + 0.2 * (country.refineries || 0)));
               totalPetrolGained += effectiveProduction;
             }
           }
         });
 
-        updates["players/" + currentPlayerId + "/money"] =
-          (player.money || 0) + totalMoneyGained;
-        updates["players/" + currentPlayerId + "/petrol"] =
-          (player.petrol || 0) + totalPetrolGained;
+        updates["players/" + currentPlayerId + "/money"] = (player.money || 0) + totalMoneyGained;
+        updates["players/" + currentPlayerId + "/petrol"] = (player.petrol || 0) + totalPetrolGained;
       }
 
-      // Bir sonraki oyuncuya geçiş
+      // Sırayı ilerlet
       let newTurnIndex = currentTurnIndex + 1;
       if (newTurnIndex >= roomData.playerOrder.length) {
         newTurnIndex = 0;
@@ -1827,27 +1833,34 @@
       roomRef.update(updates);
 
       const nextPlayerId = roomData.playerOrder[newTurnIndex];
-      showNotification(
-        "Sıra " + roomData.players[nextPlayerId].name + " adlı oyuncuya geçti.",
-        1500
-      );
+      showNotification("Sıra " + roomData.players[nextPlayerId].name + " adlı oyuncuya geçti.", 1500);
+      animateButton("#end-turn-btn");
     }
 
     /*****************************************************************
-     * CHAT SİSTEMİ
+     * CHAT SISTEMI
      *****************************************************************/
     function toggleChat(show) {
       const chatPopup = document.getElementById("chat-popup");
-      chatPopup.style.display = show ? "flex" : "none";
+      if (show) {
+        chatPopup.style.display = "flex";
+        gsap.from(chatPopup, {opacity: 0, y: 20, duration: 0.5});
+      } else {
+        gsap.to(chatPopup, {opacity: 0, y: 20, duration: 0.5, onComplete: () => {
+          chatPopup.style.display = "none";
+        }});
+      }
     }
     document.getElementById("open-chat-btn").addEventListener("click", () => {
       toggleChat(true);
+      animateButton("#open-chat-btn");
     });
     document.getElementById("close-chat-btn").addEventListener("click", () => {
       toggleChat(false);
     });
     document.getElementById("send-chat-btn").addEventListener("click", () => {
       sendChatMessage();
+      animateButton("#send-chat-btn");
     });
     document.getElementById("chat-input").addEventListener("keypress", (e) => {
       if (e.key === "Enter") {
@@ -1883,6 +1896,7 @@
       messageDiv.textContent = message.sender + ": " + message.text;
       chatMessagesDiv.appendChild(messageDiv);
       chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+      gsap.from(messageDiv, {opacity: 0, duration: 0.5});
     }
 
     /*****************************************************************
@@ -1890,10 +1904,18 @@
      *****************************************************************/
     function togglePactPopup(show) {
       const pactPopup = document.getElementById("pact-popup");
-      pactPopup.style.display = show ? "flex" : "none";
+      if (show) {
+        pactPopup.style.display = "flex";
+        gsap.from(pactPopup, {opacity: 0, y: 20, duration: 0.5});
+      } else {
+        gsap.to(pactPopup, {opacity: 0, y: 20, duration: 0.5, onComplete: () => {
+          pactPopup.style.display = "none";
+        }});
+      }
     }
     document.getElementById("open-pact-btn").addEventListener("click", () => {
       togglePactPopup(true);
+      animateButton("#open-pact-btn");
     });
     document.getElementById("close-pact-btn").addEventListener("click", () => {
       togglePactPopup(false);
@@ -1914,10 +1936,10 @@
     document.getElementById("end-turn-btn").addEventListener("click", nextTurn);
 
     document.getElementById("exit-room-btn").addEventListener("click", () => {
-      // Oyundan çıkınca tekrar lobby ekranı
       document.getElementById("game-container").style.display = "none";
       document.getElementById("lobby-container").style.display = "block";
       document.body.classList.add("lobby");
+      gsap.from("#lobby-container", {opacity: 0, duration: 0.5});
     });
 
     /*****************************************************************
@@ -1979,31 +2001,15 @@
     function selectCountry(countryName, layer) {
       selectedCountry = countryName;
       showNotification("Seçilen ülke: " + countryName, 1500);
-      layer.setStyle({ weight: 4, color: "#FF4500" });
-
-      setTimeout(() => {
-        const country = roomData.countryData ? roomData.countryData[countryName] : null;
-        if (country && country.owner && roomData.players && roomData.players[country.owner]) {
-          layer.setStyle({
-            fillColor: roomData.players[country.owner].color || "#ccc",
-            fillOpacity: 0.7,
-            weight: 1,
-            color: "#555"
-          });
-        } else {
-          layer.setStyle({
-            fillColor: "#ccc",
-            fillOpacity: 0.7,
-            weight: 1,
-            color: "#555"
-          });
-        }
-      }, 800);
-
+      // Eğer DOM elemanı mevcutsa GSAP ile border animasyonu
+      const layerEl = layer.getElement ? layer.getElement() : null;
+      if (layerEl) {
+        gsap.fromTo(layerEl, {strokeWidth: 1}, {strokeWidth: 4, duration: 0.3, yoyo: true, repeat: 1});
+      }
       updateSelectedCountryInfo();
     }
 
-    // Harita görünür hale geldiğinde başlatma
+    // Harita görünür hale geldiğinde başlat
     const gameContainerObserver = new MutationObserver(() => {
       const gameContainer = document.getElementById("game-container");
       if (gameContainer.style.display !== "none") {
