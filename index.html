@@ -1941,13 +1941,8 @@
     function initializeMap() {
       if (map) return;
       map = L.map("map").setView([20, 0], 2);
-
-      // Stamen Toner Harita Katmanı
-      L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
-        maxZoom: 18,
-        attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, ' +
-                     '<a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> — ' +
-                     'Map data © <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 18
       }).addTo(map);
 
       fetch("https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json")
