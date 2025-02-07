@@ -646,7 +646,7 @@
         <div id="map"></div>
         <!-- Bilgi Kartları Toggle Butonu -->
         <button id="toggle-info-cards" class="toggle-info-cards">
-          <i class="fas fa-eye"></i>
+          <i class="fas fa-eye-slash"></i>
         </button>
       </div>
 
@@ -862,7 +862,9 @@
     const availableColors = ["red", "blue", "green", "yellow", "purple"];
     let localPlayerColor = null;
     let chatListenerAdded = false;
-    let infoCardsPermanent = true; // Bilgi kartları başlangıçta permanent
+
+    // Kartların ilk açılışta görünmemesini istiyoruz:
+    let infoCardsPermanent = false;
 
     function showNotification(message, duration = 3000) {
       const notificationArea = document.getElementById("notification-area");
@@ -1080,10 +1082,13 @@
       autoReconnect();
 
       // Bilgi kartları toggle
-      document.getElementById("toggle-info-cards").addEventListener("click", () => {
+      const toggleInfoButton = document.getElementById("toggle-info-cards");
+      const icon = toggleInfoButton.querySelector("i");
+
+      // Başlangıçta kartlar kapalı olduğu için ikon "eye-slash" durumda
+      toggleInfoButton.addEventListener("click", () => {
         infoCardsPermanent = !infoCardsPermanent;
         updateTooltipsPermanent();
-        const icon = document.querySelector("#toggle-info-cards i");
         icon.className = infoCardsPermanent ? "fas fa-eye" : "fas fa-eye-slash";
       });
     });
@@ -1978,7 +1983,7 @@
                   roomData && roomData.countryData ? roomData.countryData[countryName] : {}
                 ),
                 {
-                  permanent: infoCardsPermanent,
+                  permanent: infoCardsPermanent, // Başlangıçta false
                   direction: "center",
                   className: "country-popup-tooltip"
                 }
