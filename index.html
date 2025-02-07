@@ -50,7 +50,7 @@
     }
 
     /* ==================================================
-       SAVAŞ TEMALI LOBİ STİLİ
+       SAVAŞ TEMALI LOBI STILI
        ================================================== */
     body.lobby {
       background: url('https://source.unsplash.com/1600x900/?war,conflict') no-repeat center center fixed;
@@ -112,11 +112,11 @@
     #lobby-container button:hover {
       background: linear-gradient(45deg, #ff4500, #8b0000);
     }
-    /* Küçültülmüş, yuvarlak renk butonları */
     .color-options {
       margin-bottom: 15px;
       text-align: center;
     }
+    /* RENK BUTONLARI DAHA KÜÇÜK YAPILDI */
     .global-color-option {
       width: 20px;
       height: 20px;
@@ -124,11 +124,11 @@
       border: 2px solid transparent;
       cursor: pointer;
       display: inline-block;
-      margin: 0 4px;
+      margin: 0 5px;
       transition: transform 0.3s, border-color 0.3s;
     }
     .global-color-option:hover {
-      transform: scale(1.1);
+      transform: scale(1.2);
       border-color: #fff;
     }
     .global-color-option.selected {
@@ -188,10 +188,10 @@
       cursor: pointer;
     }
 
-    /* SAĞ PANEL */
+    /* SAĞ PANEL - Daha geniş yapmak için max-width büyütüldü */
     #side-panel {
       flex: 2.3;
-      max-width: 350px;
+      max-width: 350px; /* Biraz daha geniş */
       background: #1e1e2f;
       padding: 20px;
       overflow-y: auto;
@@ -549,7 +549,7 @@
     <!-- Oda Oluşturma Bölümü -->
     <div id="create-room-section">
       <h2>Oda Oluştur</h2>
-      <input type="text" id="creator-player-name" placeholder="Adınız">
+      <input type="text" id="creator-player-name" placeholder="Adınız" />
       <div class="color-options" id="creator-color-options"></div>
       <input
         type="number"
@@ -557,16 +557,20 @@
         placeholder="Oyuncu Sayısı (2-5)"
         min="2"
         max="5"
-      >
+      />
       <button id="create-room-btn">Oda Oluştur</button>
     </div>
-    <hr>
+    <hr />
     <!-- Odaya Katılma Bölümü -->
     <div id="join-room-section">
       <h2>Odaya Katıl</h2>
-      <input type="text" id="join-player-name" placeholder="Adınız">
+      <input type="text" id="join-player-name" placeholder="Adınız" />
       <div class="color-options" id="join-color-options"></div>
-      <input type="text" id="room-code" placeholder="Oda Kodu (Örn: AB12CD)">
+      <input
+        type="text"
+        id="room-code"
+        placeholder="Oda Kodu (Örn: AB12CD)"
+      />
       <button id="join-room-btn">Odaya Katıl</button>
     </div>
   </div>
@@ -630,7 +634,7 @@
               id="attack-soldiers"
               placeholder="Asker sayısı"
               min="1"
-            >
+            />
             <button id="attack-btn">
               <i class="fas fa-crosshairs"></i> Saldırı Yap
             </button>
@@ -643,7 +647,7 @@
               id="soldiers-to-buy"
               placeholder="Adet"
               min="1"
-            >
+            />
             <button id="buy-soldiers-btn">
               <i class="fas fa-user-plus"></i> Satın Al (10$/adet)
             </button>
@@ -677,7 +681,7 @@
               id="pull-soldiers-count"
               placeholder="Asker sayısı"
               min="1"
-            >
+            />
             <button id="pull-soldiers-btn">
               <i class="fas fa-running"></i> Asker Çek
             </button>
@@ -690,7 +694,7 @@
               id="money-to-send"
               placeholder="Miktar"
               min="1"
-            >
+            />
             <select id="recipient-player"></select>
             <button id="send-money-btn">
               <i class="fas fa-hand-holding-usd"></i> Para Gönder
@@ -704,7 +708,7 @@
               id="petrol-to-send"
               placeholder="Varil"
               min="1"
-            >
+            />
             <select id="recipient-player-petrol"></select>
             <button id="send-petrol-btn">
               <i class="fas fa-gas-pump"></i> Petrol Gönder
@@ -733,7 +737,7 @@
     </div>
     <div id="chat-messages" class="chat-messages"></div>
     <div class="chat-input-container">
-      <input type="text" id="chat-input" placeholder="Mesajınızı yazın...">
+      <input type="text" id="chat-input" placeholder="Mesajınızı yazın..." />
       <button id="send-chat-btn">
         <i class="fas fa-paper-plane"></i>
       </button>
@@ -751,13 +755,13 @@
     </div>
     <div class="pact-content">
       <h4>Pakt Teklifi Oluştur</h4>
-      <input type="number" id="pact-turns" placeholder="Tur" min="1">
-      <input type="number" id="pact-cost" placeholder="Ücret" min="1">
+      <input type="number" id="pact-turns" placeholder="Tur" min="1" />
+      <input type="number" id="pact-cost" placeholder="Ücret" min="1" />
       <select id="pact-recipient"></select>
       <button id="send-pact-btn">Teklif Gönder</button>
     </div>
     <div id="pact-offers-container">
-      <h3>Gelen Saldırmazlık Pakti Teklifleri</h3>
+      <h3>Gelen Anlaşmazlık Pakti Teklifleri</h3>
       <div id="pact-offers-list"></div>
     </div>
   </div>
@@ -847,12 +851,14 @@
       element.addEventListener("animationend", handleAnimationEnd);
     }
 
+    // Sıra kimde kontrolü
     function isMyTurn() {
       if (!roomData || !roomData.playerOrder) return false;
       const currentTurnIndex = roomData.currentTurnIndex || 0;
       return roomData.playerOrder[currentTurnIndex] === localPlayerId;
     }
 
+    // Saldırmazlık Pakti aktif mi kontrolü
     function hasActivePact(playerA, playerB) {
       if (!roomData || !roomData.pacts) return false;
       const currentRound = roomData.round || 1;
@@ -1315,8 +1321,8 @@
     /*****************************************************************
      * PAKT TEKLIFLERI – GÖNDERME, KABUL, REDDET
      *****************************************************************/
-    // Pakt teklifi gönderirken, teklif tutarını rezerv etmek için hemen oyuncunun parasından düşüyoruz.
     function sendPactOffer() {
+      // Saldırmazlık pakti teklifi
       if (!isMyTurn()) {
         showNotification("Sıranız değil!");
         return;
@@ -1339,11 +1345,6 @@
         showNotification("Bu teklifi yapmak için yeterli paranız yok!");
         return;
       }
-      // Rezervasyon: oyuncunun parasından teklifte belirtilen tutarı düşelim.
-      const updates = {};
-      updates["players/" + currentPlayerId + "/money"] = senderData.money - cost;
-      roomRef.update(updates);
-
       const pactOfferRef = roomRef.child("pactOffers").push();
       const newOffer = {
         offerId: pactOfferRef.key,
@@ -1377,7 +1378,6 @@
       showNotification("Pakt teklifi gönderildi.");
     }
 
-    // Gelen pakt tekliflerini göster
     function displayPendingPactOffers() {
       if (!roomData || !roomData.pactOffers) {
         document.getElementById("pact-offers-container").style.display = "none";
@@ -1419,36 +1419,54 @@
         : "none";
     }
 
-    // Saldırmazlık paktını KABUL et: Rezervasyonlu para, alıcıya aktarılır.
+    // Saldırmazlık paktını KABUL
     function acceptPactOffer(offerId) {
+      // Teklifi kim onaylarsa onaylasın (ilgili alıcı), "Sıranız değil" kontrolü kaldırıldı.
       const offer = roomData.pactOffers[offerId];
       if (!offer || offer.status !== "pending") return;
+
       const currentRound = roomData.round || 1;
       const endRound = currentRound + offer.turns - 1;
+
       const senderData = roomData.players[offer.senderId];
       const recipientData = roomData.players[offer.recipientId];
       if (!senderData || !recipientData) return;
+
+      // Gönderenin parası hala yeterli mi kontrolü
+      if (senderData.money < offer.cost) {
+        showNotification("Teklifi yapan oyuncunun yeterli parası kalmamış. Teklif iptal edildi.");
+        roomRef.child("pactOffers").child(offerId).update({ status: "rejected" });
+        return;
+      }
+
       const updates = {};
+      // Teklifin durumu güncelleniyor
       updates["pactOffers/" + offerId + "/status"] = "accepted";
-      // Rezervasyonlu tutarı alıcıya aktar
+      // Gönderenin parasından düş, alıcının parasına ekle
+      updates["players/" + offer.senderId + "/money"] = senderData.money - offer.cost;
       updates["players/" + offer.recipientId + "/money"] = recipientData.money + offer.cost;
+
+      // Pacts nesnesi yoksa ekleyelim
+      if (!roomData.pacts) {
+        updates["pacts"] = {};
+      }
+      // Paktı ekle
       updates["pacts/" + offerId] = {
         players: [offer.senderId, offer.recipientId],
         endRound: endRound
       };
+
       roomRef.update(updates);
       showNotification("Saldırmazlık pakti teklifi kabul edildi!");
     }
 
-    // Saldırmazlık paktı RED: Rezervasyonlu para, gönderen oyuncuya iade edilir.
+    // Saldırmazlık paktını RED
     function rejectPactOffer(offerId) {
+      // Teklifi kim reddederse etsin, "Sıranız değil" kontrolü kaldırıldı.
       const offer = roomData.pactOffers[offerId];
       if (!offer || offer.status !== "pending") return;
-      const senderData = roomData.players[offer.senderId];
-      const updates = {};
-      updates["pactOffers/" + offerId + "/status"] = "rejected";
-      updates["players/" + offer.senderId + "/money"] = senderData.money + offer.cost;
-      roomRef.update(updates);
+
+      roomRef.child("pactOffers").child(offerId).update({ status: "rejected" });
       showNotification("Saldırmazlık pakti teklifi reddedildi.");
     }
 
@@ -2018,3 +2036,4 @@
   </script>
 </body>
 </html>
+
