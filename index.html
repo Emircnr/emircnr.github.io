@@ -50,22 +50,23 @@
     }
 
     /* ==================================================
-       LOBI SAYFASI (YENİ TASARIM)
+       SAVAŞ TEMALI LOBI STILI (YENİ TASARIM)
        ================================================== */
     body.lobby {
-      /* Yeni bir arka plan resmi */
-      background: url("https://source.unsplash.com/1600x900/?strategy,global") no-repeat center center fixed;
+      background: url("https://source.unsplash.com/1600x900/?war,tanks") no-repeat center center fixed;
       background-size: cover;
     }
+
+    /* LOBBY CONTAINER ESTETIK TASARIM */
     #lobby-container {
-      max-width: 540px;
-      margin: 100px auto;
-      padding: 40px;
-      background: rgba(0, 0, 0, 0.7);
-      border: 2px solid #d4af37;
-      border-radius: 12px;
+      max-width: 500px;
+      margin: 60px auto;
+      padding: 30px;
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #d4af37; /* Daha parlak altın vurgulu */
+      border-radius: 15px;
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.9);
-      backdrop-filter: blur(6px);
+      backdrop-filter: blur(8px);
       animation: fadeInLobby 1s ease forwards;
     }
     @keyframes fadeInLobby {
@@ -78,13 +79,14 @@
         transform: translateY(0);
       }
     }
+
     #lobby-container h1 {
       text-align: center;
-      margin-bottom: 30px;
-      color: #ffd700;
+      margin-bottom: 20px;
+      color: #ffd700; /* Daha parlak altın rengi */
       text-transform: uppercase;
       letter-spacing: 3px;
-      font-size: 40px;
+      font-size: 38px;
       text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
       animation: animateTitle 1s ease;
     }
@@ -98,15 +100,17 @@
         opacity: 1;
       }
     }
+
     #lobby-container h2 {
       text-align: center;
-      margin: 20px 0 10px;
+      margin-bottom: 20px;
       color: #d4af37;
       text-transform: uppercase;
       letter-spacing: 1px;
-      font-size: 22px;
+      font-size: 24px;
       text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
     }
+
     #lobby-container input[type="text"],
     #lobby-container input[type="number"] {
       width: 100%;
@@ -123,6 +127,7 @@
     #lobby-container input[type="number"]:focus {
       box-shadow: 0 0 8px #f1c40f;
     }
+
     #lobby-container button {
       width: 100%;
       padding: 14px;
@@ -141,18 +146,20 @@
       background: linear-gradient(45deg, #ff4500, #8b0000);
       transform: scale(1.02);
     }
+
     .color-options {
       margin-bottom: 15px;
       text-align: center;
     }
+    /* RENK BUTONLARI DAHA KÜÇÜK YAPILDI */
     .global-color-option {
-      width: 24px;
-      height: 24px;
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
       border: 2px solid transparent;
       cursor: pointer;
       display: inline-block;
-      margin: 0 8px;
+      margin: 0 5px;
       transition: transform 0.3s, border-color 0.3s;
     }
     .global-color-option:hover {
@@ -161,10 +168,6 @@
     }
     .global-color-option.selected {
       border-color: #f1c40f;
-    }
-    hr {
-      margin: 25px 0;
-      border: 1px solid #444;
     }
 
     /* ==================================================
@@ -187,7 +190,7 @@
     }
 
     /* ==================================================
-       OYUN EKRANI STİLLERİ
+       OYUN EKRANI STİLLERİ (KALAN KISIMLAR)
        ================================================== */
     #game-container {
       display: none;
@@ -220,10 +223,10 @@
       cursor: pointer;
     }
 
-    /* SAĞ PANEL (biraz daha genişletildi) */
+    /* SAĞ PANEL */
     #side-panel {
-      flex: 3;
-      max-width: 450px;
+      flex: 2.3;
+      max-width: 350px;
       background: #1e1e2f;
       padding: 20px;
       overflow-y: auto;
@@ -793,7 +796,7 @@
       <button id="send-pact-btn">Teklif Gönder</button>
     </div>
     <div id="pact-offers-container">
-      <h3>Gelen Saldırmazlık Teklifleri</h3>
+      <h3>Gelen Anlaşmazlık Pakti Teklifleri</h3>
       <div id="pact-offers-list"></div>
     </div>
   </div>
@@ -819,7 +822,7 @@
       authDomain: "warmapg-77acb.firebaseapp.com",
       databaseURL: "https://warmapg-77acb-default-rtdb.firebaseio.com",
       projectId: "warmapg-77acb",
-      storageBucket: "warmapg-77acb.appspot.com",
+      storageBucket: "warmapg-77acb.firebasestorage.app",
       messagingSenderId: "895613631339",
       appId: "1:895613631339:web:a7ecc0cfd8ab3ae7e02a2e",
       measurementId: "G-6SJVLLVDCF"
@@ -839,7 +842,7 @@
     const availableColors = ["red", "blue", "green", "yellow", "purple"];
     let localPlayerColor = null;
     let chatListenerAdded = false;
-    let infoCardsPermanent = true; // Bilgi kartları başlangıçta açık (permanent)
+    let infoCardsPermanent = true; // Bilgi kartları başlangıçta permanent
 
     function showNotification(message, duration = 3000) {
       const notificationArea = document.getElementById("notification-area");
@@ -872,6 +875,18 @@
       return code;
     }
 
+    function animateWithAnimateCSS(element, animationName, callback) {
+      element.classList.add("animate__animated", animationName);
+      function handleAnimationEnd(event) {
+        event.stopPropagation();
+        element.classList.remove("animate__animated", animationName);
+        element.removeEventListener("animationend", handleAnimationEnd);
+        if (typeof callback === "function") callback();
+      }
+      element.addEventListener("animationend", handleAnimationEnd);
+    }
+
+    // Sıra kimde kontrolü
     function isMyTurn() {
       if (!roomData || !roomData.playerOrder) return false;
       const currentTurnIndex = roomData.currentTurnIndex || 0;
@@ -903,7 +918,7 @@
       }
       localPlayerId = localStorage.getItem("playerId");
 
-      // Renk butonlarını oluşturma (Oda oluşturma)
+      // Renk butonlarını oluşturma
       const creatorColorDiv = document.getElementById("creator-color-options");
       availableColors.forEach((color) => {
         const btn = document.createElement("button");
@@ -918,7 +933,6 @@
         creatorColorDiv.appendChild(btn);
       });
 
-      // Renk butonlarını oluşturma (Odaya Katılma)
       const joinColorDiv = document.getElementById("join-color-options");
       availableColors.forEach((color) => {
         const btn = document.createElement("button");
@@ -1056,7 +1070,7 @@
         });
       });
 
-      // Otomatik Bağlanma (Önceden katıldıysak)
+      // Otomatik Bağlanma
       autoReconnect();
 
       // Bilgi kartları toggle
@@ -1112,31 +1126,22 @@
           const countryDataInit = {};
           features.forEach((feature) => {
             const countryName = feature.properties.name;
-            // Rastgele gelir
-            const randomIncome = Math.floor(Math.random() * 500) + 100; 
-            // Petrol üretimi rastgele (seçili 43 ülkede)
             let oilProduction = 0;
             if (oilIndexes.includes(feature.properties._index)) {
               oilProduction = Math.floor(Math.random() * (1000 - 250 + 1)) + 250;
             }
-
             countryDataInit[countryName] = {
-              // Başlangıç (base) değerlerini kaydediyoruz.
-              baseIncome: randomIncome,
-              baseOilProduction: oilProduction,
-
-              // Oyun sırasında kullanılan alanlar
-              income: randomIncome,       // (Artık bu "baz" değer gibi, isterseniz tutabilirsiniz)
-              oilProduction: oilProduction,
+              income: Math.floor(Math.random() * 500) + 100,
               soldiers: 0,
               owner: null,
               barracksCount: 0,
               factories: 0,
-              refineries: 0
+              refineries: 0,
+              oilProduction: oilProduction
             };
           });
 
-          // Firebase'e kaydet
+          // Kaydet
           roomRef.child("countryData").set(countryDataInit);
         });
     }
@@ -1151,7 +1156,7 @@
         updateGameUI();
         displayPendingPactOffers();
       });
-      // Chat Listener (herkesin mesajlarını dinle)
+      // Chat Listener
       if (!chatListenerAdded) {
         roomRef.child("chat").on("child_added", (snapshot) => {
           const message = snapshot.val();
@@ -1195,10 +1200,10 @@
           playerDiv.id = "player-info-" + pid;
           playerDiv.innerHTML =
             '<p><strong>' + player.name + '</strong></p>' +
-            '<p>Para: <span id="money-' + pid + '">' + (player.money || 0) + '</span>$</p>' +
-            '<p>Asker: <span id="soldiers-' + pid + '">' + (player.soldiers || 0) + '</span></p>' +
+            '<p>Para: <span id="money-' + pid + '">' + player.money + '</span>$</p>' +
+            '<p>Asker: <span id="soldiers-' + pid + '">' + player.soldiers + '</span></p>' +
             '<p>Ülkeler: <span id="countries-' + pid + '">' + ((player.countries && player.countries.length) || 0) + '</span></p>' +
-            '<p>Petrol: <span id="petrol-' + pid + '">' + (player.petrol || 0) + '</span> varil</p>';
+            '<p>Petrol: <span id="petrol-' + pid + '">' + player.petrol + '</span> varil</p>';
           playersInfoDiv.appendChild(playerDiv);
         });
       }
@@ -1250,19 +1255,23 @@
             ? roomData.players[c.owner].name
             : "Yok";
         infoElements.soldiers.textContent = c.soldiers || 0;
-
-        // Yeni formül: fabrika = %15 artış, rafine = %15 artış
-        const baseInc = c.baseIncome || 0;
-        const effIncome = Math.floor(baseInc * (1 + 0.15 * (c.factories || 0)));
-        infoElements.income.textContent = effIncome;
+        
+        // Fabrika: Her fabrika için +%20 gelir
+        let effectiveIncome = c.income || 0;
+        if (c.factories) {
+          effectiveIncome = Math.floor(effectiveIncome * (1 + 0.20 * c.factories));
+        }
+        infoElements.income.textContent = effectiveIncome;
 
         infoElements.barracks.textContent = c.barracksCount || 0;
         infoElements.factories.textContent = c.factories || 0;
         infoElements.refineries.textContent = c.refineries || 0;
 
-        const baseOil = c.baseOilProduction || 0;
-        const effProd = Math.floor(baseOil * (1 + 0.15 * (c.refineries || 0)));
-        infoElements.oilProduction.textContent = effProd;
+        // Rafine: Her rafine için +%15 petrol üretimi
+        const effectiveProduction = c.oilProduction
+          ? Math.floor(c.oilProduction * (1 + 0.15 * (c.refineries || 0)))
+          : 0;
+        infoElements.oilProduction.textContent = effectiveProduction;
       } else {
         infoElements.name.textContent = "Yok";
         infoElements.owner.textContent = "Yok";
@@ -1275,29 +1284,32 @@
       }
     }
 
-    // Tooltip içeriği (harita üzeri)
     function getCountryPopupContent(countryName, country) {
       if (!country) country = {};
       const ownerText =
         country.owner && roomData && roomData.players && roomData.players[country.owner]
           ? roomData.players[country.owner].name
           : "Yok";
+      
+      // Fabrika: Her fabrika için +%20 gelir
+      let effectiveIncome = country.income || 0;
+      if (country.factories) {
+        effectiveIncome = Math.floor(effectiveIncome * (1 + 0.20 * country.factories));
+      }
 
-      // Fabrika ve rafineye göre güncel değerler
-      const baseInc = country.baseIncome || 0;
-      const effIncome = Math.floor(baseInc * (1 + 0.15 * (country.factories || 0)));
-
-      const baseOil = country.baseOilProduction || 0;
-      const effProd = Math.floor(baseOil * (1 + 0.15 * (country.refineries || 0)));
+      // Rafine: Her rafine için +%15 petrol üretimi
+      const effectiveProduction = country.oilProduction
+        ? Math.floor(country.oilProduction * (1 + 0.15 * (country.refineries || 0)))
+        : 0;
 
       return (
         '<div class="country-popup">' +
-        '<p><i class="fas fa-money-bill-wave"></i> Gelir: ' + effIncome + '$</p>' +
+        '<p><i class="fas fa-money-bill-wave"></i> Gelir: ' + effectiveIncome + '$</p>' +
         '<p><i class="fas fa-users"></i> Asker: ' + (country.soldiers || 0) + "</p>" +
         '<p><i class="fas fa-fort-awesome"></i> Kışla: ' + (country.barracksCount || 0) + "</p>" +
         '<p><i class="fas fa-industry"></i> Fabrika: ' + (country.factories || 0) + "</p>" +
         '<p><i class="fas fa-oil-can"></i> Rafine: ' + (country.refineries || 0) + "</p>" +
-        '<p><i class="fas fa-gas-pump"></i> Üretim: ' + effProd + " varil</p>" +
+        '<p><i class="fas fa-gas-pump"></i> Üretim: ' + effectiveProduction + " varil</p>" +
         '<p><i class="fas fa-crown"></i> Sahip: ' + ownerText + "</p>" +
         "</div>"
       );
@@ -1505,7 +1517,6 @@
       const target = roomData.countryData[selectedCountry];
       if (!target) return;
 
-      // Saldırmazlık Pakti kontrol
       if (target.owner && target.owner !== currentPlayerId) {
         if (hasActivePact(currentPlayerId, target.owner)) {
           showNotification("Bu oyuncu ile saldırmazlık paktınız var!");
@@ -1515,14 +1526,12 @@
 
       const updates = {};
       if (target.owner === currentPlayerId) {
-        // Kendi ülkenize asker ekleme
         updates["countryData/" + selectedCountry + "/soldiers"] =
           target.soldiers + soldiersToSend;
         updates["players/" + currentPlayerId + "/soldiers"] =
           currentPlayerData.soldiers - soldiersToSend;
         showNotification(selectedCountry + " ülkesine " + soldiersToSend + " asker ekleniyor.");
       } else {
-        // Saldırı
         updates["players/" + currentPlayerId + "/soldiers"] =
           currentPlayerData.soldiers - soldiersToSend;
         if (soldiersToSend > target.soldiers) {
@@ -1657,12 +1666,7 @@
       const currentPlayerId = roomData.playerOrder[currentTurnIndex];
       const currentPlayerData = roomData.players[currentPlayerId];
       const target = roomData.countryData[selectedCountry];
-      if (target.owner !== currentPlayerId) {
-        showNotification("Bu ülke size ait değil!");
-        return;
-      }
-      // Üretim kapasitesi var mı?
-      if (!target.baseOilProduction) {
+      if (!target.oilProduction) {
         showNotification("Bu ülkede petrol üretim kapasitesi yok!");
         return;
       }
@@ -1680,7 +1684,7 @@
       updates["countryData/" + selectedCountry + "/refineries"] =
         (target.refineries || 0) + 1;
       roomRef.update(updates);
-      showNotification("Rafine kuruldu. Petrol üretim kapasitesi arttı.");
+      showNotification("Rafine kuruldu. Üretim kapasitesi arttı.");
     }
 
     function pullSoldiers() {
@@ -1783,7 +1787,6 @@
       );
     }
 
-    // Tur sonu -> gelir ve petrol üretimi eklenecek, sonra sıra değişecek
     function nextTurn() {
       if (!isMyTurn()) {
         showNotification("Sıranız değil!");
@@ -1794,28 +1797,34 @@
       const player = roomData.players[currentPlayerId];
       const updates = {};
 
+      // Tur sonunda gelir ve petrolü toplama
       if (player.countries && roomData.countryData) {
         let totalMoneyGained = 0;
         let totalPetrolGained = 0;
 
-        // Her ülke için gelir ve petrol ekle
         player.countries.forEach((cName) => {
           const country = roomData.countryData[cName];
           if (country) {
-            // Kışla -> asker artışı
+            // Kışla -> her kışla +5 asker
             if (country.barracksCount) {
               updates["countryData/" + cName + "/soldiers"] =
                 (country.soldiers || 0) + 5 * country.barracksCount;
             }
-            // Gelir: baseIncome + fabrika başına %15
-            let baseInc = country.baseIncome || 0;
-            let effIncome = Math.floor(baseInc * (1 + 0.15 * (country.factories || 0)));
-            totalMoneyGained += effIncome;
 
-            // Petrol: baseOilProduction + rafine başına %15
-            let baseOil = country.baseOilProduction || 0;
-            let effProd = Math.floor(baseOil * (1 + 0.15 * (country.refineries || 0)));
-            totalPetrolGained += effProd;
+            // Fabrika -> %20 artış
+            let effectiveIncome = country.income || 0;
+            if (country.factories) {
+              effectiveIncome = Math.floor(effectiveIncome * (1 + 0.20 * country.factories));
+            }
+            totalMoneyGained += effectiveIncome;
+
+            // Rafine -> %15 artış
+            if (country.oilProduction) {
+              const effectiveProduction = Math.floor(
+                country.oilProduction * (1 + 0.15 * (country.refineries || 0))
+              );
+              totalPetrolGained += effectiveProduction;
+            }
           }
         });
 
@@ -2009,7 +2018,6 @@
       updateSelectedCountryInfo();
     }
 
-    // Oyun ekranı açıldığında haritayı başlat
     const gameContainerObserver = new MutationObserver(() => {
       const gameContainer = document.getElementById("game-container");
       if (gameContainer.style.display !== "none") {
