@@ -1944,9 +1944,12 @@
      *****************************************************************/
     function initializeMap() {
       if (map) return;
+      // Haritaya daha otantik, savaş havasını yansıtan karanlık bir tema eklemek için CartoDB Dark Matter kullanılıyor.
       map = L.map("map").setView([20, 0], 2);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 18
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 19
       }).addTo(map);
 
       fetch("https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json")
