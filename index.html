@@ -1152,7 +1152,17 @@
     let roomData = null;
     let selectedCountry = null;
     let map, geoJsonLayer = null;
-    const availableColors = ["red", "blue", "green", "yellow", "purple"];
+    // 8 adet renk seçeneği
+    const availableColors = [
+      "red",
+      "blue",
+      "green",
+      "yellow",
+      "purple",
+      "orange",
+      "brown",
+      "pink"
+    ];
     let localPlayerColor = null;
     let chatListenerAdded = false;
     // Bilgi kartları sabit görünüm mü?
@@ -2456,7 +2466,6 @@
     });
     document.getElementById("chat-popup-header").addEventListener("click", (e) => {
       if (e.target.id === "chat-popup-header") {
-        // 2. tıklama ile kapat
         popupStates.chat = false;
         toggleChat(false);
       }
