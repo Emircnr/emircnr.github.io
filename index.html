@@ -62,7 +62,7 @@
       margin: 60px auto;
       padding: 30px;
       background: rgba(0, 0, 0, 0.65);
-      border: 2px solid #1abc9c; 
+      border: 2px solid #1abc9c;
       border-radius: 15px;
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.8);
       backdrop-filter: blur(5px);
@@ -82,7 +82,7 @@
     #lobby-container h1 {
       text-align: center;
       margin-bottom: 20px;
-      color: #1abc9c; 
+      color: #1abc9c;
       text-transform: uppercase;
       letter-spacing: 3px;
       font-size: 38px;
@@ -103,7 +103,7 @@
     #lobby-container h2 {
       text-align: center;
       margin-bottom: 20px;
-      color: #aef7f2; 
+      color: #aef7f2;
       text-transform: uppercase;
       letter-spacing: 1px;
       font-size: 24px;
@@ -210,7 +210,7 @@
     #map {
       width: 100%;
       height: 100%;
-      background-color: #0e2740; 
+      background-color: #0e2740;
     }
     .toggle-info-cards {
       position: absolute;
@@ -235,26 +235,48 @@
       padding: 20px;
       overflow-y: auto;
       box-shadow: -4px 0 10px rgba(0, 0, 0, 0.4);
-    }
-
-    #exit-room-btn {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 20px;
-      background: linear-gradient(45deg, #c0392b, #e74c3c);
-      border: none;
-      border-radius: 6px;
-      font-size: 14px;
-      color: #fff;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    #exit-room-btn:hover {
-      background: linear-gradient(45deg, #e74c3c, #c0392b);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between; /* Üstte "Tur bilgisi", altta "Çık" butonu vb. */
     }
 
     /**********************************************************
-     * OYUN BILGILERI (TUR, ODA KODU, PETROL)
+     * ÜST KISIM (TUR SIRASI vs.)
+     **********************************************************/
+    #top-info-panel {
+      margin-bottom: 20px;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+    #top-info-panel h2 {
+      font-size: 20px;
+      color: #1abc9c;
+      border-bottom: 1px solid #444;
+      padding-bottom: 5px;
+      margin-bottom: 10px;
+    }
+    #top-info-panel p {
+      margin: 5px 0;
+      font-size: 14px;
+      color: #ddd;
+    }
+    #current-player-info {
+      font-size: 16px;
+      margin-top: 10px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 10px;
+      border-radius: 6px;
+      text-align: center;
+    }
+    #current-player-info span {
+      font-weight: bold;
+      color: #f39c12;
+    }
+
+    /**********************************************************
+     * OYUN BILGILERI (ODA KODU, PETROL vs.)
      **********************************************************/
     #game-info {
       margin-bottom: 20px;
@@ -406,7 +428,7 @@
     }
 
     /**********************************************************
-     * CHAT POPUP
+     * CHAT POPUP + YENI MESAJ BADGE
      **********************************************************/
     .chat-popup {
       position: fixed;
@@ -466,6 +488,7 @@
       cursor: pointer;
       color: #fff;
     }
+
     .open-chat-btn {
       position: fixed;
       bottom: 20px;
@@ -480,6 +503,23 @@
       cursor: pointer;
       z-index: 3000;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
+    /* Yeni Mesaj Badge */
+    #chat-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: #e74c3c;
+      color: #fff;
+      font-size: 12px;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+      display: none; /* Başta görünmesin */
     }
 
     /**********************************************************
@@ -600,6 +640,26 @@
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
     }
 
+    /**********************************************************
+     * ODADAN ÇIK BUTONU (EN ALT)
+     **********************************************************/
+    #exit-room-btn {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(45deg, #c0392b, #e74c3c);
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.3s;
+      margin-top: 20px;
+      margin-bottom: 10px;
+    }
+    #exit-room-btn:hover {
+      background: linear-gradient(45deg, #e74c3c, #c0392b);
+    }
+
   </style>
 </head>
 <body class="lobby">
@@ -652,134 +712,166 @@
 
       <!-- Sağ Panel -->
       <div id="side-panel">
-        <button id="exit-room-btn">Odadan Çık</button>
-        <section id="game-info">
-          <h2>Oyun Bilgileri</h2>
-          <p>Oda Kodu: <span id="display-room-code">-</span></p>
-          <p>Tur: <span id="current-round">1</span></p>
-          <p>Toplam Petrol: <span id="total-petrol">0</span> varil</p>
-        </section>
+        
+        <!-- Üst Bilgiler (Tur, Sıra) -->
+        <div>
+          <div id="top-info-panel">
+            <h2>Tur Bilgileri</h2>
+            <p>Tur: <span id="current-round">1</span></p>
+            <div id="current-player-info">Sıra: <span id="current-player">Oyuncu Adı</span></div>
+          </div>
 
-        <section id="player-info-section">
-          <h2>Oyuncular</h2>
-          <div id="players-info"></div>
-        </section>
+          <section id="game-info">
+            <h2>Oyun Bilgileri</h2>
+            <p>Oda Kodu: <span id="display-room-code">-</span></p>
+            <p>Toplam Petrol: <span id="total-petrol">0</span> varil</p>
+          </section>
 
-        <section id="country-info-section">
-          <h2>Ülke Detayları</h2>
-          <div id="country-info">
-            <p>Ülke: <span id="selected-country-name">Yok</span></p>
-            <p>Sahip: <span id="selected-country-owner">Yok</span></p>
-            <p>Asker: <span id="selected-country-soldiers">0</span></p>
-            <p>Gelir: <span id="selected-country-income">0</span>$</p>
-            <p>Kışla: <span id="selected-country-barracks">0</span></p>
-            <p>Fabrika: <span id="selected-country-factories">0</span></p>
-            <p>Rafine: <span id="selected-country-refineries">0</span></p>
-            <p>Üretim Kapasitesi: <span id="selected-country-oilProduction">0</span> varil</p>
-          </div>
-        </section>
+          <section id="player-info-section">
+            <h2>Oyuncular</h2>
+            <div id="players-info"></div>
+          </section>
 
-        <section id="market-section">
-          <h2>İşlemler</h2>
-          <!-- Saldırı -->
-          <div class="action-group">
-            <h3>Saldırı</h3>
-            <input
-              type="number"
-              id="attack-soldiers"
-              placeholder="Asker sayısı"
-              min="1"
-            />
-            <button id="attack-btn">
-              <i class="fas fa-crosshairs"></i> Saldırı Yap
-            </button>
-          </div>
-          <!-- Asker Satın Alma -->
-          <div class="action-group">
-            <h3>Asker Satın Alma</h3>
-            <input
-              type="number"
-              id="soldiers-to-buy"
-              placeholder="Adet"
-              min="1"
-            />
-            <button id="buy-soldiers-btn">
-              <i class="fas fa-user-plus"></i> Satın Al (10$/adet)
-            </button>
-          </div>
-          <!-- Kışla -->
-          <div class="action-group">
-            <h3>Asker Kışlası Kur</h3>
-            <button id="buy-barracks-btn">
-              <i class="fas fa-fort-awesome"></i> Kışla Kur (130$ + 40 varil)
-            </button>
-          </div>
-          <!-- Fabrika -->
-          <div class="action-group">
-            <h3>Fabrika Kur</h3>
-            <button id="build-factory-btn">
-              <i class="fas fa-industry"></i> Fabrika Kur (250$ + 90 varil)
-            </button>
-          </div>
-          <!-- Rafine -->
-          <div class="action-group">
-            <h3>Rafine Kur</h3>
-            <button id="build-refinery-btn">
-              <i class="fas fa-oil-can"></i> Rafine Kur (250 varil + 800$)
-            </button>
-          </div>
-          <!-- Asker Çek -->
-          <div class="action-group">
-            <h3>Asker Çek</h3>
-            <input
-              type="number"
-              id="pull-soldiers-count"
-              placeholder="Asker sayısı"
-              min="1"
-            />
-            <button id="pull-soldiers-btn">
-              <i class="fas fa-running"></i> Asker Çek
-            </button>
-          </div>
-          <!-- Para Gönder -->
-          <div class="action-group">
-            <h3>Para Gönder</h3>
-            <input
-              type="number"
-              id="money-to-send"
-              placeholder="Miktar"
-              min="1"
-            />
-            <select id="recipient-player"></select>
-            <button id="send-money-btn">
-              <i class="fas fa-hand-holding-usd"></i> Para Gönder
-            </button>
-          </div>
-          <!-- Petrol Gönder -->
-          <div class="action-group">
-            <h3>Petrol Gönder</h3>
-            <input
-              type="number"
-              id="petrol-to-send"
-              placeholder="Varil"
-              min="1"
-            />
-            <select id="recipient-player-petrol"></select>
-            <button id="send-petrol-btn">
-              <i class="fas fa-gas-pump"></i> Petrol Gönder
-            </button>
-          </div>
-          <!-- Tur -->
-          <div class="action-group">
-            <h3>Tur</h3>
-            <div class="turn-info">
-              <p>Sıra: <span id="current-player">Oyuncu Adı</span></p>
-              <button id="end-turn-btn">
-                <i class="fas fa-forward"></i> Tur Sonu
+          <section id="country-info-section">
+            <h2>Ülke Detayları</h2>
+            <div id="country-info">
+              <p>Ülke: <span id="selected-country-name">Yok</span></p>
+              <p>Sahip: <span id="selected-country-owner">Yok</span></p>
+              <p>Asker: <span id="selected-country-soldiers">0</span></p>
+              <p>Gelir: <span id="selected-country-income">0</span>$</p>
+              <p>Kışla: <span id="selected-country-barracks">0</span></p>
+              <p>Fabrika: <span id="selected-country-factories">0</span></p>
+              <p>Rafine: <span id="selected-country-refineries">0</span></p>
+              <p>Üretim Kapasitesi: <span id="selected-country-oilProduction">0</span> varil</p>
+            </div>
+          </section>
+
+          <section id="market-section">
+            <h2>İşlemler</h2>
+            <!-- Saldırı -->
+            <div class="action-group">
+              <h3>Saldırı</h3>
+              <input
+                type="number"
+                id="attack-soldiers"
+                placeholder="Asker sayısı"
+                min="1"
+              />
+              <button id="attack-btn">
+                <i class="fas fa-crosshairs"></i> Saldırı Yap
               </button>
             </div>
-          </div>
-        </section>
+            <!-- Asker Satın Alma -->
+            <div class="action-group">
+              <h3>Asker Satın Alma</h3>
+              <input
+                type="number"
+                id="soldiers-to-buy"
+                placeholder="Adet"
+                min="1"
+              />
+              <button id="buy-soldiers-btn">
+                <i class="fas fa-user-plus"></i> Satın Al (10$/adet)
+              </button>
+            </div>
+            <!-- Kışla -->
+            <div class="action-group">
+              <h3>Asker Kışlası Kur</h3>
+              <input
+                type="number"
+                id="barracks-quantity"
+                placeholder="Adet"
+                min="1"
+                value="1"
+              />
+              <button id="buy-barracks-btn">
+                <i class="fas fa-fort-awesome"></i> Kur (130$/kışla + 40 varil/kışla)
+              </button>
+            </div>
+            <!-- Fabrika -->
+            <div class="action-group">
+              <h3>Fabrika Kur</h3>
+              <input
+                type="number"
+                id="factory-quantity"
+                placeholder="Adet"
+                min="1"
+                value="1"
+              />
+              <button id="build-factory-btn">
+                <i class="fas fa-industry"></i> Kur (250$/fabrika + 90 varil/fabrika)
+              </button>
+            </div>
+            <!-- Rafine -->
+            <div class="action-group">
+              <h3>Rafine Kur</h3>
+              <input
+                type="number"
+                id="refinery-quantity"
+                placeholder="Adet"
+                min="1"
+                value="1"
+              />
+              <button id="build-refinery-btn">
+                <i class="fas fa-oil-can"></i> Kur (800$/rafine + 250 varil/rafine)
+              </button>
+            </div>
+            <!-- Asker Çek -->
+            <div class="action-group">
+              <h3>Asker Çek</h3>
+              <input
+                type="number"
+                id="pull-soldiers-count"
+                placeholder="Asker sayısı"
+                min="1"
+              />
+              <button id="pull-soldiers-btn">
+                <i class="fas fa-running"></i> Asker Çek
+              </button>
+            </div>
+            <!-- Para Gönder -->
+            <div class="action-group">
+              <h3>Para Gönder</h3>
+              <input
+                type="number"
+                id="money-to-send"
+                placeholder="Miktar"
+                min="1"
+              />
+              <select id="recipient-player"></select>
+              <button id="send-money-btn">
+                <i class="fas fa-hand-holding-usd"></i> Para Gönder
+              </button>
+            </div>
+            <!-- Petrol Gönder -->
+            <div class="action-group">
+              <h3>Petrol Gönder</h3>
+              <input
+                type="number"
+                id="petrol-to-send"
+                placeholder="Varil"
+                min="1"
+              />
+              <select id="recipient-player-petrol"></select>
+              <button id="send-petrol-btn">
+                <i class="fas fa-gas-pump"></i> Petrol Gönder
+              </button>
+            </div>
+            <!-- Tur -->
+            <div class="action-group">
+              <h3>Tur İşlemi</h3>
+              <div class="turn-info">
+                <p>Sıra: <span id="current-player-2">Oyuncu Adı</span></p>
+                <button id="end-turn-btn">
+                  <i class="fas fa-forward"></i> Tur Sonu
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- En Alt: Odadan Çık Butonu -->
+        <button id="exit-room-btn">Odadan Çık</button>
       </div>
     </div>
   </div>
@@ -800,6 +892,7 @@
   </div>
   <button id="open-chat-btn" class="open-chat-btn">
     <i class="fas fa-comments"></i>
+    <div id="chat-badge">0</div>
   </button>
 
   <!-- ===================== PAKT POPUP ===================== -->
@@ -865,6 +958,10 @@
 
     // Kartların ilk açılışta görünmemesini istiyoruz:
     let infoCardsPermanent = false;
+
+    // Chat için unread mesajları tutan sayaç:
+    let unreadMessages = 0;
+    let chatOpen = false; // Sohbet penceresi açık mı?
 
     function showNotification(message, duration = 3000) {
       const notificationArea = document.getElementById("notification-area");
@@ -1084,8 +1181,6 @@
       // Bilgi kartları toggle
       const toggleInfoButton = document.getElementById("toggle-info-cards");
       const icon = toggleInfoButton.querySelector("i");
-
-      // Başlangıçta kartlar kapalı olduğu için ikon "eye-slash" durumda
       toggleInfoButton.addEventListener("click", () => {
         infoCardsPermanent = !infoCardsPermanent;
         updateTooltipsPermanent();
@@ -1139,8 +1234,9 @@
           features.forEach((feature) => {
             const countryName = feature.properties.name;
             let oilProduction = 0;
+            // Yeni aralık 150 - 500
             if (oilIndexes.includes(feature.properties._index)) {
-              oilProduction = Math.floor(Math.random() * (1000 - 250 + 1)) + 250;
+              oilProduction = Math.floor(Math.random() * (500 - 150 + 1)) + 150;
             }
             countryDataInit[countryName] = {
               income: Math.floor(Math.random() * 500) + 100,
@@ -1167,7 +1263,8 @@
         updateGameUI();
         displayPendingPactOffers();
       });
-      // Chat
+
+      // Chat (yalnızca bir kez ekleyelim)
       if (!chatListenerAdded) {
         roomRef.child("chat").on("child_added", (snapshot) => {
           const message = snapshot.val();
@@ -1195,8 +1292,9 @@
         const currentTurnIndex = roomData.currentTurnIndex || 0;
         const currentPlayerId = roomData.playerOrder[currentTurnIndex];
         if (roomData.players[currentPlayerId]) {
-          document.getElementById("current-player").textContent =
-            roomData.players[currentPlayerId].name;
+          const currentPlayerName = roomData.players[currentPlayerId].name;
+          document.getElementById("current-player").textContent = currentPlayerName;
+          document.getElementById("current-player-2").textContent = currentPlayerName;
         }
       }
 
@@ -1537,12 +1635,14 @@
 
       const updates = {};
       if (target.owner === currentPlayerId) {
+        // Kendi ülkesine asker gönderme
         updates["countryData/" + selectedCountry + "/soldiers"] =
           target.soldiers + soldiersToSend;
         updates["players/" + currentPlayerId + "/soldiers"] =
           currentPlayerData.soldiers - soldiersToSend;
         showNotification(selectedCountry + " ülkesine " + soldiersToSend + " asker gönderildi.");
       } else {
+        // Saldırı
         updates["players/" + currentPlayerId + "/soldiers"] =
           currentPlayerData.soldiers - soldiersToSend;
         if (soldiersToSend > target.soldiers) {
@@ -1563,6 +1663,7 @@
           }
           showNotification(selectedCountry + " fethedildi!");
         } else {
+          // Savunma
           updates["countryData/" + selectedCountry + "/soldiers"] =
             target.soldiers - soldiersToSend;
           showNotification(selectedCountry + " savunuldu!");
@@ -1607,6 +1708,11 @@
         showNotification("Bir ülke seçin!");
         return;
       }
+      const quantity = parseInt(document.getElementById("barracks-quantity").value);
+      if (isNaN(quantity) || quantity <= 0) {
+        showNotification("Geçerli adet girin!");
+        return;
+      }
       const currentTurnIndex = roomData.currentTurnIndex || 0;
       const currentPlayerId = roomData.playerOrder[currentTurnIndex];
       const currentPlayerData = roomData.players[currentPlayerId];
@@ -1615,21 +1721,23 @@
         showNotification("Bu ülke size ait değil!");
         return;
       }
-      if (currentPlayerData.money < 130) {
+      const totalCost = 130 * quantity;
+      const totalPetrol = 40 * quantity;
+      if (currentPlayerData.money < totalCost) {
         showNotification("Yeterli paranız yok!");
         return;
       }
-      if (currentPlayerData.petrol < 40) {
+      if (currentPlayerData.petrol < totalPetrol) {
         showNotification("Yeterli petrolünüz yok!");
         return;
       }
       const updates = {};
-      updates["players/" + currentPlayerId + "/money"] = currentPlayerData.money - 130;
-      updates["players/" + currentPlayerId + "/petrol"] = currentPlayerData.petrol - 40;
+      updates["players/" + currentPlayerId + "/money"] = currentPlayerData.money - totalCost;
+      updates["players/" + currentPlayerId + "/petrol"] = currentPlayerData.petrol - totalPetrol;
       updates["countryData/" + selectedCountry + "/barracksCount"] =
-        (target.barracksCount || 0) + 1;
+        (target.barracksCount || 0) + quantity;
       roomRef.update(updates);
-      showNotification("Asker kışlası kuruldu.");
+      showNotification(quantity + " adet kışla kuruldu.");
     }
 
     function buildFactory() {
@@ -1641,6 +1749,11 @@
         showNotification("Bir ülke seçin!");
         return;
       }
+      const quantity = parseInt(document.getElementById("factory-quantity").value);
+      if (isNaN(quantity) || quantity <= 0) {
+        showNotification("Geçerli adet girin!");
+        return;
+      }
       const currentTurnIndex = roomData.currentTurnIndex || 0;
       const currentPlayerId = roomData.playerOrder[currentTurnIndex];
       const currentPlayerData = roomData.players[currentPlayerId];
@@ -1649,21 +1762,23 @@
         showNotification("Bu ülke size ait değil!");
         return;
       }
-      if (currentPlayerData.money < 250) {
+      const totalCost = 250 * quantity;
+      const totalPetrol = 90 * quantity;
+      if (currentPlayerData.money < totalCost) {
         showNotification("Yeterli paranız yok!");
         return;
       }
-      if (currentPlayerData.petrol < 90) {
+      if (currentPlayerData.petrol < totalPetrol) {
         showNotification("Yeterli petrolünüz yok!");
         return;
       }
       const updates = {};
-      updates["players/" + currentPlayerId + "/money"] = currentPlayerData.money - 250;
-      updates["players/" + currentPlayerId + "/petrol"] = currentPlayerData.petrol - 90;
+      updates["players/" + currentPlayerId + "/money"] = currentPlayerData.money - totalCost;
+      updates["players/" + currentPlayerId + "/petrol"] = currentPlayerData.petrol - totalPetrol;
       updates["countryData/" + selectedCountry + "/factories"] =
-        (target.factories || 0) + 1;
+        (target.factories || 0) + quantity;
       roomRef.update(updates);
-      showNotification("Fabrika kuruldu.");
+      showNotification(quantity + " adet fabrika kuruldu.");
     }
 
     function buildRefinery() {
@@ -1675,6 +1790,11 @@
         showNotification("Bir ülke seçin!");
         return;
       }
+      const quantity = parseInt(document.getElementById("refinery-quantity").value);
+      if (isNaN(quantity) || quantity <= 0) {
+        showNotification("Geçerli adet girin!");
+        return;
+      }
       const currentTurnIndex = roomData.currentTurnIndex || 0;
       const currentPlayerId = roomData.playerOrder[currentTurnIndex];
       const currentPlayerData = roomData.players[currentPlayerId];
@@ -1683,21 +1803,23 @@
         showNotification("Bu ülkede petrol üretim kapasitesi yok!");
         return;
       }
-      if (currentPlayerData.money < 800) {
+      const totalCost = 800 * quantity;
+      const totalPetrol = 250 * quantity;
+      if (currentPlayerData.money < totalCost) {
         showNotification("Yeterli paranız yok!");
         return;
       }
-      if (currentPlayerData.petrol < 250) {
+      if (currentPlayerData.petrol < totalPetrol) {
         showNotification("Yeterli petrolünüz yok!");
         return;
       }
       const updates = {};
-      updates["players/" + currentPlayerId + "/money"] = currentPlayerData.money - 800;
-      updates["players/" + currentPlayerId + "/petrol"] = currentPlayerData.petrol - 250;
+      updates["players/" + currentPlayerId + "/money"] = currentPlayerData.money - totalCost;
+      updates["players/" + currentPlayerId + "/petrol"] = currentPlayerData.petrol - totalPetrol;
       updates["countryData/" + selectedCountry + "/refineries"] =
-        (target.refineries || 0) + 1;
+        (target.refineries || 0) + quantity;
       roomRef.update(updates);
-      showNotification("Rafine kuruldu. Üretim kapasitesi arttı.");
+      showNotification(quantity + " adet rafine kuruldu. Üretim kapasitesi arttı.");
     }
 
     function pullSoldiers() {
@@ -1865,6 +1987,12 @@
     function toggleChat(show) {
       const chatPopup = document.getElementById("chat-popup");
       chatPopup.style.display = show ? "flex" : "none";
+      chatOpen = show;
+      if (show) {
+        // Sohbet penceresi açıldığında unreadMessages sıfırla
+        unreadMessages = 0;
+        updateChatBadge();
+      }
     }
     document.getElementById("open-chat-btn").addEventListener("click", () => {
       toggleChat(true);
@@ -1911,6 +2039,22 @@
       messageDiv.textContent = message.sender + ": " + message.text;
       chatMessagesDiv.appendChild(messageDiv);
       chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+
+      if (!chatOpen) {
+        // Sohbet penceresi kapalıysa unreadMessages artar
+        unreadMessages++;
+        updateChatBadge();
+      }
+    }
+
+    function updateChatBadge() {
+      const badge = document.getElementById("chat-badge");
+      if (unreadMessages > 0) {
+        badge.style.display = "flex";
+        badge.textContent = unreadMessages;
+      } else {
+        badge.style.display = "none";
+      }
     }
 
     /*****************************************************************
@@ -1945,6 +2089,7 @@
       document.getElementById("game-container").style.display = "none";
       document.getElementById("lobby-container").style.display = "block";
       document.body.classList.add("lobby");
+      showNotification("Odadan çıktınız. Tekrar bağlanmak için Oda Kodu giriniz.");
     });
 
     /*****************************************************************
