@@ -622,6 +622,129 @@
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
     }
 
+    /**********************************************************
+     * TİCARET MERKEZİ POPUP
+     **********************************************************/
+    .trade-popup {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 350px;
+      max-height: 500px;
+      background: rgba(0, 0, 0, 0.85);
+      border: 1px solid #444;
+      border-radius: 8px;
+      display: none;
+      flex-direction: column;
+      z-index: 3003;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
+    .trade-header {
+      background: rgba(0, 0, 0, 0.9);
+      padding: 10px;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+      color: #1abc9c;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .trade-header button {
+      background: transparent;
+      border: none;
+      color: #1abc9c;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    .trade-content {
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #eee;
+      font-size: 14px;
+      flex: 1;
+      overflow-y: auto;
+    }
+    .trade-content h4 {
+      color: #1abc9c;
+      margin-bottom: 8px;
+    }
+    .trade-content input[type="number"],
+    .trade-content select {
+      width: 95%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #1abc9c;
+      border-radius: 4px;
+      font-size: 14px;
+      color: #333;
+    }
+    .trade-content button {
+      padding: 8px 12px;
+      background: linear-gradient(45deg, #16a085, #1abc9c);
+      border: none;
+      cursor: pointer;
+      color: #fff;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+    .trade-content button:hover {
+      background: linear-gradient(45deg, #1abc9c, #16a085);
+    }
+    #trade-offers-container {
+      margin-top: 10px;
+      background: rgba(0, 0, 0, 0.4);
+      color: #eee;
+      font-size: 14px;
+      border-radius: 4px;
+      padding: 10px;
+    }
+    #trade-offers-container h3 {
+      color: #1abc9c;
+      margin-bottom: 10px;
+    }
+    .trade-offer-item {
+      background: rgba(0, 0, 0, 0.5);
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+    }
+    .trade-offer-item p {
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+    .trade-offer-item button {
+      margin-right: 8px;
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      color: #fff;
+    }
+    .trade-offer-item button.accept-btn {
+      background: linear-gradient(45deg, #27ae60, #2ecc71);
+    }
+    .trade-offer-item button.reject-btn {
+      background: linear-gradient(45deg, #c0392b, #e74c3c);
+    }
+    .trade-offer-item button:hover {
+      filter: brightness(0.9);
+    }
+    .open-trade-btn {
+      position: fixed;
+      bottom: 80px;
+      left: 20px;
+      background: linear-gradient(45deg, #8e44ad, #9b59b6);
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      color: #fff;
+      font-size: 24px;
+      cursor: pointer;
+      z-index: 3003;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
+
   </style>
 </head>
 <body class="lobby">
@@ -677,7 +800,6 @@
         <div>
           <section id="game-info">
             <h2>Oyun Bilgileri</h2>
-            <!-- Tur sırası en üstte görünsün -->
             <p>Sıra: <span id="current-player">Oyuncu Adı</span></p>
             <p>Tur: <span id="current-round">1</span></p>
             <p>Oda Kodu: <span id="display-room-code">-</span></p>
@@ -823,7 +945,6 @@
             </div>
           </section>
         </div>
-
         <!-- Alta taşınan Odadan Çık butonu -->
         <button id="exit-room-btn">Odadan Çık</button>
       </div>
@@ -868,6 +989,38 @@
   </div>
   <button id="open-pact-btn" class="open-pact-btn">
     <i class="fas fa-handshake"></i>
+  </button>
+
+  <!-- ===================== TİCARET MERKEZİ POPUP ===================== -->
+  <div id="trade-popup" class="trade-popup">
+    <div class="trade-header">
+      <span>Ticaret Merkezi</span>
+      <button id="close-trade-btn">&times;</button>
+    </div>
+    <div class="trade-content">
+      <h4>Teklif Yükle</h4>
+      <select id="trade-item-type">
+        <option value="barracks">Kışla</option>
+        <option value="factory">Fabrika</option>
+        <option value="refinery">Rafine</option>
+        <option value="petrol">Petrol</option>
+      </select>
+      <!-- Ülke seçimi (binalar için zorunlu, petrol için değil) -->
+      <select id="trade-country-select">
+        <!-- Dinamik olarak oyuncunun sahip olduğu ülkeler eklenecek -->
+      </select>
+      <input type="number" id="trade-quantity" placeholder="Adet/Miktar" min="1"/>
+      <input type="number" id="trade-price" placeholder="Toplam Fiyat ($)" min="1"/>
+      <button id="create-trade-offer-btn">Teklifi Oluştur</button>
+
+      <div id="trade-offers-container">
+        <h3>Mevcut Teklifler</h3>
+        <div id="trade-offers-list"></div>
+      </div>
+    </div>
+  </div>
+  <button id="open-trade-btn" class="open-trade-btn">
+    <i class="fas fa-store"></i>
   </button>
 
   <!-- Firebase & Diğer JS Kütüphaneleri -->
@@ -1148,6 +1301,19 @@
         updateTooltipsPermanent();
         icon.className = infoCardsPermanent ? "fas fa-eye" : "fas fa-eye-slash";
       });
+
+      // Ticaret popup açma/kapama
+      document.getElementById("open-trade-btn").addEventListener("click", () => {
+        toggleTradePopup(true);
+      });
+      document.getElementById("close-trade-btn").addEventListener("click", () => {
+        toggleTradePopup(false);
+      });
+
+      // Ticaret teklifi oluştur
+      document.getElementById("create-trade-offer-btn").addEventListener("click", () => {
+        createTradeOffer();
+      });
     });
 
     function autoReconnect() {
@@ -1223,7 +1389,10 @@
         roomData = snapshot.val();
         updateGameUI();
         displayPendingPactOffers();
+        displayTradeOffers();
+        updateTradeCountrySelect();
       });
+
       // Chat dinleme
       if (!chatListenerAdded) {
         roomRef.child("chat").on("child_added", (snapshot) => {
@@ -1416,6 +1585,246 @@
           }
         });
       }
+    }
+
+    /*****************************************************************
+     * TİCARET SİSTEMİ
+     *****************************************************************/
+    function toggleTradePopup(show) {
+      const tradePopup = document.getElementById("trade-popup");
+      tradePopup.style.display = show ? "flex" : "none";
+    }
+
+    function updateTradeCountrySelect() {
+      const tradeCountrySelect = document.getElementById("trade-country-select");
+      tradeCountrySelect.innerHTML = "";
+      if (!roomData || !roomData.players || !roomData.players[localPlayerId]) return;
+
+      // Sahip olunan ülkeler
+      const ownedCountries = roomData.players[localPlayerId].countries || [];
+      // "Bina" tipindeyse ülke seçilecek, petrol ise ülke seçimine gerek yok. 
+      // (Ama kullanıcı gene de seçecek mi? Kolaylık için yine listeleyelim.)
+      // Burada isterseniz "petrol" seçilince disable edebilirsiniz.
+      ownedCountries.forEach((cName) => {
+        const option = document.createElement("option");
+        option.value = cName;
+        option.textContent = cName;
+        tradeCountrySelect.appendChild(option);
+      });
+    }
+
+    function createTradeOffer() {
+      if (!roomData || !roomData.players[localPlayerId]) {
+        showNotification("Oda veya oyuncu verisi bulunamadı.");
+        return;
+      }
+      const itemType = document.getElementById("trade-item-type").value;
+      const countryName = document.getElementById("trade-country-select").value;
+      const quantity = parseInt(document.getElementById("trade-quantity").value);
+      const price = parseInt(document.getElementById("trade-price").value);
+
+      if (isNaN(quantity) || quantity <= 0) {
+        showNotification("Lütfen geçerli bir adet/miktar giriniz.");
+        return;
+      }
+      if (isNaN(price) || price <= 0) {
+        showNotification("Lütfen geçerli bir fiyat giriniz.");
+        return;
+      }
+
+      // Satıcı kontrolleri
+      const sellerData = roomData.players[localPlayerId];
+      if (!sellerData) return;
+      // Eğer item bina ise ilgili ülkeden düşmek için yeterli bina var mı?
+      if (itemType !== "petrol") {
+        if (!countryName) {
+          showNotification("Bir ülke seçmelisiniz!");
+          return;
+        }
+        const cData = roomData.countryData[countryName];
+        if (!cData || cData.owner !== localPlayerId) {
+          showNotification("Bu ülke size ait değil!");
+          return;
+        }
+        // Yeterli bina var mı?
+        let currentCount = 0;
+        if (itemType === "barracks") currentCount = cData.barracksCount;
+        if (itemType === "factory") currentCount = cData.factories;
+        if (itemType === "refinery") currentCount = cData.refineries;
+
+        if (quantity > currentCount) {
+          showNotification("Yeterli " + itemType + " yok!");
+          return;
+        }
+      } else {
+        // Petrol için satıcının petrolünü kontrol et
+        if (sellerData.petrol < quantity) {
+          showNotification("Yeterli petrolünüz yok!");
+          return;
+        }
+      }
+
+      const tradeOfferRef = roomRef.child("tradeOffers").push();
+      const newOffer = {
+        offerId: tradeOfferRef.key,
+        sellerId: localPlayerId,
+        sellerName: sellerData.name,
+        itemType: itemType,
+        countryName: countryName || null,
+        quantity: quantity,
+        price: price,
+        status: "open",
+        createdAt: firebase.database.ServerValue.TIMESTAMP
+      };
+      tradeOfferRef.set(newOffer);
+      showNotification("Teklifiniz yayınlandı!");
+    }
+
+    function displayTradeOffers() {
+      const container = document.getElementById("trade-offers-list");
+      container.innerHTML = "";
+      if (!roomData || !roomData.tradeOffers) return;
+
+      // Tüm açık teklifleri listeler
+      Object.values(roomData.tradeOffers).forEach((offer) => {
+        if (offer.status === "open") {
+          const div = document.createElement("div");
+          div.className = "trade-offer-item";
+          let itemName = "";
+          if (offer.itemType === "barracks") itemName = "Kışla";
+          if (offer.itemType === "factory") itemName = "Fabrika";
+          if (offer.itemType === "refinery") itemName = "Rafine";
+          if (offer.itemType === "petrol") itemName = "Petrol";
+
+          div.innerHTML =
+            `<p><strong>Satıcı:</strong> ${offer.sellerName}</p>` +
+            `<p><strong>Ürün:</strong> ${itemName} ` +
+              (offer.countryName ? "(" + offer.countryName + ")" : "") +
+            `</p>` +
+            `<p><strong>Adet/Miktar:</strong> ${offer.quantity}</p>` +
+            `<p><strong>Fiyat:</strong> ${offer.price}$</p>`;
+
+          if (offer.sellerId !== localPlayerId) {
+            // Kabul butonu
+            const acceptBtn = document.createElement("button");
+            acceptBtn.textContent = "Kabul Et";
+            acceptBtn.className = "accept-btn";
+            acceptBtn.addEventListener("click", () => {
+              acceptTradeOffer(offer.offerId);
+            });
+            div.appendChild(acceptBtn);
+          } else {
+            // Kendi teklifi ise iptal butonu
+            const cancelBtn = document.createElement("button");
+            cancelBtn.textContent = "İptal";
+            cancelBtn.className = "reject-btn";
+            cancelBtn.addEventListener("click", () => {
+              cancelTradeOffer(offer.offerId);
+            });
+            div.appendChild(cancelBtn);
+          }
+          container.appendChild(div);
+        }
+      });
+    }
+
+    function acceptTradeOffer(offerId) {
+      if (!roomData || !roomData.tradeOffers || !roomData.tradeOffers[offerId]) return;
+      const offer = roomData.tradeOffers[offerId];
+      if (offer.status !== "open") return;
+
+      // Alıcı, parayı ödemek zorunda
+      const buyerData = roomData.players[localPlayerId];
+      if (buyerData.money < offer.price) {
+        showNotification("Yeterli paranız yok!");
+        return;
+      }
+      if (offer.sellerId === localPlayerId) {
+        showNotification("Kendi teklifinizi kabul edemezsiniz!");
+        return;
+      }
+
+      // Satıcı ve alıcı güncel veriler
+      const sellerData = roomData.players[offer.sellerId];
+      if (!sellerData) return;
+
+      // Teklifi kapatırken satıcının hala satacak şeyi var mı kontrol edelim
+      // (Oyuncu sırada başka bir işlemle bina veya petrol azaltmamış olsun.)
+      if (offer.itemType !== "petrol") {
+        const cData = roomData.countryData[offer.countryName];
+        if (!cData || cData.owner !== offer.sellerId) {
+          showNotification("Satıcı bu ülkenin sahibi değil. Teklif geçersiz.");
+          roomRef.child("tradeOffers").child(offerId).update({ status: "cancelled" });
+          return;
+        }
+        let currentCount = 0;
+        if (offer.itemType === "barracks") currentCount = cData.barracksCount;
+        if (offer.itemType === "factory") currentCount = cData.factories;
+        if (offer.itemType === "refinery") currentCount = cData.refineries;
+
+        if (offer.quantity > currentCount) {
+          showNotification("Satıcının yeterli " + offer.itemType + " kalmamış!");
+          roomRef.child("tradeOffers").child(offerId).update({ status: "cancelled" });
+          return;
+        }
+      } else {
+        // Petrol
+        if (sellerData.petrol < offer.quantity) {
+          showNotification("Satıcının yeterli petrolü kalmamış!");
+          roomRef.child("tradeOffers").child(offerId).update({ status: "cancelled" });
+          return;
+        }
+      }
+
+      const updates = {};
+      // Parayı aktar
+      updates["players/" + localPlayerId + "/money"] = buyerData.money - offer.price;
+      updates["players/" + offer.sellerId + "/money"] = sellerData.money + offer.price;
+      // Ürünü satıcından düş
+      if (offer.itemType !== "petrol") {
+        const cData = roomData.countryData[offer.countryName];
+        if (offer.itemType === "barracks") {
+          updates["countryData/" + offer.countryName + "/barracksCount"] =
+            cData.barracksCount - offer.quantity;
+        }
+        if (offer.itemType === "factory") {
+          updates["countryData/" + offer.countryName + "/factories"] =
+            cData.factories - offer.quantity;
+        }
+        if (offer.itemType === "refinery") {
+          updates["countryData/" + offer.countryName + "/refineries"] =
+            cData.refineries - offer.quantity;
+        }
+        // Not: Burada binaların alıcıya geçmesi kurgusu yok, 
+        // sadece satıcıdan düşülüyor, parası alıcıdan çıkıyor.
+        // İsterseniz ek logic ile alıcıya aktarma vs. yapabilirsiniz.
+      } else {
+        // Petrol satıcından düş, alıcıya ekle
+        updates["players/" + offer.sellerId + "/petrol"] = sellerData.petrol - offer.quantity;
+        updates["players/" + localPlayerId + "/petrol"] = buyerData.petrol + offer.quantity;
+      }
+
+      // Teklifi kapat
+      updates["tradeOffers/" + offerId + "/status"] = "completed";
+      roomRef.update(updates);
+
+      // Chat'e bildirim
+      const chatMessage = {
+        sender: "Sistem",
+        text: `${buyerData.name}, ${offer.sellerName} adlı oyuncudan ${offer.quantity} adet '${offer.itemType}' satın aldı (${offer.price}$).`,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+      };
+      roomRef.child("chat").push(chatMessage);
+
+      showNotification("Ticaret gerçekleşti!");
+    }
+
+    function cancelTradeOffer(offerId) {
+      if (!roomData || !roomData.tradeOffers || !roomData.tradeOffers[offerId]) return;
+      const offer = roomData.tradeOffers[offerId];
+      if (offer.sellerId !== localPlayerId) return; // Kendi teklifini iptal edebilir
+      roomRef.child("tradeOffers").child(offerId).update({ status: "cancelled" });
+      showNotification("Teklif iptal edildi.");
     }
 
     /*****************************************************************
@@ -1839,7 +2248,7 @@
         roomData.players[recipientId].money + amount;
       roomRef.update(updates);
       showNotification(
-        amount + "$, " + roomData.players[recipientId].name + " oyuncusuna gönderildi."
+        amount + "$, " + roomData.players[recipientId].name + " adlı oyuncuya gönderildi."
       );
     }
 
@@ -1872,7 +2281,7 @@
         roomData.players[recipientId].petrol + amount;
       roomRef.update(updates);
       showNotification(
-        amount + " varil, " + roomData.players[recipientId].name + " oyuncusuna gönderildi."
+        amount + " varil, " + roomData.players[recipientId].name + " adlı oyuncuya gönderildi."
       );
     }
 
@@ -2074,7 +2483,7 @@
                   roomData && roomData.countryData ? roomData.countryData[countryName] : {}
                 ),
                 {
-                  permanent: infoCardsPermanent, 
+                  permanent: infoCardsPermanent,
                   direction: "center",
                   className: "country-popup-tooltip"
                 }
