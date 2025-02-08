@@ -2,11 +2,11 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <!-- Mobil cihazlar için ölçeklendirme -->
+  <!-- Mobil cihazlarda uygun ölçeklendirme ve görünüm için -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Global Conquest - Online</title>
 
-  <!-- Google Fonts: Cinzel -->
+  <!-- Google Fonts: Cinzel (askeri, dramatik his için) -->
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
 
   <!-- Leaflet CSS -->
@@ -169,37 +169,43 @@
     }
 
     /**********************************************************
-     * BILDIRIM ALANI (POPUP) - SAĞ ÜST
+     * BILDIRIM ALANI (POPUP) - BİRİKMELİ VE 6S
      **********************************************************/
-    #notifications-container {
+    #notification-area {
       position: fixed;
       top: 20px;
       right: 20px;
-      z-index: 2100;
+      z-index: 3000;
       display: flex;
       flex-direction: column;
       gap: 10px;
       align-items: flex-end;
     }
+    /* Tek bir bildirim kutusu */
     .notification-item {
+      min-width: 200px;
+      max-width: 350px;
       background: rgba(0, 0, 0, 0.85);
       color: #fff;
+      padding: 12px 20px;
       border-radius: 8px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
       font-size: 16px;
       line-height: 1.4;
-      padding: 12px 20px;
-      animation: fadeInNoti 0.3s ease forwards;
-      max-width: 300px;
+      opacity: 0;
+      transform: translateX(100%);
+      animation: slideIn 0.5s forwards, fadeOut 0.5s 5.5s forwards;
     }
-    @keyframes fadeInNoti {
-      from {
-        opacity: 0;
-        transform: translateX(20px);
-      }
+    @keyframes slideIn {
       to {
         opacity: 1;
         transform: translateX(0);
+      }
+    }
+    @keyframes fadeOut {
+      to {
+        opacity: 0;
+        transform: translateX(100%);
       }
     }
 
@@ -366,14 +372,14 @@
     }
 
     /**********************************************************
-     * POPUPLAR (CHAT, PACT, MARKET, vb.)
+     * CHAT POPUP + ÖZEL MESAJ
      **********************************************************/
     .chat-popup {
       position: fixed;
       bottom: 80px;
       right: 20px;
-      width: 300px;
-      max-height: 450px;
+      width: 400px; /* BÜYÜTÜLDÜ */
+      max-height: 600px; /* BÜYÜTÜLDÜ */
       background: rgba(0, 0, 0, 0.85);
       border: 1px solid #444;
       border-radius: 8px;
@@ -409,17 +415,7 @@
     }
     .chat-input-container {
       display: flex;
-      flex-direction: row;
-      align-items: center;
       border-top: 1px solid #444;
-    }
-    .chat-input-container select {
-      width: 35%;
-      padding: 8px;
-      background: #1e1e2f;
-      color: #eee;
-      border: none;
-      outline: none;
     }
     .chat-input-container input[type="text"] {
       flex: 1;
@@ -436,13 +432,41 @@
       cursor: pointer;
       color: #fff;
     }
+    /* ÖZEL MESAJ ALANI */
+    .chat-private-container {
+      border-top: 1px solid #444;
+      background: rgba(0, 0, 0, 0.75);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .chat-private-container select,
+    .chat-private-container input[type="text"] {
+      padding: 8px;
+      border: none;
+      outline: none;
+      background: #1e1e2f;
+      color: #eee;
+    }
+    .chat-private-container button {
+      padding: 8px;
+      background: linear-gradient(45deg, #16a085, #1abc9c);
+      border: none;
+      cursor: pointer;
+      color: #fff;
+      align-self: flex-end;
+    }
 
+    /**********************************************************
+     * PAKT POPUP
+     **********************************************************/
     .pact-popup {
       position: fixed;
       bottom: 80px;
       right: 20px;
-      width: 300px;
-      max-height: 450px;
+      width: 400px; /* BÜYÜTÜLDÜ */
+      max-height: 600px; /* BÜYÜTÜLDÜ */
       background: rgba(0, 0, 0, 0.85);
       border: 1px solid #444;
       border-radius: 8px;
@@ -461,13 +485,45 @@
       justify-content: space-between;
       align-items: center;
     }
+    .pact-header button {
+      background: transparent;
+      border: none;
+      color: #1abc9c;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    .pact-content {
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #eee;
+      font-size: 14px;
+    }
+    #pact-offers-container {
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.4);
+      color: #eee;
+      font-size: 14px;
+    }
+    #pact-offers-container h3 {
+      color: #1abc9c;
+      margin-bottom: 10px;
+    }
+    .pact-offer-item {
+      background: rgba(0, 0, 0, 0.5);
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+    }
 
+    /**********************************************************
+     * TİCARET POPUP
+     **********************************************************/
     .market-popup {
       position: fixed;
       bottom: 80px;
       right: 20px;
-      width: 400px;
-      max-height: 550px;
+      width: 500px; /* BÜYÜTÜLDÜ */
+      max-height: 650px; /* BÜYÜTÜLDÜ */
       background: rgba(0, 0, 0, 0.9);
       border: 2px solid #2ecc71;
       border-radius: 12px;
@@ -535,8 +591,8 @@
       position: fixed;
       bottom: 80px;
       right: 20px;
-      width: 320px;
-      max-height: 500px;
+      width: 400px; /* BÜYÜTÜLDÜ */
+      max-height: 600px; /* BÜYÜTÜLDÜ */
       background: rgba(0, 0, 0, 0.9);
       border: 1px solid #444;
       border-radius: 8px;
@@ -672,17 +728,13 @@
       }
 
       /* POPUP'LAR GENEL */
-      .popup-panel {
-        width: 90% !important;
-        right: 5% !important;
-        bottom: 90px;
-      }
+      .popup-panel,
       .chat-popup,
       .pact-popup,
       .market-popup {
         width: 90% !important;
         right: 5% !important;
-        bottom: 90px;
+        bottom: 90px; /* İkona takılmaması için biraz yukarı */
       }
 
       /* MARKET POPUP GENİŞLİĞİ */
@@ -725,8 +777,8 @@
     </div>
   </div>
 
-  <!-- ===================== GLOBAL BİLDİRİMLER (SAĞ ÜST) ===================== -->
-  <div id="notifications-container"></div>
+  <!-- ===================== GLOBAL BILDIRIM ALANI ===================== -->
+  <div id="notification-area"></div>
 
   <!-- ===================== OYUN EKRANI ===================== -->
   <div id="game-container">
@@ -913,21 +965,27 @@
     </div>
   </div>
 
-  <!-- ===================== CHAT POPUP (ÖZEL MESAJ DAHİL) ===================== -->
+  <!-- ===================== CHAT POPUP (GENEL + ÖZEL) ===================== -->
   <div id="chat-popup" class="chat-popup">
     <div class="chat-header">
       <span>Sohbet</span>
       <button id="close-chat-btn">&times;</button>
     </div>
     <div id="chat-messages" class="chat-messages"></div>
+    <!-- Genel Sohbet Girişi -->
     <div class="chat-input-container">
-      <!-- "recipient" seçimi: All (Herkes) veya bir oyuncu -->
-      <select id="chat-recipient">
-        <!-- Dolgu: "All" + diğer oyuncular (onValueChange) -->
-      </select>
       <input type="text" id="chat-input" placeholder="Mesajınızı yazın..." />
       <button id="send-chat-btn">
         <i class="fas fa-paper-plane"></i>
+      </button>
+    </div>
+    <!-- Özel Mesaj Girişi -->
+    <div class="chat-private-container">
+      <h4>Özel Mesaj</h4>
+      <select id="private-message-recipient"></select>
+      <input type="text" id="private-message-input" placeholder="Özel mesajınız..." />
+      <button id="send-private-message-btn">
+        <i class="fas fa-user-secret"></i> Gönder
       </button>
     </div>
   </div>
@@ -967,7 +1025,7 @@
           <option value="factory">Fabrika</option>
           <option value="refinery">Rafine</option>
         </select>
-        <select id="trade-country" style="display:none;"></select>
+        <select id="trade-country" style="display:none;"></select> <!-- itemType != petrol ise görün -->
         <input type="number" id="trade-quantity" placeholder="Adet/Varil" min="1"/>
         <input type="number" id="trade-price" placeholder="Birim Fiyat ($)" min="1"/>
         <button id="create-trade-offer-btn">Teklifi Yükle</button>
@@ -993,14 +1051,14 @@
      * Firebase Başlatma
      *****************************************************************/
     const firebaseConfig = {
-      apiKey: "API_KEYINIZ",
-      authDomain: "PROJECT_ID.firebaseapp.com",
-      databaseURL: "https://PROJECT_ID-default-rtdb.firebaseio.com",
-      projectId: "PROJECT_ID",
-      storageBucket: "PROJECT_ID.appspot.com",
-      messagingSenderId: "SENDER_ID",
-      appId: "APP_ID",
-      measurementId: "MEASUREMENT_ID"
+      apiKey: "AIzaSyCINihMNGs-qRYIIBLzXyeaLnM_Lhp-iwg",
+      authDomain: "warmapg-77acb.firebaseapp.com",
+      databaseURL: "https://warmapg-77acb-default-rtdb.firebaseio.com",
+      projectId: "warmapg-77acb",
+      storageBucket: "warmapg-77acb.appspot.com",
+      messagingSenderId: "895613631339",
+      appId: "1:895613631339:web:a7ecc0cfd8ab3ae7e02a2e",
+      measurementId: "G-6SJVLLVDCF"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
@@ -1023,37 +1081,90 @@
     let unreadMessages = 0;
     let chatOpen = false;
 
-    // Bildirimleri (6 sn) tüm oyunculara gösterebilmek için ephemeral notifs
-    function pushGlobalNotification(message) {
-      const notiRef = roomRef.child("notifications").push();
-      notiRef.set({
-        message: message,
-        timestamp: firebase.database.ServerValue.TIMESTAMP
-      });
-      // 6 sn sonra firebase'den sil -> Tüm oyuncularda da kaybolur
+    /**
+     * Bildirimi sadece yerel olarak gösterir (tek seferlik).
+     * Artık global bildirimi "broadcastNotification" ile yapacağız.
+     */
+    function showNotification(message, duration = 3000) {
+      console.log("Local Notification:", message);
+      const existing = document.getElementById("notification-area");
+      if (!existing) return;
+      const item = document.createElement("div");
+      item.className = "notification-item";
+      item.textContent = message;
+      existing.appendChild(item);
+
+      // 3 saniye yerine parametre:  (Burada local'e 3sn varsayılan)
       setTimeout(() => {
-        notiRef.remove();
-      }, 6000);
+        if (existing.contains(item)) {
+          existing.removeChild(item);
+        }
+      }, duration + 800); // animation bitişi vs.
     }
 
-    // Gelen bildirimi ekranda göster
-    function showGlobalNotification(message) {
-      const container = document.getElementById("notifications-container");
-      const div = document.createElement("div");
-      div.className = "notification-item";
-      div.textContent = message;
-      container.appendChild(div);
+    /**
+     * Tüm oyuncuların görmesi için Firebase'e bir bildirim ekler.
+     * Bu kayıt "notifications" altına yazılır ve her client "child_added" ile gösterir.
+     */
+    function broadcastNotification(text) {
+      if (!roomRef) return;
+      roomRef.child("notifications").push({
+        text: text,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+      });
+    }
 
-      // 6 sn sonra ekrandan kaldır
+    /**
+     * Global bildirimleri ekrana yansıtma (6 sn boyunca)
+     * Bu fonksiyon, 'notifications' child_added eventinde tetiklenir.
+     */
+    function displayGlobalNotification(text) {
+      const nArea = document.getElementById("notification-area");
+      if (!nArea) return;
+      const item = document.createElement("div");
+      item.className = "notification-item";
+      item.textContent = text;
+      nArea.appendChild(item);
+
+      // 6 saniye sonunda DOM'dan sil
       setTimeout(() => {
-        if (container.contains(div)) {
-          container.removeChild(div);
+        if (nArea.contains(item)) {
+          nArea.removeChild(item);
         }
-      }, 6000);
+      }, 6500);
+    }
+
+    function generateRoomCode() {
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      let code = "";
+      for (let i = 0; i < 6; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return code;
+    }
+
+    function isMyTurn() {
+      if (!roomData || !roomData.playerOrder) return false;
+      const currentTurnIndex = roomData.currentTurnIndex || 0;
+      return roomData.playerOrder[currentTurnIndex] === localPlayerId;
+    }
+
+    function hasActivePact(playerA, playerB) {
+      if (!roomData || !roomData.pacts) return false;
+      const currentRound = roomData.round || 1;
+      for (let pactId in roomData.pacts) {
+        const pact = roomData.pacts[pactId];
+        if (pact.players && pact.players.includes(playerA) && pact.players.includes(playerB)) {
+          if (currentRound <= pact.endRound) {
+            return true;
+          }
+        }
+      }
+      return false;
     }
 
     /*****************************************************************
-     * DOMContentLoaded – Lobi Girişi
+     * DOMContentLoaded – Lobi Girişi ve Otomatik Bağlanma
      *****************************************************************/
     document.addEventListener("DOMContentLoaded", () => {
       // Player ID (localStorage)
@@ -1062,7 +1173,7 @@
       }
       localPlayerId = localStorage.getItem("playerId");
 
-      // Renk butonları
+      // Renk butonları (Oda Oluştur)
       const creatorColorDiv = document.getElementById("creator-color-options");
       availableColors.forEach((color) => {
         const btn = document.createElement("button");
@@ -1077,6 +1188,7 @@
         creatorColorDiv.appendChild(btn);
       });
 
+      // Renk butonları (Odaya Katıl)
       const joinColorDiv = document.getElementById("join-color-options");
       availableColors.forEach((color) => {
         const btn = document.createElement("button");
@@ -1096,15 +1208,15 @@
         const playerName = document.getElementById("creator-player-name").value.trim();
         const maxPlayers = parseInt(document.getElementById("max-players").value);
         if (!playerName) {
-          alert("Lütfen adınızı girin!");
+          showNotification("Lütfen adınızı girin!");
           return;
         }
         if (!localPlayerColor) {
-          alert("Lütfen bir renk seçin!");
+          showNotification("Lütfen bir renk seçin!");
           return;
         }
         if (isNaN(maxPlayers) || maxPlayers < 2 || maxPlayers > 5) {
-          alert("Oyuncu sayısı 2 ile 5 arasında olmalıdır!");
+          showNotification("Oyuncu sayısı 2 ile 5 arasında olmalıdır!");
           return;
         }
 
@@ -1136,8 +1248,9 @@
 
         roomRef.set(newRoomData, (error) => {
           if (error) {
-            alert("Oda oluşturulurken hata oluştu!");
+            showNotification("Oda oluşturulurken hata oluştu!");
           } else {
+            showNotification("Oda oluşturuldu. Oda Kodu: " + roomCode);
             localStorage.setItem("roomCode", roomCode);
             loadAndInitializeGeoJson();
             joinRoomAndListen();
@@ -1154,15 +1267,15 @@
         const playerName = document.getElementById("join-player-name").value.trim();
         const roomCodeInput = document.getElementById("room-code").value.trim().toUpperCase();
         if (!playerName) {
-          alert("Lütfen adınızı girin!");
+          showNotification("Lütfen adınızı girin!");
           return;
         }
         if (!localPlayerColor) {
-          alert("Lütfen bir renk seçin!");
+          showNotification("Lütfen bir renk seçin!");
           return;
         }
         if (!roomCodeInput) {
-          alert("Lütfen oda kodu girin!");
+          showNotification("Lütfen oda kodu girin!");
           return;
         }
         currentRoomCode = roomCodeInput;
@@ -1170,17 +1283,17 @@
 
         roomRef.once("value", (snapshot) => {
           if (!snapshot.exists()) {
-            alert("Böyle bir oda bulunamadı!");
+            showNotification("Böyle bir oda bulunamadı!");
             return;
           }
           const room = snapshot.val();
           if (room.gameState !== "waiting") {
-            alert("Oyun zaten başladı!");
+            showNotification("Oyun zaten başladı!");
             return;
           }
           const playerCount = Object.keys(room.players || {}).length;
           if (playerCount >= room.maxPlayers) {
-            alert("Oda dolu!");
+            showNotification("Oda dolu!");
             return;
           }
           const updates = {};
@@ -1199,8 +1312,9 @@
 
           roomRef.update(updates, (error) => {
             if (error) {
-              alert("Odaya katılırken hata oluştu!");
+              showNotification("Odaya katılırken hata oluştu!");
             } else {
+              showNotification("Odaya katıldınız!");
               localStorage.setItem("roomCode", roomCodeInput);
               joinRoomAndListen();
               document.body.classList.remove("lobby");
@@ -1241,18 +1355,6 @@
           document.getElementById("display-room-code").textContent = savedRoomCode;
         });
       }
-    }
-
-    /*****************************************************************
-     * Global Bildirim Dinleyicisi
-     *****************************************************************/
-    function listenGlobalNotifications() {
-      // Bir notification eklendiğinde, showGlobalNotification ile göster
-      roomRef.child("notifications").on("child_added", (snapshot) => {
-        const noti = snapshot.val();
-        if (!noti) return;
-        showGlobalNotification(noti.message);
-      });
     }
 
     /*****************************************************************
@@ -1306,30 +1408,28 @@
     function joinRoomAndListen() {
       if (!roomRef) return;
 
-      // Global notifications dinleyicisi
-      listenGlobalNotifications();
-
-      // Oda datası
+      // Tüm odanın verilerini dinliyoruz
       roomRef.on("value", (snapshot) => {
         roomData = snapshot.val();
         updateGameUI();
         displayPendingPactOffers();
         displayTradeOffers(); // Ticaret güncellemesi
-        updateChatRecipientOptions(); // Chat özel mesaj için
       });
 
-      // Chat (mesaj) dinleme (her yeni mesaj)
+      // Chat (public + private) dinleme
       if (!chatListenerAdded) {
         roomRef.child("chat").on("child_added", (snapshot) => {
-          const messageObj = snapshot.val();
-          if (!messageObj) return;
-          // Özel mesaj ise yalnızca alıcı ve gönderene göstereceğiz
-          const { senderId, recipientId } = messageObj;
-          // "All" ise herkes görür.
-          if (recipientId === "all" || recipientId === localPlayerId || senderId === localPlayerId) {
-            appendChatMessage(messageObj);
+          const message = snapshot.val();
+          appendChatMessage(message);
+        });
+        // Global bildirimleri dinleme
+        roomRef.child("notifications").on("child_added", (snap) => {
+          const data = snap.val();
+          if (data && data.text) {
+            displayGlobalNotification(data.text);
           }
         });
+
         chatListenerAdded = true;
       }
     }
@@ -1389,9 +1489,11 @@
           }
         });
       }
+
       updateRecipientSelects();
       updatePactRecipientSelect();
       updateTradeCountrySelect(); // Ticaret ülke seçimi
+      updatePrivateMessageRecipientSelect(); // Özel mesaj
     }
 
     function getCountryPopupContent(countryName, country) {
@@ -1444,6 +1546,7 @@
 
     function selectCountry(countryName, layer) {
       selectedCountry = countryName;
+      showNotification("Seçilen ülke: " + countryName, 1500);
       layer.setStyle({ weight: 4, color: "#FF4500" });
 
       setTimeout(() => {
@@ -1503,6 +1606,22 @@
       }
     }
 
+    function updatePrivateMessageRecipientSelect() {
+      const privateSelect = document.getElementById("private-message-recipient");
+      if (!privateSelect) return;
+      privateSelect.innerHTML = "";
+      if (roomData && roomData.playerOrder) {
+        roomData.playerOrder.forEach((pid) => {
+          if (pid !== localPlayerId) {
+            const option = document.createElement("option");
+            option.value = pid;
+            option.textContent = roomData.players[pid].name;
+            privateSelect.appendChild(option);
+          }
+        });
+      }
+    }
+
     /*****************************************************************
      * Ticaret için Ülke Seçimi (Teklif Oluştururken)
      *****************************************************************/
@@ -1524,18 +1643,26 @@
      * PAKT TEKLIFLERI
      *****************************************************************/
     function sendPactOffer() {
-      if (!isMyTurn()) return;
+      if (!isMyTurn()) {
+        showNotification("Sıranız değil!");
+        return;
+      }
       const turns = parseInt(document.getElementById("pact-turns").value);
       const cost = parseInt(document.getElementById("pact-cost").value);
       const recipient = document.getElementById("pact-recipient").value;
-      if (isNaN(turns) || turns <= 0 || isNaN(cost) || cost <= 0) return;
-      if (!recipient || recipient === localPlayerId) return;
-
+      if (isNaN(turns) || turns <= 0 || isNaN(cost) || cost <= 0) {
+        showNotification("Geçerli tur ve ücret girin!");
+        return;
+      }
+      if (!recipient || recipient === localPlayerId) {
+        showNotification("Geçerli bir alıcı seçin!");
+        return;
+      }
       const currentTurnIndex = roomData.currentTurnIndex || 0;
       const currentPlayerId = roomData.playerOrder[currentTurnIndex];
       const senderData = roomData.players[currentPlayerId];
       if (senderData.money < cost) {
-        pushGlobalNotification(`Pakt teklifi yapılamadı (yetersiz para).`);
+        showNotification("Bu teklifi yapmak için yeterli paranız yok!");
         return;
       }
       const pactOfferRef = roomRef.child("pactOffers").push();
@@ -1551,7 +1678,30 @@
       };
       pactOfferRef.set(newOffer);
 
-      pushGlobalNotification(`${senderData.name} → ${roomData.players[recipient].name}: Pakt teklifi! (${turns} tur, ${cost}$)`);
+      // Chat'e de bilgi gönder
+      const chatMessage = {
+        sender: senderData.name,
+        senderId: currentPlayerId,
+        text:
+          "Saldırmazlık Pakti Teklifi: " +
+          senderData.name +
+          " → " +
+          roomData.players[recipient].name +
+          " (" +
+          turns +
+          " tur, " +
+          cost +
+          "$)",
+        recipientId: "", // public
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+      };
+      roomRef.child("chat").push(chatMessage);
+
+      // Global bildirim
+      broadcastNotification(
+        "Pakt Teklifi: " + senderData.name + " → " + roomData.players[recipient].name
+      );
+      showNotification("Pakt teklifi gönderildi.");
     }
 
     function displayPendingPactOffers() {
@@ -1608,7 +1758,7 @@
       if (!senderData || !recipientData) return;
 
       if (senderData.money < offer.cost) {
-        pushGlobalNotification(`Teklifi yapan oyuncunun parası yetmedi. Pakt iptal.`);
+        showNotification("Teklifi yapan oyuncunun yeterli parası kalmadı. Teklif iptal.");
         roomRef.child("pactOffers").child(offerId).update({ status: "rejected" });
         return;
       }
@@ -1627,7 +1777,12 @@
       };
 
       roomRef.update(updates);
-      pushGlobalNotification(`${senderData.name} ve ${recipientData.name} arasında pakt kabul edildi!`);
+
+      // Global bildirim
+      broadcastNotification(
+        "Pakt kabul edildi: " + senderData.name + " & " + recipientData.name
+      );
+      showNotification("Saldırmazlık pakti teklifi kabul edildi!");
     }
 
     function rejectPactOffer(offerId) {
@@ -1635,41 +1790,59 @@
       if (!offer || offer.status !== "pending") return;
 
       roomRef.child("pactOffers").child(offerId).update({ status: "rejected" });
-      pushGlobalNotification(`Bir pakt teklifi reddedildi.`);
+      broadcastNotification(
+        "Pakt reddedildi: " + offer.senderName + " (Gönderen) → " + roomData.players[offer.recipientId].name
+      );
+      showNotification("Saldırmazlık pakti teklifi reddedildi.");
     }
 
     /*****************************************************************
      * OYUN İŞLEVLERİ (SALDIRI, ASKER, BİNA, KAYNAK, vb.)
      *****************************************************************/
     function attack() {
-      if (!isMyTurn()) return;
-      if (!selectedCountry) return;
+      if (!isMyTurn()) {
+        showNotification("Sıranız değil!");
+        return;
+      }
+      if (!selectedCountry) {
+        showNotification("Bir ülke seçin!");
+        return;
+      }
       const soldiersToSend = parseInt(document.getElementById("attack-soldiers").value);
-      if (isNaN(soldiersToSend) || soldiersToSend <= 0) return;
+      if (isNaN(soldiersToSend) || soldiersToSend <= 0) {
+        showNotification("Geçerli bir asker sayısı girin!");
+        return;
+      }
       const currentTurnIndex = roomData.currentTurnIndex || 0;
       const currentPlayerId = roomData.playerOrder[currentTurnIndex];
       const currentPlayerData = roomData.players[currentPlayerId];
-      if (soldiersToSend > currentPlayerData.soldiers) return;
-
+      if (soldiersToSend > currentPlayerData.soldiers) {
+        showNotification("Yeterli askeriniz yok!");
+        return;
+      }
       const target = roomData.countryData[selectedCountry];
       if (!target) return;
 
       if (target.owner && target.owner !== currentPlayerId) {
         if (hasActivePact(currentPlayerId, target.owner)) {
-          pushGlobalNotification(`Saldırı engellendi! Saldırmazlık paktı var.`);
+          showNotification("Bu oyuncu ile saldırmazlık paktınız var!");
           return;
         }
       }
 
       const updates = {};
+      let attackResult = "";
       if (target.owner === currentPlayerId) {
         // Kendi ülkesine asker takviyesi
-        updates["countryData/" + selectedCountry + "/soldiers"] = target.soldiers + soldiersToSend;
-        updates["players/" + currentPlayerId + "/soldiers"] = currentPlayerData.soldiers - soldiersToSend;
-        pushGlobalNotification(`${roomData.players[currentPlayerId].name}, ${selectedCountry} ülkesine ${soldiersToSend} asker gönderdi.`);
+        updates["countryData/" + selectedCountry + "/soldiers"] =
+          target.soldiers + soldiersToSend;
+        updates["players/" + currentPlayerId + "/soldiers"] =
+          currentPlayerData.soldiers - soldiersToSend;
+        attackResult = selectedCountry + " ülkesine " + soldiersToSend + " asker gönderildi.";
       } else {
         // Saldırı
-        updates["players/" + currentPlayerId + "/soldiers"] = currentPlayerData.soldiers - soldiersToSend;
+        updates["players/" + currentPlayerId + "/soldiers"] =
+          currentPlayerData.soldiers - soldiersToSend;
         if (soldiersToSend > target.soldiers) {
           // Ülke ele geçirildi
           const remaining = soldiersToSend - target.soldiers;
@@ -1687,172 +1860,289 @@
             defenderCountries = defenderCountries.filter((c) => c !== selectedCountry);
             updates["players/" + target.owner + "/countries"] = defenderCountries;
           }
-          pushGlobalNotification(`${roomData.players[currentPlayerId].name}, ${selectedCountry} ülkesini ele geçirdi!`);
+          attackResult = selectedCountry + " fethedildi! (" + soldiersToSend + " vs " + target.soldiers + ")";
         } else {
           // Savunan kazanır
-          updates["countryData/" + selectedCountry + "/soldiers"] = target.soldiers - soldiersToSend;
-          pushGlobalNotification(`${selectedCountry} savunuldu! Saldırı başarısız.`);
+          updates["countryData/" + selectedCountry + "/soldiers"] =
+            target.soldiers - soldiersToSend;
+          attackResult = selectedCountry + " savunuldu! (" + soldiersToSend + " vs " + target.soldiers + ")";
         }
         nextTurn();
       }
       roomRef.update(updates);
+      broadcastNotification("Saldırı: " + roomData.players[currentPlayerId].name + " → " + selectedCountry + ". " + attackResult);
+      showNotification(attackResult);
     }
 
     function buySoldiers() {
-      if (!isMyTurn()) return;
+      if (!isMyTurn()) {
+        showNotification("Sıranız değil!");
+        return;
+      }
       const count = parseInt(document.getElementById("soldiers-to-buy").value);
-      if (isNaN(count) || count <= 0) return;
+      if (isNaN(count) || count <= 0) {
+        showNotification("Geçerli bir asker sayısı girin!");
+        return;
+      }
       const cost = count * 10;
       const currentTurnIndex = roomData.currentTurnIndex || 0;
       const currentPlayerId = roomData.playerOrder[currentTurnIndex];
       const currentPlayerData = roomData.players[currentPlayerId];
-      if (currentPlayerData.money < cost) return;
-
+      if (currentPlayerData.money < cost) {
+        showNotification("Yeterli paranız yok!");
+        return;
+      }
       const updates = {};
       updates["players/" + currentPlayerId + "/money"] = currentPlayerData.money - cost;
-      updates["players/" + currentPlayerId + "/soldiers"] = currentPlayerData.soldiers + count;
+      updates["players/" + currentPlayerId + "/soldiers"] =
+        currentPlayerData.soldiers + count;
       roomRef.update(updates);
-      pushGlobalNotification(`${currentPlayerData.name}, ${count} asker satın aldı.`);
+      broadcastNotification(currentPlayerData.name + " " + count + " asker satın aldı.");
+      showNotification(count + " asker satın alındı.");
     }
 
     function buyBarracks() {
-      if (!isMyTurn()) return;
-      if (!selectedCountry) return;
+      if (!isMyTurn()) {
+        showNotification("Sıranız değil!");
+        return;
+      }
+      if (!selectedCountry) {
+        showNotification("Bir ülke seçin!");
+        return;
+      }
       const quantity = parseInt(document.getElementById("barracks-quantity").value);
-      if (isNaN(quantity) || quantity <= 0) return;
-
+      if (isNaN(quantity) || quantity <= 0) {
+        showNotification("Geçerli bir kışla adedi girin!");
+        return;
+      }
       const currentTurnIndex = roomData.currentTurnIndex || 0;
       const currentPlayerId = roomData.playerOrder[currentTurnIndex];
       const currentPlayerData = roomData.players[currentPlayerId];
       const target = roomData.countryData[selectedCountry];
-      if (target.owner !== currentPlayerId) return;
-
+      if (target.owner !== currentPlayerId) {
+        showNotification("Bu ülke size ait değil!");
+        return;
+      }
       const totalMoney = 130 * quantity;
       const totalPetrol = 40 * quantity;
-      if (currentPlayerData.money < totalMoney || currentPlayerData.petrol < totalPetrol) return;
-
+      if (currentPlayerData.money < totalMoney) {
+        showNotification("Yeterli paranız yok!");
+        return;
+      }
+      if (currentPlayerData.petrol < totalPetrol) {
+        showNotification("Yeterli petrolünüz yok!");
+        return;
+      }
       const updates = {};
       updates["players/" + currentPlayerId + "/money"] = currentPlayerData.money - totalMoney;
       updates["players/" + currentPlayerId + "/petrol"] = currentPlayerData.petrol - totalPetrol;
-      updates["countryData/" + selectedCountry + "/barracksCount"] = (target.barracksCount || 0) + quantity;
+      updates["countryData/" + selectedCountry + "/barracksCount"] =
+        (target.barracksCount || 0) + quantity;
       roomRef.update(updates);
-      pushGlobalNotification(`${roomData.players[currentPlayerId].name}, ${selectedCountry} ülkesine ${quantity} kışla kurdu.`);
+      broadcastNotification(currentPlayerData.name + " " + quantity + " adet kışla kurdu (" + selectedCountry + ")");
+      showNotification(quantity + " adet kışla kuruldu.");
     }
 
     function buildFactory() {
-      if (!isMyTurn()) return;
-      if (!selectedCountry) return;
+      if (!isMyTurn()) {
+        showNotification("Sıranız değil!");
+        return;
+      }
+      if (!selectedCountry) {
+        showNotification("Bir ülke seçin!");
+        return;
+      }
       const quantity = parseInt(document.getElementById("factory-quantity").value);
-      if (isNaN(quantity) || quantity <= 0) return;
-
+      if (isNaN(quantity) || quantity <= 0) {
+        showNotification("Geçerli bir fabrika adedi girin!");
+        return;
+      }
       const currentTurnIndex = roomData.currentTurnIndex || 0;
       const currentPlayerId = roomData.playerOrder[currentTurnIndex];
       const currentPlayerData = roomData.players[currentPlayerId];
       const target = roomData.countryData[selectedCountry];
-      if (target.owner !== currentPlayerId) return;
-
+      if (target.owner !== currentPlayerId) {
+        showNotification("Bu ülke size ait değil!");
+        return;
+      }
       const totalMoney = 250 * quantity;
       const totalPetrol = 90 * quantity;
-      if (currentPlayerData.money < totalMoney || currentPlayerData.petrol < totalPetrol) return;
-
+      if (currentPlayerData.money < totalMoney) {
+        showNotification("Yeterli paranız yok!");
+        return;
+      }
+      if (currentPlayerData.petrol < totalPetrol) {
+        showNotification("Yeterli petrolünüz yok!");
+        return;
+      }
       const updates = {};
       updates["players/" + currentPlayerId + "/money"] = currentPlayerData.money - totalMoney;
       updates["players/" + currentPlayerId + "/petrol"] = currentPlayerData.petrol - totalPetrol;
-      updates["countryData/" + selectedCountry + "/factories"] = (target.factories || 0) + quantity;
+      updates["countryData/" + selectedCountry + "/factories"] =
+        (target.factories || 0) + quantity;
       roomRef.update(updates);
-      pushGlobalNotification(`${roomData.players[currentPlayerId].name}, ${selectedCountry} ülkesine ${quantity} fabrika kurdu.`);
+      broadcastNotification(currentPlayerData.name + " " + quantity + " adet fabrika kurdu (" + selectedCountry + ")");
+      showNotification(quantity + " adet fabrika kuruldu.");
     }
 
     function buildRefinery() {
-      if (!isMyTurn()) return;
-      if (!selectedCountry) return;
+      if (!isMyTurn()) {
+        showNotification("Sıranız değil!");
+        return;
+      }
+      if (!selectedCountry) {
+        showNotification("Bir ülke seçin!");
+        return;
+      }
       const quantity = parseInt(document.getElementById("refinery-quantity").value);
-      if (isNaN(quantity) || quantity <= 0) return;
-
+      if (isNaN(quantity) || quantity <= 0) {
+        showNotification("Geçerli bir rafine adedi girin!");
+        return;
+      }
       const currentTurnIndex = roomData.currentTurnIndex || 0;
       const currentPlayerId = roomData.playerOrder[currentTurnIndex];
       const currentPlayerData = roomData.players[currentPlayerId];
       const target = roomData.countryData[selectedCountry];
-      if (!target.oilProduction || target.owner !== currentPlayerId) return;
-
+      if (!target.oilProduction) {
+        showNotification("Bu ülkede petrol üretim kapasitesi yok!");
+        return;
+      }
       const totalMoney = 800 * quantity;
       const totalPetrol = 250 * quantity;
-      if (currentPlayerData.money < totalMoney || currentPlayerData.petrol < totalPetrol) return;
-
+      if (currentPlayerData.money < totalMoney) {
+        showNotification("Yeterli paranız yok!");
+        return;
+      }
+      if (currentPlayerData.petrol < totalPetrol) {
+        showNotification("Yeterli petrolünüz yok!");
+        return;
+      }
       const updates = {};
       updates["players/" + currentPlayerId + "/money"] = currentPlayerData.money - totalMoney;
       updates["players/" + currentPlayerId + "/petrol"] = currentPlayerData.petrol - totalPetrol;
-      updates["countryData/" + selectedCountry + "/refineries"] = (target.refineries || 0) + quantity;
+      updates["countryData/" + selectedCountry + "/refineries"] =
+        (target.refineries || 0) + quantity;
       roomRef.update(updates);
-      pushGlobalNotification(`${roomData.players[currentPlayerId].name}, ${selectedCountry} ülkesine ${quantity} rafine kurdu.`);
+      broadcastNotification(currentPlayerData.name + " " + quantity + " adet rafine kurdu (" + selectedCountry + ")");
+      showNotification(quantity + " adet rafine kuruldu. Üretim kapasitesi arttı.");
     }
 
     function pullSoldiers() {
-      if (!isMyTurn()) return;
-      if (!selectedCountry) return;
-
+      if (!isMyTurn()) {
+        showNotification("Sıranız değil!");
+        return;
+      }
+      if (!selectedCountry) {
+        showNotification("Bir ülke seçin!");
+        return;
+      }
       const currentTurnIndex = roomData.currentTurnIndex || 0;
       const currentPlayerId = roomData.playerOrder[currentTurnIndex];
       const target = roomData.countryData[selectedCountry];
-      if (target.owner !== currentPlayerId) return;
-
+      if (target.owner !== currentPlayerId) {
+        showNotification("Bu ülke size ait değil!");
+        return;
+      }
       const count = parseInt(document.getElementById("pull-soldiers-count").value);
-      if (isNaN(count) || count <= 0) return;
-      if (target.soldiers < count) return;
-
+      if (isNaN(count) || count <= 0) {
+        showNotification("Geçerli bir asker sayısı girin!");
+        return;
+      }
+      if (target.soldiers < count) {
+        showNotification("Bu ülkede yeterli asker yok!");
+        return;
+      }
       const updates = {};
       updates["countryData/" + selectedCountry + "/soldiers"] = target.soldiers - count;
-      updates["players/" + currentPlayerId + "/soldiers"] = roomData.players[currentPlayerId].soldiers + count;
+      updates["players/" + currentPlayerId + "/soldiers"] =
+        roomData.players[currentPlayerId].soldiers + count;
       roomRef.update(updates);
-      pushGlobalNotification(`${roomData.players[currentPlayerId].name}, ${selectedCountry} ülkesinden ${count} asker çekti.`);
+      broadcastNotification(roomData.players[currentPlayerId].name + " " + selectedCountry + " ülkesinden " + count + " asker çekti.");
+      showNotification(selectedCountry + " ülkesinden " + count + " asker çekildi.");
     }
 
     function sendMoney() {
-      if (!isMyTurn()) return;
+      if (!isMyTurn()) {
+        showNotification("Sıranız değil!");
+        return;
+      }
       const amount = parseInt(document.getElementById("money-to-send").value);
       const recipientId = document.getElementById("recipient-player").value;
-      if (isNaN(amount) || amount <= 0) return;
-
+      if (isNaN(amount) || amount <= 0) {
+        showNotification("Geçerli bir miktar girin!");
+        return;
+      }
       const currentTurnIndex = roomData.currentTurnIndex || 0;
       const currentPlayerId = roomData.playerOrder[currentTurnIndex];
       const currentPlayerData = roomData.players[currentPlayerId];
-      if (currentPlayerData.money < amount) return;
-      if (recipientId === currentPlayerId) return;
-
+      if (currentPlayerData.money < amount) {
+        showNotification("Yeterli paranız yok!");
+        return;
+      }
+      if (recipientId === currentPlayerId) {
+        showNotification("Kendinize para gönderemezsiniz!");
+        return;
+      }
       const updates = {};
       updates["players/" + currentPlayerId + "/money"] = currentPlayerData.money - amount;
-      updates["players/" + recipientId + "/money"] = roomData.players[recipientId].money + amount;
+      updates["players/" + recipientId + "/money"] =
+        roomData.players[recipientId].money + amount;
       roomRef.update(updates);
-      pushGlobalNotification(`${roomData.players[currentPlayerId].name}, ${roomData.players[recipientId].name}'e ${amount}$ gönderdi.`);
+      broadcastNotification(
+        currentPlayerData.name + " → " + roomData.players[recipientId].name + " için " + amount + "$ gönderdi."
+      );
+      showNotification(
+        amount + "$, " + roomData.players[recipientId].name + " oyuncusuna gönderildi."
+      );
     }
 
     function sendPetrol() {
-      if (!isMyTurn()) return;
+      if (!isMyTurn()) {
+        showNotification("Sıranız değil!");
+        return;
+      }
       const amount = parseInt(document.getElementById("petrol-to-send").value);
       const recipientId = document.getElementById("recipient-player-petrol").value;
-      if (isNaN(amount) || amount <= 0) return;
-
+      if (isNaN(amount) || amount <= 0) {
+        showNotification("Geçerli bir miktar girin!");
+        return;
+      }
       const currentTurnIndex = roomData.currentTurnIndex || 0;
       const currentPlayerId = roomData.playerOrder[currentTurnIndex];
       const currentPlayerData = roomData.players[currentPlayerId];
-      if (currentPlayerData.petrol < amount) return;
-      if (recipientId === currentPlayerId) return;
-
+      if (currentPlayerData.petrol < amount) {
+        showNotification("Yeterli petrolünüz yok!");
+        return;
+      }
+      if (recipientId === currentPlayerId) {
+        showNotification("Kendinize petrol gönderemezsiniz!");
+        return;
+      }
       const updates = {};
-      updates["players/" + currentPlayerId + "/petrol"] = currentPlayerData.petrol - amount;
-      updates["players/" + recipientId + "/petrol"] = roomData.players[recipientId].petrol + amount;
+      updates["players/" + currentPlayerId + "/petrol"] =
+        currentPlayerData.petrol - amount;
+      updates["players/" + recipientId + "/petrol"] =
+        roomData.players[recipientId].petrol + amount;
       roomRef.update(updates);
-      pushGlobalNotification(`${roomData.players[currentPlayerId].name}, ${roomData.players[recipientId].name}'e ${amount} varil gönderdi.`);
+      broadcastNotification(
+        currentPlayerData.name + " → " + roomData.players[recipientId].name + " için " + amount + " varil petrol gönderdi."
+      );
+      showNotification(
+        amount + " varil, " + roomData.players[recipientId].name + " oyuncusuna gönderildi."
+      );
     }
 
     function nextTurn() {
-      if (!isMyTurn()) return;
+      if (!isMyTurn()) {
+        showNotification("Sıranız değil!");
+        return;
+      }
       const currentTurnIndex = roomData.currentTurnIndex || 0;
       const currentPlayerId = roomData.playerOrder[currentTurnIndex];
       const player = roomData.players[currentPlayerId];
       const updates = {};
 
-      // Tur bitişinde gelir/petrol kazancı
+      // Tur bitişinde gelir ve petrol kazancı
       if (player.countries && roomData.countryData) {
         let totalMoneyGained = 0;
         let totalPetrolGained = 0;
@@ -1860,9 +2150,10 @@
         player.countries.forEach((cName) => {
           const country = roomData.countryData[cName];
           if (country) {
-            // Kışla -> +5 asker
+            // Kışla -> +5 asker (her kışla için)
             if (country.barracksCount) {
-              updates["countryData/" + cName + "/soldiers"] = (country.soldiers || 0) + 5 * country.barracksCount;
+              updates["countryData/" + cName + "/soldiers"] =
+                (country.soldiers || 0) + 5 * country.barracksCount;
             }
             // Fabrika -> +%20
             let effectiveIncome = country.income || 0;
@@ -1881,8 +2172,10 @@
           }
         });
 
-        updates["players/" + currentPlayerId + "/money"] = (player.money || 0) + totalMoneyGained;
-        updates["players/" + currentPlayerId + "/petrol"] = (player.petrol || 0) + totalPetrolGained;
+        updates["players/" + currentPlayerId + "/money"] =
+          (player.money || 0) + totalMoneyGained;
+        updates["players/" + currentPlayerId + "/petrol"] =
+          (player.petrol || 0) + totalPetrolGained;
       }
 
       let newTurnIndex = currentTurnIndex + 1;
@@ -1894,85 +2187,33 @@
       roomRef.update(updates);
 
       const nextPlayerId = roomData.playerOrder[newTurnIndex];
-      pushGlobalNotification(`Sıra ${roomData.players[nextPlayerId].name}'a geçti.`);
+      broadcastNotification("Sıra " + roomData.players[nextPlayerId].name + " adlı oyuncuya geçti.");
+      showNotification(
+        "Sıra " + roomData.players[nextPlayerId].name + " adlı oyuncuya geçti.",
+        1500
+      );
     }
 
     /*****************************************************************
-     * CHAT SISTEMI (Özel Mesaj Dahil)
+     * CHAT SISTEMI (GENEL + ÖZEL)
      *****************************************************************/
-    function updateChatRecipientOptions() {
-      const chatRecipientSelect = document.getElementById("chat-recipient");
-      if (!chatRecipientSelect || !roomData || !roomData.players) return;
-
-      // Temizle
-      chatRecipientSelect.innerHTML = "";
-      // "All" seçeneği
-      const optionAll = document.createElement("option");
-      optionAll.value = "all";
-      optionAll.textContent = "Herkes";
-      chatRecipientSelect.appendChild(optionAll);
-
-      // Diğer oyuncular
-      Object.keys(roomData.players).forEach((pid) => {
-        if (pid !== localPlayerId) {
-          const opt = document.createElement("option");
-          opt.value = pid;
-          opt.textContent = roomData.players[pid].name;
-          chatRecipientSelect.appendChild(opt);
-        }
-      });
-    }
-
-    function appendChatMessage(messageObj) {
-      const chatMessagesDiv = document.getElementById("chat-messages");
-      const messageDiv = document.createElement("div");
-
-      // Gönderici, mesaj, kimlere gitti
-      const { senderName, text, recipientId } = messageObj;
-
-      if (recipientId !== "all" && recipientId !== localPlayerId) {
-        // O halde bu "direct" -> "You -> X" / "X -> You"
-        if (messageObj.senderId === localPlayerId) {
-          // Ben gönderdim
-          messageDiv.textContent = `Ben → ${roomData.players[recipientId].name}: ${text}`;
-        } else {
-          // Bana gönderildi
-          messageDiv.textContent = `${senderName} → Bana: ${text}`;
-        }
-      } else if (recipientId !== "all" && recipientId === localPlayerId) {
-        // Yine yukarıdaki şart, ama net:
-        messageDiv.textContent = `${senderName} → Bana: ${text}`;
-      } else {
-        // "All" (herkes)
-        messageDiv.textContent = `${senderName}: ${text}`;
-      }
-
-      chatMessagesDiv.appendChild(messageDiv);
-      chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
-
-      // Eğer chat kapalıysa bildirim sayısını arttır
-      if (!chatOpen) {
-        unreadMessages++;
-        updateChatBadge();
-      }
-    }
-
-    document.getElementById("open-chat-btn").addEventListener("click", () => {
-      toggleChat(true);
-      // Okundu, unreadMessages sıfır
-      unreadMessages = 0;
-      updateChatBadge();
-    });
-    document.getElementById("close-chat-btn").addEventListener("click", () => {
-      toggleChat(false);
-    });
-
     function toggleChat(show) {
       const chatPopup = document.getElementById("chat-popup");
       chatPopup.style.display = show ? "flex" : "none";
       chatOpen = show;
-    }
 
+      if (chatOpen) {
+        // Okuduğumuzda bildirim 0'a düşsün
+        unreadMessages = 0;
+        updateChatBadge();
+      }
+    }
+    document.getElementById("open-chat-btn").addEventListener("click", () => {
+      toggleChat(true);
+    });
+    document.getElementById("close-chat-btn").addEventListener("click", () => {
+      toggleChat(false);
+    });
     document.getElementById("send-chat-btn").addEventListener("click", () => {
       sendChatMessage();
     });
@@ -1984,28 +2225,112 @@
 
     function sendChatMessage() {
       const input = document.getElementById("chat-input");
-      const recipientId = document.getElementById("chat-recipient").value || "all";
       const messageText = input.value.trim();
       if (!messageText) return;
-      if (!roomRef || !roomData || !roomData.players[localPlayerId]) return;
-
-      const senderId = localPlayerId;
-      const senderName = roomData.players[localPlayerId].name || "Anon";
-
-      const chatMessageObj = {
-        senderId,
-        senderName,
-        recipientId,
+      if (!roomRef) {
+        showNotification("Oda verisi yüklenmedi.");
+        return;
+      }
+      let senderName = "Anon";
+      if (roomData && roomData.players && roomData.players[localPlayerId]) {
+        senderName = roomData.players[localPlayerId].name;
+      }
+      const chatMessage = {
+        sender: senderName,
+        senderId: localPlayerId,
         text: messageText,
+        recipientId: "", // Boş ise herkese (public)
         timestamp: firebase.database.ServerValue.TIMESTAMP
       };
-
-      roomRef.child("chat").push(chatMessageObj, (error) => {
+      roomRef.child("chat").push(chatMessage, (error) => {
         if (!error) {
           input.value = "";
         }
       });
     }
+
+    /**
+     * Özel mesaj gönderme
+     */
+    document.getElementById("send-private-message-btn").addEventListener("click", () => {
+      const privateInput = document.getElementById("private-message-input");
+      const recipientSelect = document.getElementById("private-message-recipient");
+      const msg = privateInput.value.trim();
+      const recipientId = recipientSelect.value;
+      if (!msg || !recipientId) return;
+      let senderName = "Anon";
+      if (roomData && roomData.players && roomData.players[localPlayerId]) {
+        senderName = roomData.players[localPlayerId].name;
+      }
+      const chatMessage = {
+        sender: senderName,
+        senderId: localPlayerId,
+        text: msg,
+        recipientId: recipientId, // Özel alıcı
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+      };
+      roomRef.child("chat").push(chatMessage, (error) => {
+        if (!error) {
+          privateInput.value = "";
+          showNotification("Özel mesaj gönderildi!");
+        }
+      });
+    });
+
+    function appendChatMessage(message) {
+      // Eğer mesaj private ise, sadece alıcı veya gönderen görebilir
+      if (message.recipientId && message.recipientId !== "") {
+        // Özel Mesaj
+        if (message.senderId !== localPlayerId && message.recipientId !== localPlayerId) {
+          // Bana değilse göstermeyelim
+          return;
+        }
+      }
+      // Chat ekranına ekle
+      const chatMessagesDiv = document.getElementById("chat-messages");
+      const messageDiv = document.createElement("div");
+      if (message.recipientId && message.recipientId !== "") {
+        // Private mesaj
+        const targetName = (roomData.players[message.recipientId] || {}).name || "Bilinmeyen";
+        if (message.senderId === localPlayerId) {
+          messageDiv.innerHTML = "<strong>[PM to " + targetName + "]:</strong> " + message.text;
+        } else {
+          messageDiv.innerHTML = "<strong>[PM from " + message.sender + "]:</strong> " + message.text;
+        }
+        messageDiv.style.color = "#f39c12"; // turuncu tonda
+      } else {
+        // Public mesaj
+        messageDiv.textContent = message.sender + ": " + message.text;
+      }
+      chatMessagesDiv.appendChild(messageDiv);
+      chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+
+      // Eğer chat kapalıysa bildirim sayısını arttır
+      if (!chatOpen && message.senderId !== localPlayerId) {
+        unreadMessages++;
+        updateChatBadge();
+      }
+    }
+
+    function updateChatBadge() {
+      const openChatBtn = document.getElementById("open-chat-btn");
+      if (unreadMessages > 0) {
+        openChatBtn.dataset.badge = unreadMessages;
+      } else {
+        openChatBtn.dataset.badge = "";
+      }
+    }
+
+    /*****************************************************************
+     * PAKT POPUP
+     *****************************************************************/
+    document.getElementById("open-pact-btn").addEventListener("click", () => {
+      document.getElementById("pact-popup").style.display = "flex";
+    });
+    document.getElementById("close-pact-btn").addEventListener("click", () => {
+      document.getElementById("pact-popup").style.display = "none";
+    });
+    document.getElementById("send-pact-btn").addEventListener("click", sendPactOffer);
 
     /*****************************************************************
      * TİCARET (MARKET) SISTEMI
@@ -2029,7 +2354,10 @@
     document.getElementById("create-trade-offer-btn").addEventListener("click", createTradeOffer);
 
     function createTradeOffer() {
-      if (!roomData || !roomData.players[localPlayerId]) return;
+      if (!roomData || !roomData.players[localPlayerId]) {
+        showNotification("Oyun verileri yüklenmedi veya geçersiz oyuncu!");
+        return;
+      }
       const itemType = document.getElementById("trade-item-type").value;
       const quantity = parseInt(document.getElementById("trade-quantity").value);
       const price = parseInt(document.getElementById("trade-price").value);
@@ -2037,16 +2365,29 @@
       if (itemType !== "petrol") {
         countryName = tradeCountrySelect.value;
       }
-      if (isNaN(quantity) || quantity <= 0 || isNaN(price) || price <= 0) return;
+      if (isNaN(quantity) || quantity <= 0 || isNaN(price) || price <= 0) {
+        showNotification("Geçerli adet ve fiyat girin!");
+        return;
+      }
 
+      // Satıcının kaynak kontrolü
       const seller = roomData.players[localPlayerId];
-      // Kaynak doğrulama
       if (itemType === "petrol") {
-        if (seller.petrol < quantity) return;
+        if (seller.petrol < quantity) {
+          showNotification("Yeterli petrolünüz yok!");
+          return;
+        }
       } else {
-        if (!countryName) return;
+        // Kışla / Fabrika / Rafine
+        if (!countryName) {
+          showNotification("Satmak istediğiniz ülkeyi seçin!");
+          return;
+        }
         const c = roomData.countryData[countryName];
-        if (!c || c.owner !== localPlayerId) return;
+        if (!c || c.owner !== localPlayerId) {
+          showNotification("Bu ülke size ait değil!");
+          return;
+        }
         let enough = false;
         if (itemType === "barracks" && c.barracksCount >= quantity) {
           enough = true;
@@ -2055,9 +2396,13 @@
         } else if (itemType === "refinery" && c.refineries >= quantity) {
           enough = true;
         }
-        if (!enough) return;
+        if (!enough) {
+          showNotification("Yeterli miktarda yapı bulunmuyor!");
+          return;
+        }
       }
 
+      // tradeOffers altına yaz
       const tradeOfferRef = roomRef.child("tradeOffers").push();
       const newOffer = {
         offerId: tradeOfferRef.key,
@@ -2070,7 +2415,8 @@
         status: "pending"
       };
       tradeOfferRef.set(newOffer);
-      pushGlobalNotification(`${seller.name} yeni bir ticaret teklifi oluşturdu: ${itemType}, ${quantity} adet, ${price} $`);
+      broadcastNotification(seller.name + " bir ticaret teklifi oluşturdu (" + itemType + ", adet: " + quantity + ", fiyat: " + price + "$)");
+      showNotification("Ticaret teklifi başarıyla oluşturuldu!");
     }
 
     function displayTradeOffers() {
@@ -2106,6 +2452,7 @@
             acceptBtn.addEventListener("click", () => acceptTradeOffer(offer.offerId));
             offerDiv.appendChild(acceptBtn);
           } else {
+            // Kendi teklifini iptal edebilsin
             const cancelBtn = document.createElement("button");
             cancelBtn.style.background = "linear-gradient(45deg, #c0392b, #e74c3c)";
             cancelBtn.textContent = "İptal";
@@ -2118,27 +2465,47 @@
     }
 
     function acceptTradeOffer(offerId) {
-      if (!roomData || !roomData.tradeOffers || !roomData.tradeOffers[offerId]) return;
+      if (!roomData || !roomData.tradeOffers || !roomData.tradeOffers[offerId]) {
+        showNotification("Teklif bulunamadı!");
+        return;
+      }
       const offer = roomData.tradeOffers[offerId];
-      if (offer.status !== "pending") return;
+      if (offer.status !== "pending") {
+        showNotification("Bu teklif artık geçerli değil!");
+        return;
+      }
       const seller = roomData.players[offer.sellerId];
       const buyer = roomData.players[localPlayerId];
-      if (!seller || !buyer) return;
-
+      if (!seller || !buyer) {
+        showNotification("Geçersiz satıcı/alıcı!");
+        return;
+      }
       const totalCost = offer.price * offer.quantity;
-      if (buyer.money < totalCost) return;
+      if (buyer.money < totalCost) {
+        showNotification("Yeterli paranız yok!");
+        return;
+      }
 
-      // Kaynak kontrol
+      // Satıcının gerçekten bu kaynağı var mı?
       if (offer.itemType === "petrol") {
-        if (seller.petrol < offer.quantity) return;
+        if (seller.petrol < offer.quantity) {
+          showNotification("Satıcının yeterli petrolü kalmadı!");
+          return;
+        }
       } else {
         const c = roomData.countryData[offer.countryName];
-        if (!c || c.owner !== offer.sellerId) return;
+        if (!c || c.owner !== offer.sellerId) {
+          showNotification("Satıcının artık bu ülke üzerinde hakkı yok!");
+          return;
+        }
         let hasEnough = false;
         if (offer.itemType === "barracks" && c.barracksCount >= offer.quantity) hasEnough = true;
         else if (offer.itemType === "factory" && c.factories >= offer.quantity) hasEnough = true;
         else if (offer.itemType === "refinery" && c.refineries >= offer.quantity) hasEnough = true;
-        if (!hasEnough) return;
+        if (!hasEnough) {
+          showNotification("Satıcının yeterli yapı miktarı kalmadı!");
+          return;
+        }
       }
 
       const updates = {};
@@ -2157,12 +2524,25 @@
         } else if (offer.itemType === "refinery") {
           updates[`countryData/${offer.countryName}/refineries`] = c.refineries - offer.quantity;
         }
+        // Alıcıya bina eklenmiyor (basit model)
       }
       updates[`tradeOffers/${offerId}/status`] = "completed";
 
       roomRef.update(updates, (error) => {
         if (!error) {
-          pushGlobalNotification(`${seller.name} → ${buyer.name} (${offer.quantity} ${offer.itemType}) ticareti gerçekleşti!`);
+          broadcastNotification(
+            "Ticaret Onaylandı: " + seller.name + " -> " + buyer.name + ` (${offer.quantity} adet "${offer.itemType}")`
+          );
+          showNotification("Ticaret başarıyla gerçekleşti!");
+          // Chat'e de mesaj atabilirsiniz isterseniz
+          const chatMessage = {
+            sender: "Sistem",
+            senderId: "system",
+            text: `Ticaret Onaylandı: ${seller.name} -> ${buyer.name}, ${offer.quantity} x ${offer.itemType}`,
+            recipientId: "",
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+          };
+          roomRef.child("chat").push(chatMessage);
         }
       });
     }
@@ -2170,11 +2550,17 @@
     function cancelTradeOffer(offerId) {
       if (!roomData || !roomData.tradeOffers || !roomData.tradeOffers[offerId]) return;
       const offer = roomData.tradeOffers[offerId];
-      if (offer.sellerId !== localPlayerId) return;
-      if (offer.status !== "pending") return;
-
+      if (offer.sellerId !== localPlayerId) {
+        showNotification("Sadece kendi teklifinizi iptal edebilirsiniz.");
+        return;
+      }
+      if (offer.status !== "pending") {
+        showNotification("Bu teklif zaten tamamlanmış veya iptal edilmiş.");
+        return;
+      }
       roomRef.child("tradeOffers").child(offerId).update({ status: "cancelled" });
-      pushGlobalNotification(`Bir ticaret teklifi iptal edildi.`);
+      broadcastNotification("Ticaret teklifi iptal edildi: " + offer.sellerName);
+      showNotification("Teklif iptal edildi.");
     }
 
     /*****************************************************************
@@ -2228,6 +2614,8 @@
     document.getElementById("close-players-btn").addEventListener("click", () => {
       document.getElementById("players-popup").style.display = "none";
     });
+
+    // Popup açma-kapama (Chat, yukarıda toggle var)
 
     /*****************************************************************
      * HARİTA (Leaflet) KURULUMU
@@ -2286,23 +2674,6 @@
       attributes: true,
       attributeFilter: ["style"]
     });
-
-    // Yardımcı fonksiyon (random oda kodu)
-    function generateRoomCode() {
-      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-      let code = "";
-      for (let i = 0; i < 6; i++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      return code;
-    }
-
-    // Tur sırası kontrol
-    function isMyTurn() {
-      if (!roomData || !roomData.playerOrder) return false;
-      const currentTurnIndex = roomData.currentTurnIndex || 0;
-      return roomData.playerOrder[currentTurnIndex] === localPlayerId;
-    }
   </script>
 </body>
 </html>
