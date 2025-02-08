@@ -62,7 +62,7 @@
       margin: 60px auto;
       padding: 30px;
       background: rgba(0, 0, 0, 0.65);
-      border: 2px solid #1abc9c;
+      border: 2px solid #1abc9c; 
       border-radius: 15px;
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.8);
       backdrop-filter: blur(5px);
@@ -82,7 +82,7 @@
     #lobby-container h1 {
       text-align: center;
       margin-bottom: 20px;
-      color: #1abc9c;
+      color: #1abc9c; 
       text-transform: uppercase;
       letter-spacing: 3px;
       font-size: 38px;
@@ -103,7 +103,7 @@
     #lobby-container h2 {
       text-align: center;
       margin-bottom: 20px;
-      color: #aef7f2;
+      color: #aef7f2; 
       text-transform: uppercase;
       letter-spacing: 1px;
       font-size: 24px;
@@ -210,7 +210,7 @@
     #map {
       width: 100%;
       height: 100%;
-      background-color: #0e2740;
+      background-color: #0e2740; 
     }
     .toggle-info-cards {
       position: absolute;
@@ -237,46 +237,11 @@
       box-shadow: -4px 0 10px rgba(0, 0, 0, 0.4);
       display: flex;
       flex-direction: column;
-      justify-content: space-between; /* Üstte "Tur bilgisi", altta "Çık" butonu vb. */
+      justify-content: space-between;
     }
 
     /**********************************************************
-     * ÜST KISIM (TUR SIRASI vs.)
-     **********************************************************/
-    #top-info-panel {
-      margin-bottom: 20px;
-      background: rgba(0, 0, 0, 0.6);
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-    }
-    #top-info-panel h2 {
-      font-size: 20px;
-      color: #1abc9c;
-      border-bottom: 1px solid #444;
-      padding-bottom: 5px;
-      margin-bottom: 10px;
-    }
-    #top-info-panel p {
-      margin: 5px 0;
-      font-size: 14px;
-      color: #ddd;
-    }
-    #current-player-info {
-      font-size: 16px;
-      margin-top: 10px;
-      background: rgba(0, 0, 0, 0.4);
-      padding: 10px;
-      border-radius: 6px;
-      text-align: center;
-    }
-    #current-player-info span {
-      font-weight: bold;
-      color: #f39c12;
-    }
-
-    /**********************************************************
-     * OYUN BILGILERI (ODA KODU, PETROL vs.)
+     * OYUN BILGILERI (TUR, ODA KODU, PETROL)
      **********************************************************/
     #game-info {
       margin-bottom: 20px;
@@ -410,6 +375,25 @@
     }
 
     /**********************************************************
+     * ALTA ALINAN BUTON (ODADAN ÇIK)
+     **********************************************************/
+    #exit-room-btn {
+      width: 100%;
+      padding: 12px;
+      margin-top: 20px;
+      background: linear-gradient(45deg, #c0392b, #e74c3c);
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    #exit-room-btn:hover {
+      background: linear-gradient(45deg, #e74c3c, #c0392b);
+    }
+
+    /**********************************************************
      * LEAFLET TOOLTIP & ÜLKE POPUP
      **********************************************************/
     .leaflet-tooltip {
@@ -428,7 +412,7 @@
     }
 
     /**********************************************************
-     * CHAT POPUP + YENI MESAJ BADGE
+     * CHAT POPUP
      **********************************************************/
     .chat-popup {
       position: fixed;
@@ -488,7 +472,6 @@
       cursor: pointer;
       color: #fff;
     }
-
     .open-chat-btn {
       position: fixed;
       bottom: 20px;
@@ -504,22 +487,21 @@
       z-index: 3000;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
     }
-    /* Yeni Mesaj Badge */
-    #chat-badge {
+    /* Chat Badge (Bildirim sayısı) */
+    .open-chat-btn[data-badge]:after {
+      content: attr(data-badge);
       position: absolute;
-      top: -6px;
-      right: -6px;
-      background: #e74c3c;
-      color: #fff;
-      font-size: 12px;
-      width: 20px;
-      height: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      top: -5px;
+      right: -5px;
+      background: red;
+      color: white;
       border-radius: 50%;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-      display: none; /* Başta görünmesin */
+      min-width: 20px;
+      min-height: 20px;
+      padding: 2px 6px;
+      text-align: center;
+      font-size: 12px;
+      pointer-events: none;
     }
 
     /**********************************************************
@@ -640,26 +622,6 @@
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
     }
 
-    /**********************************************************
-     * ODADAN ÇIK BUTONU (EN ALT)
-     **********************************************************/
-    #exit-room-btn {
-      width: 100%;
-      padding: 12px;
-      background: linear-gradient(45deg, #c0392b, #e74c3c);
-      border: none;
-      border-radius: 6px;
-      font-size: 14px;
-      color: #fff;
-      cursor: pointer;
-      transition: background 0.3s;
-      margin-top: 20px;
-      margin-bottom: 10px;
-    }
-    #exit-room-btn:hover {
-      background: linear-gradient(45deg, #e74c3c, #c0392b);
-    }
-
   </style>
 </head>
 <body class="lobby">
@@ -712,17 +674,12 @@
 
       <!-- Sağ Panel -->
       <div id="side-panel">
-        
-        <!-- Üst Bilgiler (Tur, Sıra) -->
         <div>
-          <div id="top-info-panel">
-            <h2>Tur Bilgileri</h2>
-            <p>Tur: <span id="current-round">1</span></p>
-            <div id="current-player-info">Sıra: <span id="current-player">Oyuncu Adı</span></div>
-          </div>
-
           <section id="game-info">
             <h2>Oyun Bilgileri</h2>
+            <!-- Tur sırası en üstte görünsün -->
+            <p>Sıra: <span id="current-player">Oyuncu Adı</span></p>
+            <p>Tur: <span id="current-round">1</span></p>
             <p>Oda Kodu: <span id="display-room-code">-</span></p>
             <p>Toplam Petrol: <span id="total-petrol">0</span> varil</p>
           </section>
@@ -782,10 +739,9 @@
                 id="barracks-quantity"
                 placeholder="Adet"
                 min="1"
-                value="1"
               />
               <button id="buy-barracks-btn">
-                <i class="fas fa-fort-awesome"></i> Kur (130$/kışla + 40 varil/kışla)
+                <i class="fas fa-fort-awesome"></i> Kışla Kur (130$ + 40 varil / adet)
               </button>
             </div>
             <!-- Fabrika -->
@@ -796,10 +752,9 @@
                 id="factory-quantity"
                 placeholder="Adet"
                 min="1"
-                value="1"
               />
               <button id="build-factory-btn">
-                <i class="fas fa-industry"></i> Kur (250$/fabrika + 90 varil/fabrika)
+                <i class="fas fa-industry"></i> Fabrika Kur (250$ + 90 varil / adet)
               </button>
             </div>
             <!-- Rafine -->
@@ -810,10 +765,9 @@
                 id="refinery-quantity"
                 placeholder="Adet"
                 min="1"
-                value="1"
               />
               <button id="build-refinery-btn">
-                <i class="fas fa-oil-can"></i> Kur (800$/rafine + 250 varil/rafine)
+                <i class="fas fa-oil-can"></i> Rafine Kur (800$ + 250 varil / adet)
               </button>
             </div>
             <!-- Asker Çek -->
@@ -859,9 +813,9 @@
             </div>
             <!-- Tur -->
             <div class="action-group">
-              <h3>Tur İşlemi</h3>
+              <h3>Tur</h3>
               <div class="turn-info">
-                <p>Sıra: <span id="current-player-2">Oyuncu Adı</span></p>
+                <p>Sıra: <span id="current-player">Oyuncu Adı</span></p>
                 <button id="end-turn-btn">
                   <i class="fas fa-forward"></i> Tur Sonu
                 </button>
@@ -870,7 +824,7 @@
           </section>
         </div>
 
-        <!-- En Alt: Odadan Çık Butonu -->
+        <!-- Alta taşınan Odadan Çık butonu -->
         <button id="exit-room-btn">Odadan Çık</button>
       </div>
     </div>
@@ -890,9 +844,8 @@
       </button>
     </div>
   </div>
-  <button id="open-chat-btn" class="open-chat-btn">
+  <button id="open-chat-btn" class="open-chat-btn" data-badge="">
     <i class="fas fa-comments"></i>
-    <div id="chat-badge">0</div>
   </button>
 
   <!-- ===================== PAKT POPUP ===================== -->
@@ -959,9 +912,9 @@
     // Kartların ilk açılışta görünmemesini istiyoruz:
     let infoCardsPermanent = false;
 
-    // Chat için unread mesajları tutan sayaç:
+    // Chat bildirim sayısı
     let unreadMessages = 0;
-    let chatOpen = false; // Sohbet penceresi açık mı?
+    let chatOpen = false;
 
     function showNotification(message, duration = 3000) {
       const notificationArea = document.getElementById("notification-area");
@@ -983,6 +936,15 @@
           notificationArea.style.display = "none";
         }, 500);
       }, duration);
+    }
+
+    function updateChatBadge() {
+      const openChatBtn = document.getElementById("open-chat-btn");
+      if (unreadMessages > 0) {
+        openChatBtn.dataset.badge = unreadMessages;
+      } else {
+        openChatBtn.dataset.badge = "";
+      }
     }
 
     function generateRoomCode() {
@@ -1216,7 +1178,7 @@
         .then((geoJsonData) => {
           const features = geoJsonData.features;
 
-          // 43 ülkeye petrol kapasitesi
+          // 43 ülkeye petrol kapasitesi, rastgele 150-500 varil
           let oilIndexes = [];
           if (features.length > 43) {
             while (oilIndexes.length < 43) {
@@ -1234,7 +1196,6 @@
           features.forEach((feature) => {
             const countryName = feature.properties.name;
             let oilProduction = 0;
-            // Yeni aralık 150 - 500
             if (oilIndexes.includes(feature.properties._index)) {
               oilProduction = Math.floor(Math.random() * (500 - 150 + 1)) + 150;
             }
@@ -1263,8 +1224,7 @@
         updateGameUI();
         displayPendingPactOffers();
       });
-
-      // Chat (yalnızca bir kez ekleyelim)
+      // Chat dinleme
       if (!chatListenerAdded) {
         roomRef.child("chat").on("child_added", (snapshot) => {
           const message = snapshot.val();
@@ -1292,9 +1252,8 @@
         const currentTurnIndex = roomData.currentTurnIndex || 0;
         const currentPlayerId = roomData.playerOrder[currentTurnIndex];
         if (roomData.players[currentPlayerId]) {
-          const currentPlayerName = roomData.players[currentPlayerId].name;
-          document.getElementById("current-player").textContent = currentPlayerName;
-          document.getElementById("current-player-2").textContent = currentPlayerName;
+          document.getElementById("current-player").textContent =
+            roomData.players[currentPlayerId].name;
         }
       }
 
@@ -1635,14 +1594,12 @@
 
       const updates = {};
       if (target.owner === currentPlayerId) {
-        // Kendi ülkesine asker gönderme
         updates["countryData/" + selectedCountry + "/soldiers"] =
           target.soldiers + soldiersToSend;
         updates["players/" + currentPlayerId + "/soldiers"] =
           currentPlayerData.soldiers - soldiersToSend;
         showNotification(selectedCountry + " ülkesine " + soldiersToSend + " asker gönderildi.");
       } else {
-        // Saldırı
         updates["players/" + currentPlayerId + "/soldiers"] =
           currentPlayerData.soldiers - soldiersToSend;
         if (soldiersToSend > target.soldiers) {
@@ -1663,7 +1620,6 @@
           }
           showNotification(selectedCountry + " fethedildi!");
         } else {
-          // Savunma
           updates["countryData/" + selectedCountry + "/soldiers"] =
             target.soldiers - soldiersToSend;
           showNotification(selectedCountry + " savunuldu!");
@@ -1710,7 +1666,7 @@
       }
       const quantity = parseInt(document.getElementById("barracks-quantity").value);
       if (isNaN(quantity) || quantity <= 0) {
-        showNotification("Geçerli adet girin!");
+        showNotification("Geçerli bir kışla adedi girin!");
         return;
       }
       const currentTurnIndex = roomData.currentTurnIndex || 0;
@@ -1721,9 +1677,9 @@
         showNotification("Bu ülke size ait değil!");
         return;
       }
-      const totalCost = 130 * quantity;
+      const totalMoney = 130 * quantity;
       const totalPetrol = 40 * quantity;
-      if (currentPlayerData.money < totalCost) {
+      if (currentPlayerData.money < totalMoney) {
         showNotification("Yeterli paranız yok!");
         return;
       }
@@ -1732,7 +1688,7 @@
         return;
       }
       const updates = {};
-      updates["players/" + currentPlayerId + "/money"] = currentPlayerData.money - totalCost;
+      updates["players/" + currentPlayerId + "/money"] = currentPlayerData.money - totalMoney;
       updates["players/" + currentPlayerId + "/petrol"] = currentPlayerData.petrol - totalPetrol;
       updates["countryData/" + selectedCountry + "/barracksCount"] =
         (target.barracksCount || 0) + quantity;
@@ -1751,7 +1707,7 @@
       }
       const quantity = parseInt(document.getElementById("factory-quantity").value);
       if (isNaN(quantity) || quantity <= 0) {
-        showNotification("Geçerli adet girin!");
+        showNotification("Geçerli bir fabrika adedi girin!");
         return;
       }
       const currentTurnIndex = roomData.currentTurnIndex || 0;
@@ -1762,9 +1718,9 @@
         showNotification("Bu ülke size ait değil!");
         return;
       }
-      const totalCost = 250 * quantity;
+      const totalMoney = 250 * quantity;
       const totalPetrol = 90 * quantity;
-      if (currentPlayerData.money < totalCost) {
+      if (currentPlayerData.money < totalMoney) {
         showNotification("Yeterli paranız yok!");
         return;
       }
@@ -1773,7 +1729,7 @@
         return;
       }
       const updates = {};
-      updates["players/" + currentPlayerId + "/money"] = currentPlayerData.money - totalCost;
+      updates["players/" + currentPlayerId + "/money"] = currentPlayerData.money - totalMoney;
       updates["players/" + currentPlayerId + "/petrol"] = currentPlayerData.petrol - totalPetrol;
       updates["countryData/" + selectedCountry + "/factories"] =
         (target.factories || 0) + quantity;
@@ -1792,7 +1748,7 @@
       }
       const quantity = parseInt(document.getElementById("refinery-quantity").value);
       if (isNaN(quantity) || quantity <= 0) {
-        showNotification("Geçerli adet girin!");
+        showNotification("Geçerli bir rafine adedi girin!");
         return;
       }
       const currentTurnIndex = roomData.currentTurnIndex || 0;
@@ -1803,9 +1759,9 @@
         showNotification("Bu ülkede petrol üretim kapasitesi yok!");
         return;
       }
-      const totalCost = 800 * quantity;
+      const totalMoney = 800 * quantity;
       const totalPetrol = 250 * quantity;
-      if (currentPlayerData.money < totalCost) {
+      if (currentPlayerData.money < totalMoney) {
         showNotification("Yeterli paranız yok!");
         return;
       }
@@ -1814,7 +1770,7 @@
         return;
       }
       const updates = {};
-      updates["players/" + currentPlayerId + "/money"] = currentPlayerData.money - totalCost;
+      updates["players/" + currentPlayerId + "/money"] = currentPlayerData.money - totalMoney;
       updates["players/" + currentPlayerId + "/petrol"] = currentPlayerData.petrol - totalPetrol;
       updates["countryData/" + selectedCountry + "/refineries"] =
         (target.refineries || 0) + quantity;
@@ -1938,7 +1894,7 @@
         player.countries.forEach((cName) => {
           const country = roomData.countryData[cName];
           if (country) {
-            // Kışla -> +5 asker
+            // Kışla -> +5 asker (her kışla için)
             if (country.barracksCount) {
               updates["countryData/" + cName + "/soldiers"] =
                 (country.soldiers || 0) + 5 * country.barracksCount;
@@ -1988,8 +1944,9 @@
       const chatPopup = document.getElementById("chat-popup");
       chatPopup.style.display = show ? "flex" : "none";
       chatOpen = show;
-      if (show) {
-        // Sohbet penceresi açıldığında unreadMessages sıfırla
+
+      if (chatOpen) {
+        // Okuduğumuzda bildirim 0'a düşsün
         unreadMessages = 0;
         updateChatBadge();
       }
@@ -2040,20 +1997,10 @@
       chatMessagesDiv.appendChild(messageDiv);
       chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
 
+      // Eğer chat kapalıysa bildirim sayısını arttır
       if (!chatOpen) {
-        // Sohbet penceresi kapalıysa unreadMessages artar
         unreadMessages++;
         updateChatBadge();
-      }
-    }
-
-    function updateChatBadge() {
-      const badge = document.getElementById("chat-badge");
-      if (unreadMessages > 0) {
-        badge.style.display = "flex";
-        badge.textContent = unreadMessages;
-      } else {
-        badge.style.display = "none";
       }
     }
 
@@ -2089,7 +2036,6 @@
       document.getElementById("game-container").style.display = "none";
       document.getElementById("lobby-container").style.display = "block";
       document.body.classList.add("lobby");
-      showNotification("Odadan çıktınız. Tekrar bağlanmak için Oda Kodu giriniz.");
     });
 
     /*****************************************************************
@@ -2128,7 +2074,7 @@
                   roomData && roomData.countryData ? roomData.countryData[countryName] : {}
                 ),
                 {
-                  permanent: infoCardsPermanent, // Başlangıçta false
+                  permanent: infoCardsPermanent, 
                   direction: "center",
                   className: "country-popup-tooltip"
                 }
