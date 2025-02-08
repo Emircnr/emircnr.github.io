@@ -6,9 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Global Conquest - Online</title>
 
-  <!-- Google Fonts: Montserrat (modern his için) -->
+  <!-- Google Fonts: Montserrat (modern, estetik) -->
   <link
-    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap"
     rel="stylesheet"
   />
 
@@ -41,7 +41,7 @@
       box-sizing: border-box;
     }
     body {
-      font-family: "Montserrat", sans-serif;
+      font-family: 'Montserrat', sans-serif;
       color: #eee;
       overflow-x: hidden;
       transition: background 0.5s;
@@ -52,22 +52,24 @@
     }
 
     /**********************************************************
-     * LOBI SAYFASI TASARIMI (Modern Gece Teması)
+     * LOBI SAYFASI TASARIMI (Modern - Gece Temalı Gradyan)
      **********************************************************/
     body.lobby {
-      background: linear-gradient(135deg, #1b2735 0%, #090a0f 100%);
+      /* Daha karanlık, modern bir background ve yumuşak bir degradeyle renklendirelim */
+      background: linear-gradient(135deg, #1a2a3a 0%, #1c2f4a 35%, #202f44 100%);
       background-attachment: fixed;
       background-size: cover;
     }
+
     #lobby-container {
       max-width: 500px;
       margin: 60px auto;
       padding: 30px;
-      background: rgba(0, 0, 0, 0.65);
-      border: 2px solid #4fd1c5;
+      background: rgba(0, 0, 0, 0.55);
+      border: 2px solid #9b59b6; /* Mor ton */
       border-radius: 15px;
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(5px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(6px);
       animation: fadeInLobby 1s ease forwards;
     }
     @keyframes fadeInLobby {
@@ -84,20 +86,20 @@
     #lobby-container h1 {
       text-align: center;
       margin-bottom: 20px;
-      color: #4fd1c5;
+      color: #e67e22;
       text-transform: uppercase;
-      letter-spacing: 3px;
+      letter-spacing: 2px;
       font-size: 38px;
-      text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
-      animation: animateTitle 1s ease;
+      text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+      animation: animateTitle 1.2s ease;
     }
     @keyframes animateTitle {
       0% {
-        letter-spacing: 8px;
+        letter-spacing: 6px;
         opacity: 0;
       }
       100% {
-        letter-spacing: 3px;
+        letter-spacing: 2px;
         opacity: 1;
       }
     }
@@ -105,11 +107,11 @@
     #lobby-container h2 {
       text-align: center;
       margin-bottom: 20px;
-      color: #aef7f2;
+      color: #c7ecee;
       text-transform: uppercase;
       letter-spacing: 1px;
-      font-size: 22px;
-      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+      font-size: 20px;
+      text-shadow: 0 0 5px rgba(0, 0, 0, 0.7);
     }
 
     #lobby-container input[type="text"],
@@ -117,8 +119,8 @@
       width: 100%;
       padding: 12px;
       margin-bottom: 15px;
-      border: 1px solid #4fd1c5;
-      border-radius: 6px;
+      border: 1px solid #9b59b6;
+      border-radius: 4px;
       font-size: 16px;
       outline: none;
       color: #333;
@@ -126,26 +128,26 @@
     }
     #lobby-container input[type="text"]:focus,
     #lobby-container input[type="number"]:focus {
-      box-shadow: 0 0 8px #4fd1c5;
+      box-shadow: 0 0 8px #9b59b6;
     }
 
     #lobby-container button {
       width: 100%;
       padding: 14px;
       margin-bottom: 15px;
-      background: linear-gradient(45deg, #1ab3a6, #4fd1c5);
-      border: 1px solid #16a085;
+      background: linear-gradient(45deg, #9b59b6, #8e44ad);
+      border: 1px solid #8e44ad;
       border-radius: 6px;
       font-size: 18px;
       font-weight: bold;
       color: #fff;
       cursor: pointer;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.7);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
       transition: background 0.3s, transform 0.3s;
     }
     #lobby-container button:hover {
-      background: linear-gradient(45deg, #4fd1c5, #1ab3a6);
-      transform: scale(1.02);
+      background: linear-gradient(45deg, #8e44ad, #9b59b6);
+      transform: scale(1.03);
     }
 
     .color-options {
@@ -171,7 +173,7 @@
     }
 
     /**********************************************************
-     * BİLDİRİM ALANI (POPUP) - 6s
+     * BILDIRIM ALANI (POPUP) - BİRİKMELİ VE 6S
      **********************************************************/
     #notification-area {
       position: fixed;
@@ -183,10 +185,11 @@
       gap: 10px;
       align-items: flex-end;
     }
+    /* Tek bir bildirim kutusu */
     .notification-item {
-      min-width: 220px;
-      max-width: 400px;
-      background: rgba(40, 40, 40, 0.9);
+      min-width: 240px;
+      max-width: 360px;
+      background: rgba(40, 40, 60, 0.9);
       color: #fff;
       padding: 12px 20px;
       border-radius: 8px;
@@ -216,9 +219,10 @@
     #game-container {
       display: none;
       height: 100vh;
-      background: linear-gradient(180deg, #0b2a63 0%, #0a1f44 100%);
+      background: linear-gradient(135deg, #161d26 0%, #1e2b38 100%);
       position: relative;
     }
+
     /* Harita Alanı */
     #map-container {
       width: 100%;
@@ -228,8 +232,9 @@
     #map {
       width: 100%;
       height: 100%;
-      background-color: #0e2740;
+      background-color: #0e1a24;
     }
+
     /* Bilgi Kartları Toggle Butonu */
     .toggle-info-cards {
       position: absolute;
@@ -242,6 +247,10 @@
       border-radius: 4px;
       padding: 6px 10px;
       cursor: pointer;
+      transition: background 0.3s;
+    }
+    .toggle-info-cards:hover {
+      background: rgba(20, 20, 20, 0.8);
     }
 
     /**********************************************************
@@ -270,7 +279,7 @@
       color: #f39c12;
     }
     #end-turn-btn {
-      background: linear-gradient(45deg, #1ab3a6, #4fd1c5);
+      background: linear-gradient(45deg, #16a085, #1abc9c);
       border: none;
       border-radius: 6px;
       font-size: 14px;
@@ -280,11 +289,11 @@
       transition: background 0.3s;
     }
     #end-turn-btn:hover {
-      background: linear-gradient(45deg, #4fd1c5, #1ab3a6);
+      background: linear-gradient(45deg, #1abc9c, #16a085);
     }
 
     /**********************************************************
-     * ALT BUTONLAR (CHAT, PACT, MARKET, vb.)
+     * ALT BİLDİRGELER (CHAT, PACT, MARKET, vb.) ve DİĞER İKONLAR
      **********************************************************/
     #bottom-icons {
       position: fixed;
@@ -300,7 +309,7 @@
       height: 50px;
       border: none;
       border-radius: 50%;
-      background: linear-gradient(45deg, #1ab3a6, #4fd1c5);
+      background: linear-gradient(45deg, #16a085, #1abc9c);
       color: #fff;
       font-size: 20px;
       cursor: pointer;
@@ -313,7 +322,7 @@
     }
     .bottom-icon-btn:hover {
       transform: scale(1.05);
-      background: linear-gradient(45deg, #4fd1c5, #1ab3a6);
+      background: linear-gradient(45deg, #1abc9c, #16a085);
     }
     /* Chat Badge (Bildirim sayısı) */
     .bottom-icon-btn[data-badge]:after {
@@ -321,8 +330,8 @@
       position: absolute;
       top: -5px;
       right: -5px;
-      background: red;
-      color: white;
+      background: #c0392b;
+      color: #fff;
       border-radius: 50%;
       min-width: 20px;
       min-height: 20px;
@@ -358,6 +367,7 @@
     .leaflet-tooltip {
       background: transparent;
       border: none;
+      font-family: 'Montserrat', sans-serif;
     }
     .country-popup-tooltip {
       background: rgba(0, 0, 0, 0.7);
@@ -371,155 +381,28 @@
     }
 
     /**********************************************************
-     * ORTAK POPUP STİLLERİ (GENİŞLETİLMİŞ, MODERNLEŞTİRİLMİŞ)
-     **********************************************************/
-    .popup-panel {
-      position: fixed;
-      width: 500px;        /* DAHA BÜYÜK */
-      max-height: 70%;     /* DAHA BÜYÜK, ekranda kaplamasın */
-      background: rgba(30, 30, 30, 0.95);
-      border: 2px solid #2ecc71;
-      border-radius: 12px;
-      display: none;
-      flex-direction: column;
-      z-index: 3002;
-      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.7);
-      animation: fadeInPopup 0.4s ease forwards;
-    }
-    @keyframes fadeInPopup {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    .popup-header {
-      background: #1e1e1e;
-      padding: 15px;
-      border-top-left-radius: 12px;
-      border-top-right-radius: 12px;
-      color: #4fd1c5;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .popup-header button {
-      background: transparent;
-      border: none;
-      color: #4fd1c5;
-      font-size: 24px;
-      cursor: pointer;
-    }
-    .popup-content {
-      padding: 15px;
-      background: rgba(0, 0, 0, 0.5);
-      color: #eee;
-      font-size: 14px;
-      overflow-y: auto;
-      flex: 1;
-    }
-    .popup-content h3 {
-      font-size: 16px;
-      color: #ccc;
-      margin-bottom: 8px;
-    }
-    .popup-content input[type="number"],
-    .popup-content input[type="text"],
-    .popup-content select {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 12px;
-      border: 1px solid #4fd1c5;
-      border-radius: 6px;
-      font-size: 14px;
-      color: #333;
-      outline: none;
-    }
-    .popup-content button {
-      width: 100%;
-      padding: 12px;
-      background: linear-gradient(45deg, #1ab3a6, #4fd1c5);
-      border: none;
-      border-radius: 6px;
-      font-size: 15px;
-      font-weight: bold;
-      color: #fff;
-      cursor: pointer;
-      transition: background 0.3s;
-      margin-bottom: 15px;
-    }
-    .popup-content button:hover {
-      background: linear-gradient(45deg, #4fd1c5, #1ab3a6);
-    }
-
-    /**********************************************************
-     * ASKER, BİNA, KAYNAK POPUP'LARI (Sağ Altta, Kaydırma)
-     **********************************************************/
-    /* Asker İşlemleri */
-    #military-popup {
-      bottom: 20px;
-      right: 20px; /* En alttaki */
-    }
-    /* Bina Kurma */
-    #building-popup {
-      bottom: 140px;
-      right: 20px; /* Asker pop-up'un üstünde */
-    }
-    /* Kaynak Gönderme */
-    #resource-popup {
-      bottom: 260px;
-      right: 20px;
-    }
-
-    /**********************************************************
-     * OYUNCU BİLGİLERİ POPUP (SOL ALTA ALINDI, DAHA BÜYÜK)
-     **********************************************************/
-    #players-popup {
-      left: 20px;
-      bottom: 20px;
-      right: auto; /* sağ konumunu devredışı */
-      width: 500px; /* Diğer popuplarla aynı genişlik */
-    }
-    #players-popup .popup-content .player-info {
-      background: rgba(0, 0, 0, 0.4);
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 6px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-      font-size: 14px;
-    }
-    #players-popup .popup-content .player-info p {
-      margin: 4px 0;
-      color: #ddd;
-    }
-
-    /**********************************************************
-     * CHAT POPUP (SAĞDA DAHA ÜSTTE, BÜYÜK HALDE)
+     * CHAT POPUP + ÖZEL MESAJ
      **********************************************************/
     .chat-popup {
       position: fixed;
-      bottom: 20px;
-      right: 540px; /* Asker popup'un yan tarafı - çakışmasın */
-      width: 500px;
-      max-height: 70%;
-      background: rgba(30, 30, 30, 0.95);
-      border: 2px solid #2ecc71;
-      border-radius: 12px;
+      bottom: 80px;
+      right: 20px;
+      width: 400px;
+      max-height: 600px;
+      background: rgba(15, 15, 25, 0.95);
+      border: 1px solid #444;
+      border-radius: 8px;
       display: none;
       flex-direction: column;
       z-index: 3001;
-      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.7);
-      animation: fadeInPopup 0.4s ease forwards;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
     }
     .chat-header {
-      background: #1e1e1e;
-      padding: 15px;
-      border-top-left-radius: 12px;
-      border-top-right-radius: 12px;
-      color: #4fd1c5;
+      background: rgba(0, 0, 0, 0.85);
+      padding: 10px;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+      color: #1abc9c;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -527,17 +410,18 @@
     .chat-header button {
       background: transparent;
       border: none;
-      color: #4fd1c5;
-      font-size: 24px;
+      color: #1abc9c;
+      font-size: 20px;
       cursor: pointer;
     }
     .chat-messages {
       flex: 1;
-      padding: 15px;
+      padding: 10px;
       overflow-y: auto;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.8);
       color: #eee;
       font-size: 14px;
+      font-family: 'Montserrat', sans-serif;
     }
     .chat-input-container {
       display: flex;
@@ -548,16 +432,21 @@
       padding: 10px;
       border: none;
       outline: none;
-      background: #2a2a2a;
+      background: #1f1f2f;
       color: #eee;
     }
     .chat-input-container button {
       padding: 10px;
-      background: linear-gradient(45deg, #1ab3a6, #4fd1c5);
+      background: linear-gradient(45deg, #16a085, #1abc9c);
       border: none;
       cursor: pointer;
       color: #fff;
+      transition: background 0.3s;
     }
+    .chat-input-container button:hover {
+      background: linear-gradient(45deg, #1abc9c, #16a085);
+    }
+    /* ÖZEL MESAJ ALANI */
     .chat-private-container {
       border-top: 1px solid #444;
       background: rgba(0, 0, 0, 0.75);
@@ -571,42 +460,45 @@
       padding: 8px;
       border: none;
       outline: none;
-      background: #2a2a2a;
+      background: #1f1f2f;
       color: #eee;
     }
     .chat-private-container button {
       padding: 8px;
-      background: linear-gradient(45deg, #1ab3a6, #4fd1c5);
+      background: linear-gradient(45deg, #16a085, #1abc9c);
       border: none;
       cursor: pointer;
       color: #fff;
       align-self: flex-end;
+      transition: background 0.3s;
+    }
+    .chat-private-container button:hover {
+      background: linear-gradient(45deg, #1abc9c, #16a085);
     }
 
     /**********************************************************
-     * PAKT POPUP (SAĞ ALTA, DAHA ÜSTTE, GENİŞ)
+     * PAKT POPUP
      **********************************************************/
     .pact-popup {
       position: fixed;
-      bottom: 380px;
+      bottom: 80px;
       right: 20px;
-      width: 500px;
-      max-height: 70%;
-      background: rgba(30, 30, 30, 0.95);
-      border: 2px solid #2ecc71;
-      border-radius: 12px;
+      width: 400px;
+      max-height: 600px;
+      background: rgba(15, 15, 25, 0.95);
+      border: 1px solid #444;
+      border-radius: 8px;
       display: none;
       flex-direction: column;
-      z-index: 3002;
-      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.7);
-      animation: fadeInPopup 0.4s ease forwards;
+      z-index: 3001;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
     }
     .pact-header {
-      background: #1e1e1e;
-      padding: 15px;
-      border-top-left-radius: 12px;
-      border-top-right-radius: 12px;
-      color: #4fd1c5;
+      background: rgba(0, 0, 0, 0.85);
+      padding: 10px;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+      color: #f1c40f;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -614,25 +506,25 @@
     .pact-header button {
       background: transparent;
       border: none;
-      color: #4fd1c5;
-      font-size: 24px;
+      color: #f1c40f;
+      font-size: 20px;
       cursor: pointer;
     }
     .pact-content {
-      padding: 15px;
-      background: rgba(0, 0, 0, 0.5);
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.8);
       color: #eee;
       font-size: 14px;
-      flex: 1;
-      overflow-y: auto;
     }
     #pact-offers-container {
       padding: 10px;
-      background: rgba(0, 0, 0, 0.3);
+      background: rgba(0, 0, 0, 0.5);
       color: #eee;
       font-size: 14px;
-      margin-top: 10px;
-      border-radius: 6px;
+    }
+    #pact-offers-container h3 {
+      color: #f1c40f;
+      margin-bottom: 10px;
     }
     .pact-offer-item {
       background: rgba(0, 0, 0, 0.4);
@@ -640,31 +532,54 @@
       margin-bottom: 10px;
       border-radius: 4px;
     }
+    .pact-offer-item button {
+      background: linear-gradient(45deg, #16a085, #1abc9c);
+      border: none;
+      color: #fff;
+      margin-right: 10px;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .pact-offer-item button:hover {
+      background: linear-gradient(45deg, #1abc9c, #16a085);
+    }
 
     /**********************************************************
-     * MARKET POPUP (SAĞ ALTA, DAHA YUKARIDA)
+     * TİCARET POPUP
      **********************************************************/
     .market-popup {
       position: fixed;
-      bottom: 500px;
+      bottom: 80px;
       right: 20px;
       width: 500px;
-      max-height: 70%;
-      background: rgba(30, 30, 30, 0.95);
+      max-height: 650px;
+      background: rgba(0, 0, 0, 0.95);
       border: 2px solid #2ecc71;
       border-radius: 12px;
       display: none;
       flex-direction: column;
-      z-index: 3003;
+      z-index: 3002;
       box-shadow: 0 6px 15px rgba(0, 0, 0, 0.7);
-      animation: fadeInPopup 0.4s ease forwards;
+      animation: fadeInMarket 0.5s ease forwards;
+    }
+    @keyframes fadeInMarket {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
     .market-header {
-      background: #1e1e1e;
+      background: linear-gradient(45deg, #16a085, #1abc9c);
       padding: 15px;
-      border-top-left-radius: 12px;
-      border-top-right-radius: 12px;
-      color: #4fd1c5;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+      color: #fff;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -672,7 +587,7 @@
     .market-header button {
       background: transparent;
       border: none;
-      color: #4fd1c5;
+      color: #fff;
       font-size: 24px;
       cursor: pointer;
     }
@@ -681,7 +596,6 @@
       padding: 15px;
       overflow-y: auto;
       color: #eee;
-      background: rgba(0, 0, 0, 0.5);
     }
     .market-section {
       margin-bottom: 20px;
@@ -698,6 +612,126 @@
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
       display: flex;
       flex-direction: column;
+    }
+    .offer-item button {
+      background: linear-gradient(45deg, #16a085, #1abc9c);
+      border: none;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background 0.3s;
+      width: fit-content;
+    }
+    .offer-item button:hover {
+      background: linear-gradient(45deg, #1abc9c, #16a085);
+    }
+
+    /**********************************************************
+     * YENİ POPUP'LAR (ASKER, BİNA, KAYNAK, OYUNCULAR)
+     **********************************************************/
+    /* Genel Popup Stili */
+    .popup-panel {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      width: 400px;
+      max-height: 600px;
+      background: rgba(15, 15, 25, 0.95);
+      border: 1px solid #444;
+      border-radius: 8px;
+      display: none;
+      flex-direction: column;
+      z-index: 3002;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
+    .popup-header {
+      background: rgba(0, 0, 0, 0.85);
+      padding: 10px;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+      color: #ecf0f1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .popup-header button {
+      background: transparent;
+      border: none;
+      color: #ecf0f1;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    .popup-content {
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #eee;
+      font-size: 14px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .popup-content h3 {
+      font-size: 16px;
+      color: #ccc;
+      margin-bottom: 8px;
+    }
+    .popup-content input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 8px;
+      border: 1px solid #8e44ad;
+      border-radius: 4px;
+      font-size: 14px;
+      color: #333;
+      transition: box-shadow 0.3s;
+    }
+    .popup-content input[type="number"]:focus {
+      box-shadow: 0 0 6px #8e44ad;
+      outline: none;
+    }
+    .popup-content select {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 8px;
+      border: 1px solid #8e44ad;
+      border-radius: 4px;
+      font-size: 14px;
+      color: #333;
+      transition: box-shadow 0.3s;
+    }
+    .popup-content select:focus {
+      box-shadow: 0 0 6px #8e44ad;
+      outline: none;
+    }
+    .popup-content button {
+      width: 100%;
+      padding: 10px;
+      background: linear-gradient(45deg, #9b59b6, #8e44ad);
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.3s;
+      margin-bottom: 15px;
+    }
+    .popup-content button:hover {
+      background: linear-gradient(45deg, #8e44ad, #9b59b6);
+    }
+
+    /* Oyuncu Bilgileri Pop-up */
+    #players-popup .popup-content .player-info {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      font-size: 14px;
+    }
+    #players-popup .popup-content .player-info p {
+      margin: 4px 0;
+      color: #ddd;
     }
 
     /**********************************************************
@@ -748,22 +782,19 @@
         padding: 8px 12px;
       }
 
-      /* POPUP'LAR GENEL (daha esnek) */
+      /* POPUP'LAR GENEL */
       .popup-panel,
       .chat-popup,
       .pact-popup,
       .market-popup {
         width: 90% !important;
-        max-height: 60%;
-        left: 5% !important;
-        right: auto !important;
-        bottom: 90px; /* ikona takılmaması için biraz yukarı */
+        right: 5% !important;
+        bottom: 90px; /* İkona takılmaması için biraz yukarı */
       }
-      /* Oyuncu Popup da mobilde benzer şekilde solda kalsın */
-      #players-popup {
+
+      /* MARKET POPUP GENİŞLİĞİ */
+      .market-popup {
         width: 90% !important;
-        left: 5% !important;
-        bottom: 90px !important;
       }
     }
   </style>
@@ -978,7 +1009,7 @@
     </div>
   </div>
 
-  <!-- ===================== OYUNCULAR POPUP (SOLDA) ===================== -->
+  <!-- ===================== OYUNCULAR POPUP ===================== -->
   <div id="players-popup" class="popup-panel">
     <div class="popup-header">
       <span>Oyuncu Bilgileri</span>
@@ -989,7 +1020,7 @@
     </div>
   </div>
 
-  <!-- ===================== CHAT POPUP ===================== -->
+  <!-- ===================== CHAT POPUP (GENEL + ÖZEL) ===================== -->
   <div id="chat-popup" class="chat-popup">
     <div class="chat-header">
       <span>Sohbet</span>
@@ -1026,10 +1057,10 @@
       <input type="number" id="pact-cost" placeholder="Ücret" min="1"/>
       <select id="pact-recipient"></select>
       <button id="send-pact-btn">Teklif Gönder</button>
-      <div id="pact-offers-container">
-        <h3>Gelen Pakt Teklifleri</h3>
-        <div id="pact-offers-list"></div>
-      </div>
+    </div>
+    <div id="pact-offers-container">
+      <h3>Gelen Anlaşmazlık Pakti Teklifleri</h3>
+      <div id="pact-offers-list"></div>
     </div>
   </div>
 
@@ -1049,7 +1080,7 @@
           <option value="factory">Fabrika</option>
           <option value="refinery">Rafine</option>
         </select>
-        <select id="trade-country" style="display:none;"></select>
+        <select id="trade-country" style="display:none;"></select> <!-- itemType != petrol ise görün -->
         <input type="number" id="trade-quantity" placeholder="Adet/Varil" min="1"/>
         <input type="number" id="trade-price" placeholder="Birim Fiyat ($)" min="1"/>
         <button id="create-trade-offer-btn">Teklifi Yükle</button>
@@ -1070,7 +1101,7 @@
     crossorigin=""
   ></script>
 
-  <!-- ANA OYUN KODLARI (DEĞİŞTİRİLMEDİ, SADECE STİL GÜNCELLENDİ) -->
+  <!-- === OYUNUN TÜM MANTIĞI (JS) BURADA. KOD MANTIĞI DEĞİŞMEDİ, TASARIM SADECE YENİLENDİ === -->
   <script>
     /*****************************************************************
      * Firebase Başlatma
@@ -1100,10 +1131,16 @@
     const availableColors = ["red", "blue", "green", "yellow", "purple"];
     let localPlayerColor = null;
     let chatListenerAdded = false;
-    let infoCardsPermanent = false; // Bilgi kartları sabit görünüm
-    let unreadMessages = 0; // Chat bildirim sayısı
-    let chatOpen = false;  // Chat açık mı?
+    // Bilgi kartları sabit görünüm mü?
+    let infoCardsPermanent = false;
+    // Chat bildirim sayısı
+    let unreadMessages = 0;
+    let chatOpen = false;
 
+    /**
+     * Bildirimi sadece yerel olarak gösterir (tek seferlik).
+     * Artık global bildirimi "broadcastNotification" ile yapacağız.
+     */
     function showNotification(message, duration = 3000) {
       console.log("Local Notification:", message);
       const existing = document.getElementById("notification-area");
@@ -1120,6 +1157,10 @@
       }, duration + 800);
     }
 
+    /**
+     * Tüm oyuncuların görmesi için Firebase'e bir bildirim ekler.
+     * Bu kayıt "notifications" altına yazılır ve her client "child_added" ile gösterir.
+     */
     function broadcastNotification(text) {
       if (!roomRef) return;
       roomRef.child("notifications").push({
@@ -1128,6 +1169,10 @@
       });
     }
 
+    /**
+     * Global bildirimleri ekrana yansıtma (6 sn boyunca)
+     * Bu fonksiyon, 'notifications' child_added eventinde tetiklenir.
+     */
     function displayGlobalNotification(text) {
       const nArea = document.getElementById("notification-area");
       if (!nArea) return;
@@ -1135,6 +1180,8 @@
       item.className = "notification-item";
       item.textContent = text;
       nArea.appendChild(item);
+
+      // 6 saniye sonunda DOM'dan sil
       setTimeout(() => {
         if (nArea.contains(item)) {
           nArea.removeChild(item);
@@ -1171,8 +1218,11 @@
       return false;
     }
 
+    /*****************************************************************
+     * DOMContentLoaded – Lobi Girişi ve Otomatik Bağlanma
+     *****************************************************************/
     document.addEventListener("DOMContentLoaded", () => {
-      // Local Player ID
+      // Player ID (localStorage)
       if (!localStorage.getItem("playerId")) {
         localStorage.setItem("playerId", Math.random().toString(36).substr(2, 9));
       }
@@ -1186,9 +1236,7 @@
         btn.style.background = color;
         btn.dataset.color = color;
         btn.addEventListener("click", function () {
-          creatorColorDiv
-            .querySelectorAll(".global-color-option")
-            .forEach((s) => s.classList.remove("selected"));
+          creatorColorDiv.querySelectorAll(".global-color-option").forEach((s) => s.classList.remove("selected"));
           btn.classList.add("selected");
           localPlayerColor = color;
         });
@@ -1203,9 +1251,7 @@
         btn.style.background = color;
         btn.dataset.color = color;
         btn.addEventListener("click", function () {
-          joinColorDiv
-            .querySelectorAll(".global-color-option")
-            .forEach((s) => s.classList.remove("selected"));
+          joinColorDiv.querySelectorAll(".global-color-option").forEach((s) => s.classList.remove("selected"));
           btn.classList.add("selected");
           localPlayerColor = color;
         });
@@ -1366,6 +1412,9 @@
       }
     }
 
+    /*****************************************************************
+     * GeoJSON ve Ülke Verilerini Yükleme (Sadece Oda Kurucusu)
+     *****************************************************************/
     function loadAndInitializeGeoJson() {
       fetch("https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json")
         .then((response) => response.json())
@@ -1408,6 +1457,9 @@
         });
     }
 
+    /*****************************************************************
+     * Oda Verilerini Dinleme & UI Güncelleme
+     *****************************************************************/
     function joinRoomAndListen() {
       if (!roomRef) return;
 
@@ -1416,7 +1468,7 @@
         roomData = snapshot.val();
         updateGameUI();
         displayPendingPactOffers();
-        displayTradeOffers();
+        displayTradeOffers(); // Ticaret güncellemesi
       });
 
       // Chat (public + private) dinleme
@@ -1443,7 +1495,7 @@
       // Tur
       document.getElementById("current-round").textContent = roomData.round || 1;
 
-      // Sıra
+      // Sıra (Oyuncu)
       if (roomData.playerOrder && roomData.players) {
         const currentTurnIndex = roomData.currentTurnIndex || 0;
         const currentPlayerId = roomData.playerOrder[currentTurnIndex];
@@ -1453,7 +1505,7 @@
         }
       }
 
-      // Oyuncu Listesi
+      // Oyuncu Listesi (Players Popup)
       const playersInfoDiv = document.getElementById("players-info");
       if (playersInfoDiv) {
         playersInfoDiv.innerHTML = "";
@@ -1495,8 +1547,8 @@
 
       updateRecipientSelects();
       updatePactRecipientSelect();
-      updateTradeCountrySelect();
-      updatePrivateMessageRecipientSelect();
+      updateTradeCountrySelect(); // Ticaret ülke seçimi
+      updatePrivateMessageRecipientSelect(); // Özel mesaj
     }
 
     function getCountryPopupContent(countryName, country) {
@@ -1626,7 +1678,7 @@
     }
 
     /*****************************************************************
-     * Ticaret için Ülke Seçimi
+     * Ticaret için Ülke Seçimi (Teklif Oluştururken)
      *****************************************************************/
     function updateTradeCountrySelect() {
       const tradeCountrySelect = document.getElementById("trade-country");
@@ -1681,6 +1733,7 @@
       };
       pactOfferRef.set(newOffer);
 
+      // Chat'e de bilgi gönder
       const chatMessage = {
         sender: senderData.name,
         senderId: currentPlayerId,
@@ -1699,6 +1752,7 @@
       };
       roomRef.child("chat").push(chatMessage);
 
+      // Global bildirim
       broadcastNotification(
         "Pakt Teklifi: " + senderData.name + " → " + roomData.players[recipient].name
       );
@@ -1778,6 +1832,8 @@
       };
 
       roomRef.update(updates);
+
+      // Global bildirim
       broadcastNotification(
         "Pakt kabul edildi: " + senderData.name + " & " + recipientData.name
       );
@@ -1790,7 +1846,7 @@
 
       roomRef.child("pactOffers").child(offerId).update({ status: "rejected" });
       broadcastNotification(
-        "Pakt reddedildi: " + offer.senderName + " → " + roomData.players[offer.recipientId].name
+        "Pakt reddedildi: " + offer.senderName + " (Gönderen) → " + roomData.players[offer.recipientId].name
       );
       showNotification("Saldırmazlık pakti teklifi reddedildi.");
     }
@@ -1832,7 +1888,7 @@
       const updates = {};
       let attackResult = "";
       if (target.owner === currentPlayerId) {
-        // Kendi ülkesine asker ekleme
+        // Kendi ülkesine asker takviyesi
         updates["countryData/" + selectedCountry + "/soldiers"] =
           target.soldiers + soldiersToSend;
         updates["players/" + currentPlayerId + "/soldiers"] =
@@ -2200,7 +2256,9 @@
       const chatPopup = document.getElementById("chat-popup");
       chatPopup.style.display = show ? "flex" : "none";
       chatOpen = show;
+
       if (chatOpen) {
+        // Okuduğumuzda bildirim 0'a düşsün
         unreadMessages = 0;
         updateChatBadge();
       }
@@ -2236,7 +2294,7 @@
         sender: senderName,
         senderId: localPlayerId,
         text: messageText,
-        recipientId: "",
+        recipientId: "", // Boş ise herkese (public)
         timestamp: firebase.database.ServerValue.TIMESTAMP
       };
       roomRef.child("chat").push(chatMessage, (error) => {
@@ -2246,6 +2304,9 @@
       });
     }
 
+    /**
+     * Özel mesaj gönderme
+     */
     document.getElementById("send-private-message-btn").addEventListener("click", () => {
       const privateInput = document.getElementById("private-message-input");
       const recipientSelect = document.getElementById("private-message-recipient");
@@ -2260,7 +2321,7 @@
         sender: senderName,
         senderId: localPlayerId,
         text: msg,
-        recipientId: recipientId,
+        recipientId: recipientId, // Özel alıcı
         timestamp: firebase.database.ServerValue.TIMESTAMP
       };
       roomRef.child("chat").push(chatMessage, (error) => {
@@ -2272,31 +2333,34 @@
     });
 
     function appendChatMessage(message) {
+      // Eğer mesaj private ise, sadece alıcı veya gönderen görebilir
       if (message.recipientId && message.recipientId !== "") {
-        // Özel
+        // Özel Mesaj
         if (message.senderId !== localPlayerId && message.recipientId !== localPlayerId) {
+          // Bana değilse göstermeyelim
           return;
         }
       }
+      // Chat ekranına ekle
       const chatMessagesDiv = document.getElementById("chat-messages");
       const messageDiv = document.createElement("div");
       if (message.recipientId && message.recipientId !== "") {
-        // Private
+        // Private mesaj
         const targetName = (roomData.players[message.recipientId] || {}).name || "Bilinmeyen";
         if (message.senderId === localPlayerId) {
           messageDiv.innerHTML = "<strong>[PM to " + targetName + "]:</strong> " + message.text;
         } else {
           messageDiv.innerHTML = "<strong>[PM from " + message.sender + "]:</strong> " + message.text;
         }
-        messageDiv.style.color = "#f39c12";
+        messageDiv.style.color = "#f39c12"; // turuncu tonda
       } else {
-        // Public
+        // Public mesaj
         messageDiv.textContent = message.sender + ": " + message.text;
       }
       chatMessagesDiv.appendChild(messageDiv);
       chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
 
-      // Bildirim
+      // Eğer chat kapalıysa bildirim sayısını arttır
       if (!chatOpen && message.senderId !== localPlayerId) {
         unreadMessages++;
         updateChatBadge();
@@ -2361,6 +2425,7 @@
         return;
       }
 
+      // Satıcının kaynak kontrolü
       const seller = roomData.players[localPlayerId];
       if (itemType === "petrol") {
         if (seller.petrol < quantity) {
@@ -2368,6 +2433,11 @@
           return;
         }
       } else {
+        // Kışla / Fabrika / Rafine
+        if (!countryName) {
+          showNotification("Satmak istediğiniz ülkeyi seçin!");
+          return;
+        }
         const c = roomData.countryData[countryName];
         if (!c || c.owner !== localPlayerId) {
           showNotification("Bu ülke size ait değil!");
@@ -2387,6 +2457,7 @@
         }
       }
 
+      // tradeOffers altına yaz
       const tradeOfferRef = roomRef.child("tradeOffers").push();
       const newOffer = {
         offerId: tradeOfferRef.key,
@@ -2436,7 +2507,7 @@
             acceptBtn.addEventListener("click", () => acceptTradeOffer(offer.offerId));
             offerDiv.appendChild(acceptBtn);
           } else {
-            // Kendi teklifini iptal
+            // Kendi teklifini iptal edebilsin
             const cancelBtn = document.createElement("button");
             cancelBtn.style.background = "linear-gradient(45deg, #c0392b, #e74c3c)";
             cancelBtn.textContent = "İptal";
@@ -2470,6 +2541,7 @@
         return;
       }
 
+      // Satıcının gerçekten bu kaynağı var mı?
       if (offer.itemType === "petrol") {
         if (seller.petrol < offer.quantity) {
           showNotification("Satıcının yeterli petrolü kalmadı!");
@@ -2507,6 +2579,7 @@
         } else if (offer.itemType === "refinery") {
           updates[`countryData/${offer.countryName}/refineries`] = c.refineries - offer.quantity;
         }
+        // Alıcıya bina eklenmiyor (basit model)
       }
       updates[`tradeOffers/${offerId}/status`] = "completed";
 
@@ -2516,6 +2589,7 @@
             "Ticaret Onaylandı: " + seller.name + " -> " + buyer.name + ` (${offer.quantity} adet "${offer.itemType}")`
           );
           showNotification("Ticaret başarıyla gerçekleşti!");
+          // Chat'e de mesaj
           const chatMessage = {
             sender: "Sistem",
             senderId: "system",
@@ -2557,6 +2631,7 @@
     document.getElementById("send-petrol-btn").addEventListener("click", sendPetrol);
     document.getElementById("end-turn-btn").addEventListener("click", nextTurn);
 
+    // Odadan Çık
     document.getElementById("exit-room-btn").addEventListener("click", () => {
       document.getElementById("game-container").style.display = "none";
       document.getElementById("lobby-container").style.display = "block";
@@ -2579,7 +2654,7 @@
       document.getElementById("building-popup").style.display = "none";
     });
 
-    // Popup açma-kapama (Kaynak)
+    // Popup açma-kapama (Kaynak Gönderme)
     document.getElementById("open-resource-btn").addEventListener("click", () => {
       document.getElementById("resource-popup").style.display = "flex";
     });
@@ -2595,12 +2670,16 @@
       document.getElementById("players-popup").style.display = "none";
     });
 
-    // Chat popup (üstte toggleChat var)
+    // Chat popup (Açma-kapama) → toggleChat fonksiyonu yukarıda
 
+    /*****************************************************************
+     * HARİTA (Leaflet) KURULUMU
+     *****************************************************************/
     function initializeMap() {
       if (map) return;
       map = L.map("map").setView([20, 0], 2);
 
+      // Esri World Ocean
       L.tileLayer(
         "https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}",
         {
