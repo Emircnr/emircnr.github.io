@@ -666,10 +666,6 @@
     }
 
     /**********************************************************
-     * YENİ POPUP'LAR (ASKER, BİNA, KAYNAK)
-     **********************************************************/
-
-    /**********************************************************
      * OYUNCULAR POPUP (SOL TARAFTA AÇILSIN)
      **********************************************************/
     #players-popup {
@@ -795,9 +791,9 @@
       <input
         type="number"
         id="max-players"
-        placeholder="Oyuncu Sayısı (2-5)"
+        placeholder="Oyuncu Sayısı (2-8)"
         min="2"
-        max="5"
+        max="8"
       />
       <button id="create-room-btn">Oda Oluştur</button>
     </div>
@@ -1305,8 +1301,8 @@
           showNotification("Lütfen bir renk seçin!");
           return;
         }
-        if (isNaN(maxPlayers) || maxPlayers < 2 || maxPlayers > 5) {
-          showNotification("Oyuncu sayısı 2 ile 5 arasında olmalıdır!");
+        if (isNaN(maxPlayers) || maxPlayers < 2 || maxPlayers > 8) {
+          showNotification("Oyuncu sayısı 2 ile 8 arasında olmalıdır!");
           return;
         }
 
@@ -2024,7 +2020,7 @@
         showNotification("Geçerli bir asker sayısı girin!");
         return;
       }
-      // 1 Asker = 10$ + 25 Buğday (güncelleme yapıldı)
+      // 1 Asker = 10$ + 25 Buğday
       const costMoney = 10 * count;
       const costWheat = 25 * count;
 
@@ -2073,7 +2069,7 @@
         showNotification("Bu ülke size ait değil!");
         return;
       }
-      // 140$ + 40 varil + 90 buğday
+      // Kışla = 140$ + 40 varil + 90 buğday
       const totalMoney = 140 * quantity;
       const totalPetrol = 40 * quantity;
       const totalWheat = 90 * quantity;
@@ -2124,6 +2120,7 @@
         showNotification("Bu ülke size ait değil!");
         return;
       }
+      // Fabrika = 250$ + 90 varil
       const totalMoney = 250 * quantity;
       const totalPetrol = 90 * quantity;
 
@@ -2168,6 +2165,7 @@
         showNotification("Bu ülkede petrol üretim kapasitesi yok!");
         return;
       }
+      // Rafine = 800$ + 250 varil
       const totalMoney = 800 * quantity;
       const totalPetrol = 250 * quantity;
       if (currentPlayerData.money < totalMoney) {
@@ -2210,7 +2208,7 @@
         showNotification("Bu ülkede buğday üretim kapasitesi yok!");
         return;
       }
-      // 200$ + 100 Varil Petrol
+      // Değirmen = 200$ + 100 Varil Petrol
       const totalMoney = 200 * quantity;
       const totalPetrol = 100 * quantity;
       if (currentPlayerData.money < totalMoney) {
