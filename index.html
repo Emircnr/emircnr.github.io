@@ -781,8 +781,8 @@
       #players-popup {
         width: 90% !important;
         right: 5% !important;
-        left: auto !important;  /* Mobilde yine sağda kalsın */
-        bottom: 90px; /* İkona takılmaması için biraz yukarı */
+        left: auto !important;
+        bottom: 90px;
       }
     }
   </style>
@@ -899,7 +899,7 @@
       </button>
 
       <h3>Asker Satın Alma</h3>
-      <p style="font-size:14px; color:#ccc;">(1 Asker = 10$ + 15 Buğday)</p>
+      <p style="font-size:14px; color:#ccc;">(1 Asker = 10$ + 25 Buğday)</p>
       <input
         type="number"
         id="soldiers-to-buy"
@@ -931,10 +931,11 @@
     </div>
     <div class="popup-content">
       <h3>Kışla Kur</h3>
+      <p style="font-size:14px; color:#ccc;">(140$ + 40 varil + 90 Buğday / adet)</p>
       <input
         type="number"
         id="barracks-quantity"
-        placeholder="Adet (130$ + 40 varil / adet)"
+        placeholder="Adet"
         min="1"
       />
       <button id="buy-barracks-btn">
@@ -1072,7 +1073,7 @@
       <button id="send-pact-btn">Teklif Gönder</button>
     </div>
     <div id="pact-offers-container">
-      <h3>Gelen Anlaşmazlık Pakti Teklifleri</h3>
+      <h3>Gelen Saldırmazlık Pakti Teklifleri</h3>
       <div id="pact-offers-list"></div>
     </div>
   </div>
@@ -1512,7 +1513,7 @@
               factories: 0,
               refineries: 0,
               oilProduction: oilProduction,
-              wheatProduction: wheatProduction, // Buğday
+              wheatProduction: wheatProduction,
               grainMills: 0
             };
           });
@@ -1850,6 +1851,7 @@
       let hasOffer = false;
 
       Object.values(roomData.pactOffers).forEach((offer) => {
+        // Karşı taraf kendisine gelen teklifleri görecek
         if (offer.recipientId === localPlayerId && offer.status === "pending") {
           hasOffer = true;
           const div = document.createElement("div");
@@ -1938,12 +1940,6 @@
         showNotification("Sıranız değil!");
         return;
       }
-      // İlk 3 tur kimse kimseye saldıramaz:
-      if (roomData.round < 4) {
-        showNotification("İlk 3 tur saldırı yapılamaz!");
-        return;
-      }
-
       if (!selectedCountry) {
         showNotification("Bir ülke seçin!");
         return;
@@ -1963,6 +1959,16 @@
       const target = roomData.countryData[selectedCountry];
       if (!target) return;
 
+      // İlk 3 tur sadece boş topraklara (owner=null) saldırılabilir
+      if (roomData.round < 4) {
+        // Eğer ülkenin bir sahibi varsa (ve bu sahibi ben değilsem) saldırı yapılamaz
+        if (target.owner !== null && target.owner !== currentPlayerId) {
+          showNotification("İlk 3 tur yalnızca boş topraklara saldırılabilir!");
+          return;
+        }
+      }
+
+      // Eğer ülkenin başka bir sahibi varsa ve pakt varsa kontrol et
       if (target.owner && target.owner !== currentPlayerId) {
         if (hasActivePact(currentPlayerId, target.owner)) {
           showNotification("Bu oyuncu ile saldırmazlık paktınız var!");
@@ -2024,9 +2030,9 @@
         showNotification("Geçerli bir asker sayısı girin!");
         return;
       }
-      // 1 Asker = 10$ + 15 Buğday
+      // 1 Asker = 10$ + 25 Buğday
       const costMoney = 10 * count;
-      const costWheat = 15 * count;
+      const costWheat = 25 * count;
 
       const currentTurnIndex = roomData.currentTurnIndex || 0;
       const currentPlayerId = roomData.playerOrder[currentTurnIndex];
@@ -2073,8 +2079,11 @@
         showNotification("Bu ülke size ait değil!");
         return;
       }
-      const totalMoney = 130 * quantity;
+      // Kışla fiyatı: 140$ + 40 varil + 90 buğday
+      const totalMoney = 140 * quantity;
       const totalPetrol = 40 * quantity;
+      const totalWheat = 90 * quantity;
+
       if (currentPlayerData.money < totalMoney) {
         showNotification("Yeterli paranız yok!");
         return;
@@ -2083,9 +2092,15 @@
         showNotification("Yeterli petrolünüz yok!");
         return;
       }
+      if (currentPlayerData.wheat < totalWheat) {
+        showNotification("Yeterli buğdayınız yok!");
+        return;
+      }
+
       const updates = {};
       updates["players/" + currentPlayerId + "/money"] = currentPlayerData.money - totalMoney;
       updates["players/" + currentPlayerId + "/petrol"] = currentPlayerData.petrol - totalPetrol;
+      updates["players/" + currentPlayerId + "/wheat"] = currentPlayerData.wheat - totalWheat;
       updates["countryData/" + selectedCountry + "/barracksCount"] =
         (target.barracksCount || 0) + quantity;
       roomRef.update(updates);
@@ -2601,7 +2616,7 @@
     const tradeCountrySelect = document.getElementById("trade-country");
     itemTypeSelect.addEventListener("change", () => {
       const v = itemTypeSelect.value;
-      // Bina veya benzeri satacaksa ülke seçimi açık
+      // Bina veya benzeri satacaksa ülke seçimi göster
       if (v === "petrol" || v === "wheat") {
         tradeCountrySelect.style.display = "none";
       } else {
@@ -2642,7 +2657,7 @@
       } else if (itemType === "wheat") {
         if (seller.wheat >= quantity) enough = true;
       } else {
-        // bina satışı => ülkeName + binaya bak
+        // bina satışı => ilgili ülkede yeterli bina var mı?
         if (!countryName) {
           showNotification("Satmak istediğiniz ülkeyi seçin!");
           return;
@@ -2682,7 +2697,7 @@
         quantity: quantity,
         price: price,
         status: "pending",
-        embargo: embargoList // Bu listeye ekli oyuncular satın alamayacak
+        embargo: embargoList
       };
       tradeOfferRef.set(newOffer);
       broadcastNotification(`${seller.name} bir ticaret teklifi oluşturdu (${itemType}, adet: ${quantity}, fiyat: ${price}$)`);
@@ -2698,6 +2713,11 @@
       const offersArray = Object.values(roomData.tradeOffers);
       offersArray.forEach((offer) => {
         if (offer.status === "pending") {
+          // Eğer ambargo listesinde isek, hiç göstermeyelim
+          if (offer.embargo && offer.embargo.includes(localPlayerId)) {
+            return;
+          }
+
           const offerDiv = document.createElement("div");
           offerDiv.className = "offer-item";
 
@@ -2724,17 +2744,12 @@
 
           // Kısmi satın alma alanı
           if (offer.sellerId !== localPlayerId) {
-            // Ambargo kontrolü
-            if (offer.embargo && offer.embargo.includes(localPlayerId)) {
-              html += `<p style="color:red;">Bu teklife erişiminiz yok (Ambargo)</p>`;
-            } else {
-              html += '<label style="font-size:14px;color:#ccc;">Almak istediğiniz miktar:</label>';
-              html += `<input type="number" class="partial-buy-quantity" placeholder="Miktar" min="1" max="${offer.quantity}"/>`;
-              html += '<button class="partial-buy-btn">Satın Al</button>';
-            }
+            html += '<label style="font-size:14px;color:#ccc;">Almak istediğiniz miktar:</label>';
+            html += `<input type="number" class="partial-buy-quantity" placeholder="Miktar" min="1" max="${offer.quantity}"/>`;
+            html += '<button class="partial-buy-btn">Satın Al</button>';
           } else {
             // Kendi teklifini iptal butonu
-            html += `<button class="cancel-offer-btn" style="background:linear-gradient(45deg, #c0392b, #e74c3c);">İptal</button>`;
+            html += `<button class="cancel-offer-btn" style="background:linear-gradient(45deg, #c0392b, #e74c3c);margin-top:10px;">İptal</button>`;
           }
           offerDiv.innerHTML = html;
 
@@ -2794,7 +2809,7 @@
         return;
       }
 
-      // Satıcının hala kaynağı var mı?
+      // Satıcının hala kaynağı/binası var mı kontrol
       let hasEnough = false;
       let updates = {};
 
@@ -2811,7 +2826,7 @@
           updates[`players/${localPlayerId}/wheat`] = buyer.wheat + buyAmount;
         }
       } else {
-        // bina satışı -> check country's building
+        // bina satışı -> country's building
         const c = roomData.countryData[offer.countryName];
         if (!c || c.owner !== offer.sellerId) {
           showNotification("Satıcının bu ülke üzerindeki hakkı yok!");
