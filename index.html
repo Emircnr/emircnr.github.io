@@ -373,9 +373,6 @@
 
     /**********************************************************
      * GENEL POPUP TASARIMI (Modern & Daha Büyük)
-     * - Kavisli kenarlar
-     * - Hafif bulanık arka plan (glassmorphism)
-     * - Geniş boyut, daha büyük başlık
      **********************************************************/
     .modern-popup {
       position: fixed;
@@ -413,7 +410,7 @@
       justify-content: space-between;
       align-items: center;
       font-size: 18px;
-      cursor: pointer; /* İkinci tıklamada kapatma için */
+      cursor: pointer; /* 2. tık kapatma */
     }
     .modern-popup .popup-header button {
       background: transparent;
@@ -462,7 +459,7 @@
     }
 
     /**********************************************************
-     * CHAT POPUP (GENEL + ÖZEL) => .chat-popup .modern-popup
+     * CHAT POPUP (GENEL + ÖZEL)
      **********************************************************/
     .chat-popup {
       width: 450px;
@@ -667,11 +664,6 @@
       display: flex;
       flex-direction: column;
     }
-
-    /**********************************************************
-     * YENİ POPUP'LAR (ASKER, BİNA, KAYNAK)
-     **********************************************************/
-    /* Asker, Bina, Kaynak vb. popup'lar => .modern-popup */
 
     /**********************************************************
      * OYUNCULAR POPUP (SOL TARAFTA AÇILSIN)
@@ -1179,9 +1171,6 @@
       "market": false
     };
 
-    /**
-     * Bildirimi sadece yerel olarak gösterir (tek seferlik).
-     */
     function showNotification(message, duration = 3000) {
       console.log("Local Notification:", message);
       const existing = document.getElementById("notification-area");
@@ -1198,9 +1187,6 @@
       }, duration + 800);
     }
 
-    /**
-     * Firebase'e bir bildirim ekler (tüm oyuncular görsün).
-     */
     function broadcastNotification(text) {
       if (!roomRef) return;
       roomRef.child("notifications").push({
@@ -1209,9 +1195,6 @@
       });
     }
 
-    /**
-     * Global bildirimleri ekrana yansıtma (6 sn)
-     */
     function displayGlobalNotification(text) {
       const nArea = document.getElementById("notification-area");
       if (!nArea) return;
@@ -1336,7 +1319,7 @@
           soldiers: 0,
           countries: [],
           petrol: 0,
-          wheat: 400, // Oyuncuların başlangıç buğdayı 400
+          wheat: 400, // Oyuncu başlangıç buğdayı = 400
           joinedAt: firebase.database.ServerValue.TIMESTAMP
         };
 
@@ -1398,7 +1381,7 @@
             soldiers: 0,
             countries: [],
             petrol: 0,
-            wheat: 400, // Oyuncu katıldığında 400 buğday
+            wheat: 400, // Oyuncu başlangıç buğdayı
             joinedAt: firebase.database.ServerValue.TIMESTAMP
           };
           if (!room.playerOrder) room.playerOrder = [];
@@ -1499,7 +1482,6 @@
 
             let wheatProduction = 0;
             if (wheatIndexes.includes(feature.properties._index)) {
-              // 200 - 700
               wheatProduction = Math.floor(Math.random() * (700 - 200 + 1)) + 200;
             }
 
@@ -1811,7 +1793,7 @@
       };
       pactOfferRef.set(newOffer);
 
-      // Chat'e de bilgi gönder
+      // Chat'e bilgi
       const chatMessage = {
         sender: senderData.name,
         senderId: currentPlayerId,
@@ -1937,9 +1919,10 @@
         showNotification("Sıranız değil!");
         return;
       }
-      // İlk 3 tur saldırı yasağı
-      if ((roomData.round || 1) <= 3) {
-        showNotification("İlk 3 tur kimseye saldıramazsınız!");
+
+      // **İlk 3 tur saldırı yasak**:
+      if (roomData.round <= 3) {
+        showNotification("İlk 3 tur saldırı yapılamaz!");
         return;
       }
 
@@ -2440,7 +2423,6 @@
       }
     }
     document.getElementById("open-chat-btn").addEventListener("click", () => {
-      // İkinci kez tıklama -> Kapat
       popupStates.chat = !popupStates.chat;
       toggleChat(popupStates.chat);
     });
@@ -2480,7 +2462,7 @@
         sender: senderName,
         senderId: localPlayerId,
         text: messageText,
-        recipientId: "", // herkese (public)
+        recipientId: "",
         timestamp: firebase.database.ServerValue.TIMESTAMP
       };
       roomRef.child("chat").push(chatMessage, (error) => {
@@ -2516,13 +2498,12 @@
     });
 
     function appendChatMessage(message) {
-      // Eğer mesaj private ise, sadece alıcı veya gönderen görebilir
+      // Özel mesaj
       if (message.recipientId && message.recipientId !== "") {
         if (message.senderId !== localPlayerId && message.recipientId !== localPlayerId) {
           return;
         }
       }
-      // Chat ekranına ekle
       const chatMessagesDiv = document.getElementById("chat-messages");
       const messageDiv = document.createElement("div");
       if (message.recipientId && message.recipientId !== "") {
@@ -2541,7 +2522,6 @@
       chatMessagesDiv.appendChild(messageDiv);
       chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
 
-      // Eğer chat kapalıysa bildirim sayısını arttır
       if (!chatOpen && message.senderId !== localPlayerId) {
         unreadMessages++;
         updateChatBadge();
@@ -2600,11 +2580,9 @@
     const tradeCountrySelect = document.getElementById("trade-country");
     itemTypeSelect.addEventListener("change", () => {
       const v = itemTypeSelect.value;
-      // Bina veya benzeri satacaksa ülke seçimi açık
       if (v === "petrol" || v === "wheat") {
         tradeCountrySelect.style.display = "none";
       } else {
-        // kışla, fabrika, rafine, değirmen
         tradeCountrySelect.style.display = "block";
       }
     });
@@ -2641,7 +2619,6 @@
       } else if (itemType === "wheat") {
         if (seller.wheat >= quantity) enough = true;
       } else {
-        // bina satışı => ülkeName + binaya bak
         if (!countryName) {
           showNotification("Satmak istediğiniz ülkeyi seçin!");
           return;
@@ -2662,7 +2639,6 @@
         return;
       }
 
-      // Ambargo
       const embargoSelect = document.getElementById("embargo-players");
       let embargoList = [];
       for (let i = 0; i < embargoSelect.options.length; i++) {
@@ -2681,7 +2657,7 @@
         quantity: quantity,
         price: price,
         status: "pending",
-        embargo: embargoList // Bu listeye ekli oyuncular satın alamayacak
+        embargo: embargoList
       };
       tradeOfferRef.set(newOffer);
       broadcastNotification(`${seller.name} bir ticaret teklifi oluşturdu (${itemType}, adet: ${quantity}, fiyat: ${price}$)`);
@@ -2721,9 +2697,9 @@
             html += names + "</p>";
           }
 
-          // Kısmi satın alma alanı
+          // Kısmi satın alma
           if (offer.sellerId !== localPlayerId) {
-            // Embargo kontrolü
+            // Ambargo
             if (offer.embargo && offer.embargo.includes(localPlayerId)) {
               html += `<p style="color:red;">Bu teklife erişiminiz yok (Ambargo)</p>`;
             } else {
@@ -2732,12 +2708,11 @@
               html += '<button class="partial-buy-btn">Satın Al</button>';
             }
           } else {
-            // Kendi teklifini iptal butonu
-            html += '<button class="cancel-offer-btn" style="background:linear-gradient(45deg, #c0392b, #e74c3c);">İptal</button>';
+            // Kendi teklifini iptal
+            html += `<button class="cancel-offer-btn" style="background:linear-gradient(45deg, #c0392b, #e74c3c);">İptal</button>`;
           }
           offerDiv.innerHTML = html;
 
-          // Event: partial buy
           const partialBuyBtn = offerDiv.querySelector(".partial-buy-btn");
           if (partialBuyBtn) {
             partialBuyBtn.addEventListener("click", () => {
@@ -2751,7 +2726,6 @@
             });
           }
 
-          // Event: cancel
           const cancelBtn = offerDiv.querySelector(".cancel-offer-btn");
           if (cancelBtn) {
             cancelBtn.addEventListener("click", () => cancelTradeOffer(offer.offerId));
@@ -2762,10 +2736,6 @@
       });
     }
 
-    /**
-     * Kısmi satın alma desteği
-     * buyAmount: alıcı bu kadar almak istiyor
-     */
     function acceptTradeOffer(offerId, buyAmount) {
       if (!roomData || !roomData.tradeOffers || !roomData.tradeOffers[offerId]) {
         showNotification("Teklif bulunamadı!");
@@ -2793,7 +2763,6 @@
         return;
       }
 
-      // Satıcının hala kaynağı var mı?
       let hasEnough = false;
       let updates = {};
 
@@ -2810,7 +2779,6 @@
           updates[`players/${localPlayerId}/wheat`] = buyer.wheat + buyAmount;
         }
       } else {
-        // bina satışı -> check country's building
         const c = roomData.countryData[offer.countryName];
         if (!c || c.owner !== offer.sellerId) {
           showNotification("Satıcının bu ülke üzerindeki hakkı yok!");
@@ -2843,14 +2811,11 @@
         return;
       }
 
-      // Para transferi
       updates[`players/${localPlayerId}/money`] = buyer.money - totalCost;
       updates[`players/${offer.sellerId}/money`] = seller.money + totalCost;
 
-      // Teklif güncelle
       let newQuantity = offer.quantity - buyAmount;
       if (newQuantity <= 0) {
-        // Hepsi satıldı
         updates[`tradeOffers/${offerId}/status`] = "completed";
       }
       updates[`tradeOffers/${offerId}/quantity`] = newQuantity;
