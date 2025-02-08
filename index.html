@@ -2,6 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
+  <!-- Mobil cihazlarda uygun ölçeklendirme ve görünüm için -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Global Conquest - Online</title>
 
@@ -193,9 +194,10 @@
       display: none;
       height: 100vh;
       background: linear-gradient(180deg, #0b2a63 0%, #0a1f44 100%);
+      position: relative;
     }
 
-    /* Ana kısımda sadece harita olacak, yan panel kaldırıldı */
+    /* Harita Alanı */
     #map-container {
       width: 100%;
       height: 100%;
@@ -261,7 +263,7 @@
     }
 
     /**********************************************************
-     * ALT BİLDİRGELER (CHAT, PACT, MARKET, vs.) ve DİĞER İKONLAR
+     * ALT BİLDİRGELER (CHAT, PACT, MARKET, vb.) ve DİĞER İKONLAR
      **********************************************************/
     #bottom-icons {
       position: fixed;
@@ -286,6 +288,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      position: relative;
     }
     .bottom-icon-btn:hover {
       transform: scale(1.05);
@@ -347,7 +350,7 @@
     }
 
     /**********************************************************
-     * POPUPLAR (CHAT, PACT, MARKET, vs.)
+     * POPUPLAR (CHAT, PACT, MARKET, vb.)
      **********************************************************/
     .chat-popup {
       position: fixed;
@@ -497,6 +500,13 @@
       justify-content: space-between;
       align-items: center;
     }
+    .market-header button {
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 24px;
+      cursor: pointer;
+    }
     .market-content {
       flex: 1;
       padding: 15px;
@@ -614,6 +624,79 @@
     #players-popup .popup-content .player-info p {
       margin: 4px 0;
       color: #ddd;
+    }
+
+    /**********************************************************
+     * RESPONSIVE (MOBİL) TASARIM
+     **********************************************************/
+    @media screen and (max-width: 768px) {
+      /* LOBİ */
+      #lobby-container {
+        width: 90%;
+        margin: 20px auto;
+        padding: 20px;
+      }
+      #lobby-container h1 {
+        font-size: 28px;
+      }
+      #lobby-container h2 {
+        font-size: 18px;
+      }
+
+      /* ÜST BİLGİ */
+      #top-info {
+        width: 90%;
+        padding: 8px 10px;
+        gap: 5px;
+        left: 50%;
+        transform: translateX(-50%);
+        flex-direction: column;
+      }
+      #top-info p {
+        font-size: 14px;
+      }
+
+      /* ALT BUTONLAR */
+      #bottom-icons {
+        gap: 10px;
+      }
+      .bottom-icon-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 16px;
+      }
+
+      /* ODADAN ÇIK BUTONU */
+      #exit-room-btn {
+        bottom: 80px;
+        right: 20px;
+        font-size: 13px;
+        padding: 8px 12px;
+      }
+
+      /* POPUP'LAR GENEL */
+      .popup-panel {
+        width: 90% !important;
+        right: 5% !important;
+        bottom: 90px; /* İkona takılmaması için biraz yukarı */
+      }
+      .chat-popup,
+      .pact-popup,
+      .market-popup {
+        width: 90% !important;
+        right: 5% !important;
+        bottom: 90px;
+      }
+
+      /* MARKET POPUP GENİŞLİĞİ */
+      .market-popup {
+        width: 90% !important;
+      }
+
+      /* HARİTA'YA AİT TETİKLEYİCİ */
+      #map {
+        /* Mobilde de tam ekran doldurmaya devam etsin */
+      }
     }
   </style>
 </head>
@@ -834,7 +917,7 @@
       <button id="close-players-btn">&times;</button>
     </div>
     <div class="popup-content" id="players-info">
-      <!-- Oyuncu listesi dinamikte buraya eklenecek -->
+      <!-- Oyuncu listesi dinamik olarak buraya eklenecek -->
     </div>
   </div>
 
@@ -1266,14 +1349,9 @@
     function updateGameUI() {
       if (!roomData) return;
 
-      // Tur & Toplam Petrol
+      // Tur
       document.getElementById("current-round").textContent = roomData.round || 1;
-      let totalPetrol = 0;
-      if (roomData.players) {
-        Object.values(roomData.players).forEach((p) => {
-          totalPetrol += p.petrol || 0;
-        });
-      }
+
       // Sıra (Oyuncu)
       if (roomData.playerOrder && roomData.players) {
         const currentTurnIndex = roomData.currentTurnIndex || 0;
