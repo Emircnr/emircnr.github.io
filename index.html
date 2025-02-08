@@ -6,11 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Global Conquest - Online</title>
 
-  <!-- Google Fonts: Montserrat (modern, estetik) -->
-  <link
-    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap"
-    rel="stylesheet"
-  />
+  <!-- Google Fonts: Cinzel (askeri, dramatik his için) -->
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
 
   <!-- Leaflet CSS -->
   <link
@@ -41,7 +38,7 @@
       box-sizing: border-box;
     }
     body {
-      font-family: 'Montserrat', sans-serif;
+      font-family: "Cinzel", serif;
       color: #eee;
       overflow-x: hidden;
       transition: background 0.5s;
@@ -52,11 +49,10 @@
     }
 
     /**********************************************************
-     * LOBI SAYFASI TASARIMI (Modern - Gece Temalı Gradyan)
+     * LOBI SAYFASI TASARIMI (OKYANUS TEMASI)
      **********************************************************/
     body.lobby {
-      /* Daha karanlık, modern bir background ve yumuşak bir degradeyle renklendirelim */
-      background: linear-gradient(135deg, #1a2a3a 0%, #1c2f4a 35%, #202f44 100%);
+      background: linear-gradient(180deg, #0a1f44 0%, #0b2a63 35%, #0b3553 100%);
       background-attachment: fixed;
       background-size: cover;
     }
@@ -65,11 +61,11 @@
       max-width: 500px;
       margin: 60px auto;
       padding: 30px;
-      background: rgba(0, 0, 0, 0.55);
-      border: 2px solid #9b59b6; /* Mor ton */
+      background: rgba(0, 0, 0, 0.65);
+      border: 2px solid #1abc9c;
       border-radius: 15px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(6px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(5px);
       animation: fadeInLobby 1s ease forwards;
     }
     @keyframes fadeInLobby {
@@ -86,20 +82,20 @@
     #lobby-container h1 {
       text-align: center;
       margin-bottom: 20px;
-      color: #e67e22;
+      color: #1abc9c;
       text-transform: uppercase;
-      letter-spacing: 2px;
+      letter-spacing: 3px;
       font-size: 38px;
-      text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
-      animation: animateTitle 1.2s ease;
+      text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+      animation: animateTitle 1s ease;
     }
     @keyframes animateTitle {
       0% {
-        letter-spacing: 6px;
+        letter-spacing: 8px;
         opacity: 0;
       }
       100% {
-        letter-spacing: 2px;
+        letter-spacing: 3px;
         opacity: 1;
       }
     }
@@ -107,11 +103,11 @@
     #lobby-container h2 {
       text-align: center;
       margin-bottom: 20px;
-      color: #c7ecee;
+      color: #aef7f2;
       text-transform: uppercase;
       letter-spacing: 1px;
-      font-size: 20px;
-      text-shadow: 0 0 5px rgba(0, 0, 0, 0.7);
+      font-size: 24px;
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
     }
 
     #lobby-container input[type="text"],
@@ -119,7 +115,7 @@
       width: 100%;
       padding: 12px;
       margin-bottom: 15px;
-      border: 1px solid #9b59b6;
+      border: 1px solid #1abc9c;
       border-radius: 4px;
       font-size: 16px;
       outline: none;
@@ -128,26 +124,26 @@
     }
     #lobby-container input[type="text"]:focus,
     #lobby-container input[type="number"]:focus {
-      box-shadow: 0 0 8px #9b59b6;
+      box-shadow: 0 0 8px #1abc9c;
     }
 
     #lobby-container button {
       width: 100%;
       padding: 14px;
       margin-bottom: 15px;
-      background: linear-gradient(45deg, #9b59b6, #8e44ad);
-      border: 1px solid #8e44ad;
+      background: linear-gradient(45deg, #16a085, #1abc9c);
+      border: 1px solid #16a085;
       border-radius: 6px;
       font-size: 18px;
       font-weight: bold;
       color: #fff;
       cursor: pointer;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.7);
       transition: background 0.3s, transform 0.3s;
     }
     #lobby-container button:hover {
-      background: linear-gradient(45deg, #8e44ad, #9b59b6);
-      transform: scale(1.03);
+      background: linear-gradient(45deg, #1abc9c, #16a085);
+      transform: scale(1.02);
     }
 
     .color-options {
@@ -155,8 +151,8 @@
       text-align: center;
     }
     .global-color-option {
-      width: 24px;
-      height: 24px;
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
       border: 2px solid transparent;
       cursor: pointer;
@@ -187,14 +183,14 @@
     }
     /* Tek bir bildirim kutusu */
     .notification-item {
-      min-width: 240px;
-      max-width: 360px;
-      background: rgba(40, 40, 60, 0.9);
+      min-width: 200px;
+      max-width: 350px;
+      background: rgba(0, 0, 0, 0.85);
       color: #fff;
       padding: 12px 20px;
       border-radius: 8px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
-      font-size: 15px;
+      font-size: 16px;
       line-height: 1.4;
       opacity: 0;
       transform: translateX(100%);
@@ -219,7 +215,7 @@
     #game-container {
       display: none;
       height: 100vh;
-      background: linear-gradient(135deg, #161d26 0%, #1e2b38 100%);
+      background: linear-gradient(180deg, #0b2a63 0%, #0a1f44 100%);
       position: relative;
     }
 
@@ -232,7 +228,7 @@
     #map {
       width: 100%;
       height: 100%;
-      background-color: #0e1a24;
+      background-color: #0e2740;
     }
 
     /* Bilgi Kartları Toggle Butonu */
@@ -247,10 +243,6 @@
       border-radius: 4px;
       padding: 6px 10px;
       cursor: pointer;
-      transition: background 0.3s;
-    }
-    .toggle-info-cards:hover {
-      background: rgba(20, 20, 20, 0.8);
     }
 
     /**********************************************************
@@ -330,8 +322,8 @@
       position: absolute;
       top: -5px;
       right: -5px;
-      background: #c0392b;
-      color: #fff;
+      background: red;
+      color: white;
       border-radius: 50%;
       min-width: 20px;
       min-height: 20px;
@@ -367,7 +359,6 @@
     .leaflet-tooltip {
       background: transparent;
       border: none;
-      font-family: 'Montserrat', sans-serif;
     }
     .country-popup-tooltip {
       background: rgba(0, 0, 0, 0.7);
@@ -381,190 +372,29 @@
     }
 
     /**********************************************************
-     * CHAT POPUP + ÖZEL MESAJ
+     * GENEL POPUP TASARIMI (Modern & Daha Büyük)
+     * Ortak sınıf: .modern-popup
+     * - Kavisli kenarlar
+     * - Hafif bulanık arka plan (glassmorphism)
+     * - Büyük boyut, daha büyük başlık
      **********************************************************/
-    .chat-popup {
+    .modern-popup {
       position: fixed;
       bottom: 80px;
-      right: 20px;
-      width: 400px;
-      max-height: 600px;
-      background: rgba(15, 15, 25, 0.95);
-      border: 1px solid #444;
-      border-radius: 8px;
-      display: none;
-      flex-direction: column;
-      z-index: 3001;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-    }
-    .chat-header {
-      background: rgba(0, 0, 0, 0.85);
-      padding: 10px;
-      border-top-left-radius: 8px;
-      border-top-right-radius: 8px;
-      color: #1abc9c;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .chat-header button {
-      background: transparent;
-      border: none;
-      color: #1abc9c;
-      font-size: 20px;
-      cursor: pointer;
-    }
-    .chat-messages {
-      flex: 1;
-      padding: 10px;
-      overflow-y: auto;
-      background: rgba(0, 0, 0, 0.8);
-      color: #eee;
-      font-size: 14px;
-      font-family: 'Montserrat', sans-serif;
-    }
-    .chat-input-container {
-      display: flex;
-      border-top: 1px solid #444;
-    }
-    .chat-input-container input[type="text"] {
-      flex: 1;
-      padding: 10px;
-      border: none;
-      outline: none;
-      background: #1f1f2f;
-      color: #eee;
-    }
-    .chat-input-container button {
-      padding: 10px;
-      background: linear-gradient(45deg, #16a085, #1abc9c);
-      border: none;
-      cursor: pointer;
-      color: #fff;
-      transition: background 0.3s;
-    }
-    .chat-input-container button:hover {
-      background: linear-gradient(45deg, #1abc9c, #16a085);
-    }
-    /* ÖZEL MESAJ ALANI */
-    .chat-private-container {
-      border-top: 1px solid #444;
-      background: rgba(0, 0, 0, 0.75);
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .chat-private-container select,
-    .chat-private-container input[type="text"] {
-      padding: 8px;
-      border: none;
-      outline: none;
-      background: #1f1f2f;
-      color: #eee;
-    }
-    .chat-private-container button {
-      padding: 8px;
-      background: linear-gradient(45deg, #16a085, #1abc9c);
-      border: none;
-      cursor: pointer;
-      color: #fff;
-      align-self: flex-end;
-      transition: background 0.3s;
-    }
-    .chat-private-container button:hover {
-      background: linear-gradient(45deg, #1abc9c, #16a085);
-    }
-
-    /**********************************************************
-     * PAKT POPUP
-     **********************************************************/
-    .pact-popup {
-      position: fixed;
-      bottom: 80px;
-      right: 20px;
-      width: 400px;
-      max-height: 600px;
-      background: rgba(15, 15, 25, 0.95);
-      border: 1px solid #444;
-      border-radius: 8px;
-      display: none;
-      flex-direction: column;
-      z-index: 3001;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-    }
-    .pact-header {
-      background: rgba(0, 0, 0, 0.85);
-      padding: 10px;
-      border-top-left-radius: 8px;
-      border-top-right-radius: 8px;
-      color: #f1c40f;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .pact-header button {
-      background: transparent;
-      border: none;
-      color: #f1c40f;
-      font-size: 20px;
-      cursor: pointer;
-    }
-    .pact-content {
-      padding: 10px;
-      background: rgba(0, 0, 0, 0.8);
-      color: #eee;
-      font-size: 14px;
-    }
-    #pact-offers-container {
-      padding: 10px;
-      background: rgba(0, 0, 0, 0.5);
-      color: #eee;
-      font-size: 14px;
-    }
-    #pact-offers-container h3 {
-      color: #f1c40f;
-      margin-bottom: 10px;
-    }
-    .pact-offer-item {
-      background: rgba(0, 0, 0, 0.4);
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 4px;
-    }
-    .pact-offer-item button {
-      background: linear-gradient(45deg, #16a085, #1abc9c);
-      border: none;
-      color: #fff;
-      margin-right: 10px;
-      padding: 6px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    .pact-offer-item button:hover {
-      background: linear-gradient(45deg, #1abc9c, #16a085);
-    }
-
-    /**********************************************************
-     * TİCARET POPUP
-     **********************************************************/
-    .market-popup {
-      position: fixed;
-      bottom: 80px;
-      right: 20px;
-      width: 500px;
-      max-height: 650px;
-      background: rgba(0, 0, 0, 0.95);
-      border: 2px solid #2ecc71;
+      right: 20px; /* Varsayılan olarak sağda */
+      width: 450px; /* Büyük boyut */
+      max-height: 70vh;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(8px);
+      border: 2px solid rgba(255, 255, 255, 0.1);
       border-radius: 12px;
       display: none;
       flex-direction: column;
       z-index: 3002;
-      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.7);
-      animation: fadeInMarket 0.5s ease forwards;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+      animation: fadeInPopup 0.5s ease forwards;
     }
-    @keyframes fadeInMarket {
+    @keyframes fadeInPopup {
       from {
         opacity: 0;
         transform: translateY(20px);
@@ -574,8 +404,8 @@
         transform: translateY(0);
       }
     }
-    .market-header {
-      background: linear-gradient(45deg, #16a085, #1abc9c);
+    .modern-popup .popup-header {
+      background: linear-gradient(45deg, #2c3e50, #34495e);
       padding: 15px;
       border-top-left-radius: 10px;
       border-top-right-radius: 10px;
@@ -583,6 +413,221 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      font-size: 18px;
+    }
+    .modern-popup .popup-header button {
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    .modern-popup .popup-content {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      color: #eee;
+      font-size: 15px;
+    }
+    .modern-popup .popup-content h3 {
+      font-size: 18px;
+      color: #1abc9c;
+      margin-bottom: 10px;
+    }
+    .modern-popup .popup-content input[type="number"],
+    .modern-popup .popup-content select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #1abc9c;
+      border-radius: 6px;
+      font-size: 14px;
+      color: #333;
+    }
+    .modern-popup .popup-content button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(45deg, #16a085, #1abc9c);
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.3s;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    }
+    .modern-popup .popup-content button:hover {
+      background: linear-gradient(45deg, #1abc9c, #16a085);
+    }
+
+    /**********************************************************
+     * CHAT POPUP (GENEL + ÖZEL)
+     * Kullanım: #chat-popup.modern-popup
+     **********************************************************/
+    .chat-popup {
+      /* .modern-popup ile birleştirildi */
+      bottom: 80px;
+      right: 20px;
+      width: 450px;
+      max-height: 70vh;
+      display: none;
+      flex-direction: column;
+      z-index: 3001; /* Chat diğerinin altında kalabilir */
+    }
+    .chat-header {
+      background: linear-gradient(45deg, #2c3e50, #34495e);
+      padding: 15px;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 18px;
+    }
+    .chat-header button {
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    .chat-messages {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      background: rgba(0, 0, 0, 0.3);
+      color: #eee;
+      font-size: 15px;
+    }
+    .chat-input-container {
+      display: flex;
+      border-top: 1px solid #444;
+    }
+    .chat-input-container input[type="text"] {
+      flex: 1;
+      padding: 15px;
+      border: none;
+      outline: none;
+      background: #1e1e2f;
+      color: #eee;
+      font-size: 15px;
+    }
+    .chat-input-container button {
+      padding: 15px;
+      background: linear-gradient(45deg, #16a085, #1abc9c);
+      border: none;
+      cursor: pointer;
+      color: #fff;
+      font-size: 18px;
+    }
+    .chat-private-container {
+      border-top: 1px solid #444;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .chat-private-container select,
+    .chat-private-container input[type="text"] {
+      padding: 10px;
+      border: 1px solid #1abc9c;
+      border-radius: 6px;
+      outline: none;
+      background: #1e1e2f;
+      color: #eee;
+      font-size: 15px;
+    }
+    .chat-private-container button {
+      padding: 10px;
+      background: linear-gradient(45deg, #16a085, #1abc9c);
+      border: none;
+      cursor: pointer;
+      color: #fff;
+      align-self: flex-end;
+      font-size: 16px;
+    }
+
+    /**********************************************************
+     * PAKT POPUP
+     **********************************************************/
+    .pact-popup {
+      /* .modern-popup ile aynı yapıda */
+      width: 450px;
+      max-height: 70vh;
+      display: none;
+      flex-direction: column;
+      z-index: 3001;
+    }
+    .pact-header {
+      background: linear-gradient(45deg, #2c3e50, #34495e);
+      padding: 15px;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 18px;
+    }
+    .pact-header button {
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    .pact-content {
+      padding: 15px;
+      overflow-y: auto;
+      background: rgba(0, 0, 0, 0.3);
+      color: #eee;
+      font-size: 15px;
+      flex: 1;
+    }
+    #pact-offers-container {
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.2);
+      color: #eee;
+      font-size: 15px;
+      margin-top: 10px;
+      border-radius: 8px;
+    }
+    #pact-offers-container h3 {
+      color: #1abc9c;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+    .pact-offer-item {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+    }
+
+    /**********************************************************
+     * TİCARET POPUP
+     **********************************************************/
+    .market-popup {
+      /* .modern-popup */
+      width: 500px; /* Biraz daha geniş */
+      max-height: 70vh;
+      display: none;
+      flex-direction: column;
+      z-index: 3002;
+    }
+    .market-header {
+      background: linear-gradient(45deg, #2c3e50, #34495e);
+      padding: 15px;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 20px;
     }
     .market-header button {
       background: transparent;
@@ -596,10 +641,11 @@
       padding: 15px;
       overflow-y: auto;
       color: #eee;
+      background: rgba(0, 0, 0, 0.3);
     }
     .market-section {
       margin-bottom: 20px;
-      background: rgba(0, 0, 0, 0.3);
+      background: rgba(0, 0, 0, 0.2);
       padding: 15px;
       border-radius: 8px;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
@@ -613,121 +659,58 @@
       display: flex;
       flex-direction: column;
     }
-    .offer-item button {
-      background: linear-gradient(45deg, #16a085, #1abc9c);
-      border: none;
-      color: #fff;
-      padding: 8px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      margin-top: 10px;
-      transition: background 0.3s;
-      width: fit-content;
-    }
-    .offer-item button:hover {
-      background: linear-gradient(45deg, #1abc9c, #16a085);
-    }
 
     /**********************************************************
-     * YENİ POPUP'LAR (ASKER, BİNA, KAYNAK, OYUNCULAR)
+     * YENİ POPUP'LAR (ASKER, BİNA, KAYNAK) - .modern-popup
      **********************************************************/
-    /* Genel Popup Stili */
-    .popup-panel {
+    /* Asker, Bina, Kaynak gibi popup'lar .modern-popup sınıfını kullanacak */
+
+    /**********************************************************
+     * OYUNCULAR POPUP (SOL TARAFTA AÇILSIN)
+     **********************************************************/
+    #players-popup {
+      /* Diğer modern popup tasarımını koruyoruz ama sola alıyoruz */
       position: fixed;
       bottom: 80px;
-      right: 20px;
-      width: 400px;
-      max-height: 600px;
-      background: rgba(15, 15, 25, 0.95);
-      border: 1px solid #444;
-      border-radius: 8px;
+      left: 20px;
+      width: 450px;
+      max-height: 70vh;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(8px);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
       display: none;
       flex-direction: column;
       z-index: 3002;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+      animation: fadeInPopup 0.5s ease forwards;
     }
-    .popup-header {
-      background: rgba(0, 0, 0, 0.85);
-      padding: 10px;
-      border-top-left-radius: 8px;
-      border-top-right-radius: 8px;
-      color: #ecf0f1;
+    #players-popup .popup-header {
+      background: linear-gradient(45deg, #2c3e50, #34495e);
+      padding: 15px;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+      color: #fff;
       display: flex;
       justify-content: space-between;
       align-items: center;
-    }
-    .popup-header button {
-      background: transparent;
-      border: none;
-      color: #ecf0f1;
       font-size: 20px;
-      cursor: pointer;
     }
-    .popup-content {
-      padding: 10px;
-      background: rgba(0, 0, 0, 0.8);
-      color: #eee;
-      font-size: 14px;
-      overflow-y: auto;
+    #players-popup .popup-content {
       flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      color: #eee;
+      font-size: 15px;
+      background: rgba(0, 0, 0, 0.3);
     }
-    .popup-content h3 {
-      font-size: 16px;
-      color: #ccc;
-      margin-bottom: 8px;
-    }
-    .popup-content input[type="number"] {
-      width: 100%;
-      padding: 8px;
-      margin-bottom: 8px;
-      border: 1px solid #8e44ad;
-      border-radius: 4px;
-      font-size: 14px;
-      color: #333;
-      transition: box-shadow 0.3s;
-    }
-    .popup-content input[type="number"]:focus {
-      box-shadow: 0 0 6px #8e44ad;
-      outline: none;
-    }
-    .popup-content select {
-      width: 100%;
-      padding: 8px;
-      margin-bottom: 8px;
-      border: 1px solid #8e44ad;
-      border-radius: 4px;
-      font-size: 14px;
-      color: #333;
-      transition: box-shadow 0.3s;
-    }
-    .popup-content select:focus {
-      box-shadow: 0 0 6px #8e44ad;
-      outline: none;
-    }
-    .popup-content button {
-      width: 100%;
-      padding: 10px;
-      background: linear-gradient(45deg, #9b59b6, #8e44ad);
-      border: none;
-      border-radius: 4px;
-      font-size: 14px;
-      color: #fff;
-      cursor: pointer;
-      transition: background 0.3s;
-      margin-bottom: 15px;
-    }
-    .popup-content button:hover {
-      background: linear-gradient(45deg, #8e44ad, #9b59b6);
-    }
-
-    /* Oyuncu Bilgileri Pop-up */
     #players-popup .popup-content .player-info {
       background: rgba(0, 0, 0, 0.4);
       padding: 10px;
       margin-bottom: 10px;
       border-radius: 6px;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-      font-size: 14px;
+      font-size: 15px;
     }
     #players-popup .popup-content .player-info p {
       margin: 4px 0;
@@ -783,18 +766,15 @@
       }
 
       /* POPUP'LAR GENEL */
-      .popup-panel,
+      .modern-popup,
       .chat-popup,
       .pact-popup,
-      .market-popup {
+      .market-popup,
+      #players-popup {
         width: 90% !important;
         right: 5% !important;
+        left: auto !important;  /* Mobilde sağa dayalı kalabilir */
         bottom: 90px; /* İkona takılmaması için biraz yukarı */
-      }
-
-      /* MARKET POPUP GENİŞLİĞİ */
-      .market-popup {
-        width: 90% !important;
       }
     }
   </style>
@@ -893,7 +873,7 @@
   </div>
 
   <!-- ===================== ASKER İŞLEMLERİ POPUP ===================== -->
-  <div id="military-popup" class="popup-panel">
+  <div id="military-popup" class="modern-popup">
     <div class="popup-header">
       <span>Asker İşlemleri</span>
       <button id="close-military-btn">&times;</button>
@@ -935,7 +915,7 @@
   </div>
 
   <!-- ===================== BİNA KURMA POPUP ===================== -->
-  <div id="building-popup" class="popup-panel">
+  <div id="building-popup" class="modern-popup">
     <div class="popup-header">
       <span>Bina Kurma</span>
       <button id="close-building-btn">&times;</button>
@@ -977,7 +957,7 @@
   </div>
 
   <!-- ===================== KAYNAK GÖNDERME POPUP ===================== -->
-  <div id="resource-popup" class="popup-panel">
+  <div id="resource-popup" class="modern-popup">
     <div class="popup-header">
       <span>Kaynak Gönderme</span>
       <button id="close-resource-btn">&times;</button>
@@ -1009,8 +989,8 @@
     </div>
   </div>
 
-  <!-- ===================== OYUNCULAR POPUP ===================== -->
-  <div id="players-popup" class="popup-panel">
+  <!-- ===================== OYUNCULAR POPUP (SOLDA) ===================== -->
+  <div id="players-popup">
     <div class="popup-header">
       <span>Oyuncu Bilgileri</span>
       <button id="close-players-btn">&times;</button>
@@ -1021,7 +1001,7 @@
   </div>
 
   <!-- ===================== CHAT POPUP (GENEL + ÖZEL) ===================== -->
-  <div id="chat-popup" class="chat-popup">
+  <div id="chat-popup" class="chat-popup modern-popup">
     <div class="chat-header">
       <span>Sohbet</span>
       <button id="close-chat-btn">&times;</button>
@@ -1046,7 +1026,7 @@
   </div>
 
   <!-- ===================== PAKT POPUP ===================== -->
-  <div id="pact-popup" class="pact-popup">
+  <div id="pact-popup" class="pact-popup modern-popup">
     <div class="pact-header">
       <span>Saldırmazlık Pakti</span>
       <button id="close-pact-btn">&times;</button>
@@ -1065,7 +1045,7 @@
   </div>
 
   <!-- ===================== TİCARET POPUP ===================== -->
-  <div id="market-popup" class="market-popup">
+  <div id="market-popup" class="market-popup modern-popup">
     <div class="market-header">
       <h2>Ticaret Merkezi</h2>
       <button id="close-market-btn">&times;</button>
@@ -1101,7 +1081,6 @@
     crossorigin=""
   ></script>
 
-  <!-- === OYUNUN TÜM MANTIĞI (JS) BURADA. KOD MANTIĞI DEĞİŞMEDİ, TASARIM SADECE YENİLENDİ === -->
   <script>
     /*****************************************************************
      * Firebase Başlatma
@@ -1150,11 +1129,12 @@
       item.textContent = message;
       existing.appendChild(item);
 
+      // 3 saniye yerine parametre:  (Burada local'e 3sn varsayılan)
       setTimeout(() => {
         if (existing.contains(item)) {
           existing.removeChild(item);
         }
-      }, duration + 800);
+      }, duration + 800); // animation bitişi vs.
     }
 
     /**
@@ -1747,7 +1727,7 @@
           " tur, " +
           cost +
           "$)",
-        recipientId: "",
+        recipientId: "", // public
         timestamp: firebase.database.ServerValue.TIMESTAMP
       };
       roomRef.child("chat").push(chatMessage);
@@ -2304,9 +2284,7 @@
       });
     }
 
-    /**
-     * Özel mesaj gönderme
-     */
+    /** Özel mesaj gönderme */
     document.getElementById("send-private-message-btn").addEventListener("click", () => {
       const privateInput = document.getElementById("private-message-input");
       const recipientSelect = document.getElementById("private-message-recipient");
@@ -2589,7 +2567,7 @@
             "Ticaret Onaylandı: " + seller.name + " -> " + buyer.name + ` (${offer.quantity} adet "${offer.itemType}")`
           );
           showNotification("Ticaret başarıyla gerçekleşti!");
-          // Chat'e de mesaj
+          // Chat'e de mesaj atabilirsiniz isterseniz
           const chatMessage = {
             sender: "Sistem",
             senderId: "system",
@@ -2662,7 +2640,7 @@
       document.getElementById("resource-popup").style.display = "none";
     });
 
-    // Popup açma-kapama (Oyuncu Bilgileri)
+    // Popup açma-kapama (Oyuncu Bilgileri) -- SOLDAN AÇILIYOR
     document.getElementById("open-players-btn").addEventListener("click", () => {
       document.getElementById("players-popup").style.display = "flex";
     });
@@ -2670,7 +2648,7 @@
       document.getElementById("players-popup").style.display = "none";
     });
 
-    // Chat popup (Açma-kapama) → toggleChat fonksiyonu yukarıda
+    // Popup açma-kapama (Chat, yukarıda toggle var)
 
     /*****************************************************************
      * HARİTA (Leaflet) KURULUMU
