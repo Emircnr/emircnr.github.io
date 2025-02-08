@@ -1336,7 +1336,7 @@
           soldiers: 0,
           countries: [],
           petrol: 0,
-          wheat: 0, // Buğday
+          wheat: 400, // Oyuncuların başlangıç buğdayı 400
           joinedAt: firebase.database.ServerValue.TIMESTAMP
         };
 
@@ -1398,7 +1398,7 @@
             soldiers: 0,
             countries: [],
             petrol: 0,
-            wheat: 0,
+            wheat: 400, // Oyuncu katıldığında 400 buğday
             joinedAt: firebase.database.ServerValue.TIMESTAMP
           };
           if (!room.playerOrder) room.playerOrder = [];
@@ -1472,10 +1472,10 @@
             }
           }
 
-          // 140 ülkeye rastgele buğday kapasitesi (200-800)
+          // 60 ülkeye rastgele buğday kapasitesi (200-700)
           let wheatIndexes = [];
-          if (features.length > 140) {
-            while (wheatIndexes.length < 140) {
+          if (features.length > 60) {
+            while (wheatIndexes.length < 60) {
               const randIdx = Math.floor(Math.random() * features.length);
               if (!wheatIndexes.includes(randIdx)) {
                 wheatIndexes.push(randIdx);
@@ -1499,7 +1499,8 @@
 
             let wheatProduction = 0;
             if (wheatIndexes.includes(feature.properties._index)) {
-              wheatProduction = Math.floor(Math.random() * (800 - 200 + 1)) + 200;
+              // 200 - 700
+              wheatProduction = Math.floor(Math.random() * (700 - 200 + 1)) + 200;
             }
 
             countryDataInit[countryName] = {
@@ -1936,6 +1937,12 @@
         showNotification("Sıranız değil!");
         return;
       }
+      // İlk 3 tur saldırı yasağı
+      if ((roomData.round || 1) <= 3) {
+        showNotification("İlk 3 tur kimseye saldıramazsınız!");
+        return;
+      }
+
       if (!selectedCountry) {
         showNotification("Bir ülke seçin!");
         return;
@@ -2726,7 +2733,7 @@
             }
           } else {
             // Kendi teklifini iptal butonu
-            html += `<button class="cancel-offer-btn" style="background:linear-gradient(45deg, #c0392b, #e74c3c);">İptal</button>`;
+            html += '<button class="cancel-offer-btn" style="background:linear-gradient(45deg, #c0392b, #e74c3c);">İptal</button>';
           }
           offerDiv.innerHTML = html;
 
