@@ -181,7 +181,6 @@
       gap: 10px;
       align-items: flex-end;
     }
-    /* Tek bir bildirim kutusu */
     .notification-item {
       min-width: 200px;
       max-width: 350px;
@@ -773,10 +772,27 @@
       border-radius: 6px;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
       font-size: 15px;
+      position: relative;
     }
     #players-popup .popup-content .player-info p {
       margin: 4px 0;
       color: #ddd;
+    }
+    /* Diskalifiye butonu (Host'a özel) */
+    .disqualify-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: linear-gradient(45deg, #c0392b, #e74c3c);
+      border: none;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #fff;
+      padding: 5px 8px;
+      cursor: pointer;
+    }
+    .disqualify-btn:hover {
+      background: linear-gradient(45deg, #e74c3c, #c0392b);
     }
 
     /**********************************************************
@@ -1331,6 +1347,7 @@
       return false;
     }
 
+    // Otomatik tekrar bağlanma (sayfayı yenilerse)
     function autoReconnect() {
       const savedRoomCode = localStorage.getItem("roomCode");
       if (savedRoomCode) {
@@ -1365,7 +1382,7 @@
           clearInterval(turnTimerInterval);
           turnTimeRemaining = 0;
           timerEl.textContent = "0s";
-          // Otomatik Tur Sonu (yalnızca oyun 'started' ise)
+          // Otomatik Tur Sonu (yalnızca oyun 'started' ise ve gerçekten sıradaysa)
           if (roomData && roomData.gameState === "started" && isMyTurn()) {
             nextTurn(true); // Süre dolunca otomatik
           }
@@ -1565,69 +1582,110 @@
     });
 
     /*****************************************************************
-     * GeoJSON ve Ülke Verilerini Yükleme (Sadece Oda Kurucusu)
+     * Oyundan / Odadan çıkış yapan oyuncunun DB'den silinmesi
+     * (playerOrder vb. temizliği child_removed olayında yapacağız)
      *****************************************************************/
-    function loadAndInitializeGeoJson() {
-      fetch("https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json")
-        .then((response) => response.json())
-        .then((geoJsonData) => {
-          const features = geoJsonData.features;
+    function removeLocalPlayerFromDB() {
+      if (!roomRef) return;
+      // Kendi player kaydını tamamen kaldır
+      roomRef.child("players").child(localPlayerId).remove();
+      // localStorage'daki oda kodunu da sil
+      localStorage.removeItem("roomCode");
+    }
 
-          // 43 ülkede rastgele petrol kapasitesi (150-500)
-          let oilIndexes = [];
-          if (features.length > 43) {
-            while (oilIndexes.length < 43) {
-              const randIdx = Math.floor(Math.random() * features.length);
-              if (!oilIndexes.includes(randIdx)) {
-                oilIndexes.push(randIdx);
-              }
-            }
+    /*****************************************************************
+     * players/child_removed -> Bir oyuncu atıldığında/disconnect
+     * Üzerine tüm verileri temizle (playerOrder, pacts, trade, ülkeleri boşalt)
+     *****************************************************************/
+    function handlePlayerRemoved(removedPlayerId) {
+      // Oda verisi her güncellendiğinde bu dinleme devreye girer
+      if (!roomData || !roomData.players) return;
+      if (!roomData.players[removedPlayerId]) {
+        // Zaten yoksa, güncel odada yok demektir.
+        return;
+      }
+      const removedPlayer = roomData.players[removedPlayerId];
+
+      // Ülkeleri sahipsiz yap
+      const countriesOwned = removedPlayer.countries || [];
+      const updates = {};
+
+      countriesOwned.forEach((countryName) => {
+        if (roomData.countryData[countryName] && roomData.countryData[countryName].owner === removedPlayerId) {
+          updates[`countryData/${countryName}/owner`] = null;
+          updates[`countryData/${countryName}/soldiers`] = 0; // varsa asker sıfırlayalım
+        }
+      });
+
+      // PlayerOrder'dan çıkar
+      let newOrder = [...(roomData.playerOrder || [])];
+      newOrder = newOrder.filter((pid) => pid !== removedPlayerId);
+
+      // Mevcut turnIndex ayarla
+      let currentIdx = roomData.currentTurnIndex || 0;
+      const oldIdx = roomData.playerOrder.indexOf(removedPlayerId);
+
+      // Eğer atılan oyuncu sıradaysa veya sırası gelmişse
+      if (oldIdx === currentIdx) {
+        // Doğrudan nextTurn mantığını da tetikleyebiliriz
+        // ama daha basit: currentIdx sabit kalsın, playerOrder'da
+        // adam çıkınca nextTurn'da array kısalmış olacak.
+        // Fakat eğer currentIdx >= newOrder.length olduysa 0'a çekelim.
+        if (currentIdx >= newOrder.length) {
+          currentIdx = 0;
+        } 
+        // Güncel turn gene nextTurn'da zaten ilerler
+      } else {
+        // Sıra index ayarlama (örneğin atılanın index'i currentIndex'ten öndeyse)
+        if (oldIdx < currentIdx) {
+          // Bir oyuncu kaybolduğu için index 1 düşür
+          currentIdx = Math.max(currentIdx - 1, 0);
+        }
+        // Yine de eğer currentIdx >= newOrder.length kaldıysa 0 yapalım.
+        if (currentIdx >= newOrder.length) {
+          currentIdx = 0;
+        }
+      }
+
+      // Ticaret tekliflerini sil
+      if (roomData.tradeOffers) {
+        Object.keys(roomData.tradeOffers).forEach((offerId) => {
+          const offer = roomData.tradeOffers[offerId];
+          if (offer.sellerId === removedPlayerId) {
+            updates[`tradeOffers/${offerId}`] = null;
           }
-
-          // 60 ülkede rastgele buğday kapasitesi (200-700)
-          let wheatIndexes = [];
-          if (features.length > 60) {
-            while (wheatIndexes.length < 60) {
-              const randIdx = Math.floor(Math.random() * features.length);
-              if (!wheatIndexes.includes(randIdx)) {
-                wheatIndexes.push(randIdx);
-              }
-            }
-          }
-
-          features.forEach((feature, idx) => {
-            feature.properties._index = idx;
-          });
-
-          const countryDataInit = {};
-          features.forEach((feature) => {
-            const countryName = feature.properties.name;
-
-            let oilProduction = 0;
-            if (oilIndexes.includes(feature.properties._index)) {
-              oilProduction = Math.floor(Math.random() * (500 - 150 + 1)) + 150;
-            }
-
-            let wheatProduction = 0;
-            if (wheatIndexes.includes(feature.properties._index)) {
-              wheatProduction = Math.floor(Math.random() * (700 - 200 + 1)) + 200;
-            }
-
-            countryDataInit[countryName] = {
-              income: Math.floor(Math.random() * 500) + 100,
-              soldiers: 0,
-              owner: null,
-              barracksCount: 0,
-              factories: 0,
-              refineries: 0,
-              oilProduction: oilProduction,
-              wheatProduction: wheatProduction,
-              grainMills: 0
-            };
-          });
-
-          roomRef.child("countryData").set(countryDataInit);
         });
+      }
+
+      // Paktları sil
+      if (roomData.pacts) {
+        Object.keys(roomData.pacts).forEach((pactId) => {
+          const pact = roomData.pacts[pactId];
+          if (pact.players && pact.players.includes(removedPlayerId)) {
+            updates[`pacts/${pactId}`] = null;
+          }
+        });
+      }
+
+      // Pakt Tekliflerini de iptal edelim
+      if (roomData.pactOffers) {
+        Object.keys(roomData.pactOffers).forEach((offId) => {
+          const off = roomData.pactOffers[offId];
+          if (off.senderId === removedPlayerId || off.recipientId === removedPlayerId) {
+            updates[`pactOffers/${offId}`] = null;
+          }
+        });
+      }
+
+      // PlayerOrder & TurnIndex güncelle
+      updates["playerOrder"] = newOrder;
+      updates["currentTurnIndex"] = currentIdx;
+
+      // Bilgileri anons
+      broadcastNotification(`Oyuncu atıldı/çıktı: ${removedPlayer.name}`);
+
+      // Güncelle
+      roomRef.update(updates);
     }
 
     /*****************************************************************
@@ -1635,6 +1693,17 @@
      *****************************************************************/
     function joinRoomAndListen() {
       if (!roomRef) return;
+
+      // onDisconnect -> Odadan çıkan / sayfayı kapatan kendisi olsun
+      db.ref(`rooms/${currentRoomCode}/players/${localPlayerId}`)
+        .onDisconnect()
+        .remove();
+
+      // Oyuncu silme (child_removed) event
+      roomRef.child("players").on("child_removed", (snap) => {
+        // Burada snap.key -> silinen oyuncunun ID'si
+        handlePlayerRemoved(snap.key);
+      });
 
       roomRef.on("value", (snapshot) => {
         roomData = snapshot.val();
@@ -1695,6 +1764,22 @@
               `<p>Ülkeler: <span>${(player.countries && player.countries.length) || 0}</span></p>` +
               `<p>Petrol: <span>${player.petrol}</span> varil</p>` +
               `<p>Buğday: <span>${player.wheat}</span></p>`;
+
+            // Eğer localPlayer host ise ve pid != localPlayerId ise diskalifiye butonu
+            if (
+              roomData.players[localPlayerId] &&
+              roomData.players[localPlayerId].isHost &&
+              pid !== localPlayerId
+            ) {
+              const kickBtn = document.createElement("button");
+              kickBtn.className = "disqualify-btn";
+              kickBtn.textContent = "Diskalifiye";
+              kickBtn.onclick = () => {
+                disqualifyPlayer(pid);
+              };
+              playerDiv.appendChild(kickBtn);
+            }
+
             playersInfoDiv.appendChild(playerDiv);
           });
         }
@@ -1889,19 +1974,21 @@
       wheatSelect.innerHTML = "";
       if (roomData && roomData.playerOrder) {
         roomData.playerOrder.forEach((pid) => {
+          const playerObj = roomData.players[pid];
+          if (!playerObj) return; // Silinmiş olabilir
           const option1 = document.createElement("option");
           option1.value = pid;
-          option1.textContent = roomData.players[pid].name;
+          option1.textContent = playerObj.name;
           moneySelect.appendChild(option1);
 
           const option2 = document.createElement("option");
           option2.value = pid;
-          option2.textContent = roomData.players[pid].name;
+          option2.textContent = playerObj.name;
           petrolSelect.appendChild(option2);
 
           const option3 = document.createElement("option");
           option3.value = pid;
-          option3.textContent = roomData.players[pid].name;
+          option3.textContent = playerObj.name;
           wheatSelect.appendChild(option3);
         });
       }
@@ -1913,7 +2000,7 @@
       pactRecipientSelect.innerHTML = "";
       if (roomData && roomData.playerOrder) {
         roomData.playerOrder.forEach((pid) => {
-          if (pid !== localPlayerId) {
+          if (pid !== localPlayerId && roomData.players[pid]) {
             const option = document.createElement("option");
             option.value = pid;
             option.textContent = roomData.players[pid].name;
@@ -1929,7 +2016,7 @@
       privateSelect.innerHTML = "";
       if (roomData && roomData.playerOrder) {
         roomData.playerOrder.forEach((pid) => {
-          if (pid !== localPlayerId) {
+          if (pid !== localPlayerId && roomData.players[pid]) {
             const option = document.createElement("option");
             option.value = pid;
             option.textContent = roomData.players[pid].name;
@@ -1945,7 +2032,7 @@
       embargoSelect.innerHTML = "";
       if (roomData && roomData.playerOrder) {
         roomData.playerOrder.forEach((pid) => {
-          if (pid !== localPlayerId) {
+          if (pid !== localPlayerId && roomData.players[pid]) {
             const option = document.createElement("option");
             option.value = pid;
             option.textContent = roomData.players[pid].name;
@@ -1953,6 +2040,23 @@
           }
         });
       }
+    }
+
+    /*****************************************************************
+     * HOST'un istediği oyuncuyu diskalifiye etmesi
+     *****************************************************************/
+    function disqualifyPlayer(kickPlayerId) {
+      if (!roomData || !roomData.players[localPlayerId] || !roomData.players[localPlayerId].isHost) {
+        showNotification("Sadece oda kurucusu oyuncu diskalifiye edebilir!");
+        return;
+      }
+      if (!roomData.players[kickPlayerId]) {
+        showNotification("Diskalifiye edilmek istenen oyuncu bulunamadı!");
+        return;
+      }
+      // Veritabanından direkt o oyuncu kaydını siliyoruz
+      roomRef.child("players").child(kickPlayerId).remove();
+      showNotification("Oyuncu diskalifiye edildi.");
     }
 
     /*****************************************************************
@@ -2063,7 +2167,6 @@
     }
 
     function acceptPactOffer(offerId) {
-      console.log("Pact Accept Clicked: ", offerId);
       const offer = roomData.pactOffers[offerId];
       if (!offer || offer.status !== "pending") return;
 
@@ -2074,7 +2177,7 @@
       const recipientData = roomData.players[offer.recipientId];
       if (!senderData || !recipientData) return;
 
-      // Eğer teklifin sahibi sonradan parayı harcadıysa?
+      // Eğer teklifin sahibi sonradan parayı harcamışsa?
       if (senderData.money < offer.cost) {
         showNotification("Teklifi yapan oyuncunun yeterli parası kalmadı. Teklif iptal.");
         roomRef.child("pactOffers").child(offerId).update({ status: "rejected" });
@@ -2210,7 +2313,6 @@
       const costMoney = 10 * count;
       const costWheat = 25 * count;
 
-      // Her zaman localPlayerId kullanalım
       const currentPlayerData = roomData.players[localPlayerId];
       if (currentPlayerData.money < costMoney) {
         showNotification("Yeterli paranız yok!");
@@ -3094,12 +3196,18 @@
 
     document.getElementById("end-turn-btn").addEventListener("click", () => nextTurn(false));
 
+    // Odadan çık butonu
     document.getElementById("exit-room-btn").addEventListener("click", () => {
+      // DB'den kendini sil (oyundan atılma)
+      removeLocalPlayerFromDB();
+
+      // Arayüz
       document.getElementById("game-container").style.display = "none";
       document.getElementById("lobby-container").style.display = "block";
       document.body.classList.add("lobby");
       stopTurnTimer();
       clearInterval(startInterval);
+      showNotification("Odadan çıktınız!");
     });
 
     const militaryPopup = document.getElementById("military-popup");
@@ -3227,6 +3335,69 @@
               layer.on("click", () => selectCountry(countryName, layer));
             }
           }).addTo(map);
+        });
+    }
+
+    function loadAndInitializeGeoJson() {
+      fetch("https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json")
+        .then((response) => response.json())
+        .then((geoJsonData) => {
+          const features = geoJsonData.features;
+
+          // 43 ülkede rastgele petrol kapasitesi (150-500)
+          let oilIndexes = [];
+          if (features.length > 43) {
+            while (oilIndexes.length < 43) {
+              const randIdx = Math.floor(Math.random() * features.length);
+              if (!oilIndexes.includes(randIdx)) {
+                oilIndexes.push(randIdx);
+              }
+            }
+          }
+
+          // 60 ülkede rastgele buğday kapasitesi (200-700)
+          let wheatIndexes = [];
+          if (features.length > 60) {
+            while (wheatIndexes.length < 60) {
+              const randIdx = Math.floor(Math.random() * features.length);
+              if (!wheatIndexes.includes(randIdx)) {
+                wheatIndexes.push(randIdx);
+              }
+            }
+          }
+
+          features.forEach((feature, idx) => {
+            feature.properties._index = idx;
+          });
+
+          const countryDataInit = {};
+          features.forEach((feature) => {
+            const countryName = feature.properties.name;
+
+            let oilProduction = 0;
+            if (oilIndexes.includes(feature.properties._index)) {
+              oilProduction = Math.floor(Math.random() * (500 - 150 + 1)) + 150;
+            }
+
+            let wheatProduction = 0;
+            if (wheatIndexes.includes(feature.properties._index)) {
+              wheatProduction = Math.floor(Math.random() * (700 - 200 + 1)) + 200;
+            }
+
+            countryDataInit[countryName] = {
+              income: Math.floor(Math.random() * 500) + 100,
+              soldiers: 0,
+              owner: null,
+              barracksCount: 0,
+              factories: 0,
+              refineries: 0,
+              oilProduction: oilProduction,
+              wheatProduction: wheatProduction,
+              grainMills: 0
+            };
+          });
+
+          roomRef.child("countryData").set(countryDataInit);
         });
     }
 
