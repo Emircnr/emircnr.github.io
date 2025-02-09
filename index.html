@@ -816,7 +816,7 @@
         width: 90% !important;
         right: 5% !important;
         left: auto !important;
-        bottom: 90px; 
+        bottom: 90px;
       }
     }
   </style>
@@ -1688,12 +1688,12 @@
               playerDiv.className = "player-info";
               playerDiv.id = "player-info-" + pid;
               playerDiv.innerHTML =
-                <p><strong>${player.name}</strong></p> +
-                <p>Para: <span>${player.money}</span>$</p> +
-                <p>Asker: <span>${player.soldiers}</span></p> +
-                <p>Ülkeler: <span>${(player.countries && player.countries.length) || 0}</span></p> +
-                <p>Petrol: <span>${player.petrol}</span> varil</p> +
-                <p>Buğday: <span>${player.wheat}</span></p>;
+                `<p><strong>${player.name}</strong></p>` +
+                `<p>Para: <span>${player.money}</span>$</p>` +
+                `<p>Asker: <span>${player.soldiers}</span></p>` +
+                `<p>Ülkeler: <span>${(player.countries && player.countries.length) || 0}</span></p>` +
+                `<p>Petrol: <span>${player.petrol}</span> varil</p>` +
+                `<p>Buğday: <span>${player.wheat}</span></p>`;
               playersInfoDiv.appendChild(playerDiv);
             }
           });
@@ -1823,7 +1823,7 @@
         : 0;
 
       return (
-        <div class="country-popup">
+        `<div class="country-popup">
           <p><i class="fas fa-money-bill-wave"></i> Gelir: ${effectiveIncome}$</p>
           <p><i class="fas fa-users"></i> Asker: ${country.soldiers || 0}</p>
           <p><i class="fas fa-fort-awesome"></i> Kışla: ${country.barracksCount || 0}</p>
@@ -1833,7 +1833,7 @@
           <p><i class="fas fa-wheat-awn"></i> Değirmen: ${country.grainMills || 0}</p>
           <p><i class="fas fa-wheat-awn"></i> Buğday Üretimi: ${effectiveWheat}</p>
           <p><i class="fas fa-crown"></i> Sahip: ${ownerText}</p>
-        </div>
+        </div>`
       );
     }
 
@@ -1958,13 +1958,12 @@
           }
         });
 
-        // Tüm ülkelere bak, dolduralım (destek alan her ülkeyi seçebilsin)
+        // Tüm ülkelere bak, dolduralım
         supportRecipientCountry.innerHTML = "<option value=''>--Ülke Seç--</option>";
         if (roomData.countryData) {
           Object.keys(roomData.countryData).forEach((cName) => {
             const c = roomData.countryData[cName];
-            // Sadece "seçili alıcı"ya ait ülkeler listelensin isterseniz ek kontrol yapılabilir
-            // Şimdilik hepsi konuluyor
+            // Dilediğiniz ek filtreleri burada yapabilirsiniz.
             const op = document.createElement("option");
             op.value = cName;
             op.textContent = cName;
@@ -2037,7 +2036,7 @@
       pactOfferRef.set(newOffer);
 
       broadcastNotification(
-        Saldırmazlık Paktı Teklifi: ${senderData.name} → ${roomData.players[recipient].name} (Tur: ${duration}, Para: ${cost}$)
+        `Saldırmazlık Paktı Teklifi: ${senderData.name} → ${roomData.players[recipient].name} (Tur: ${duration}, Para: ${cost}$)`
       );
       showNotification("Pakt teklifi gönderildi!");
     });
@@ -2056,13 +2055,13 @@
         ) {
           const div = document.createElement("div");
           div.className = "pact-offer-item";
-          div.innerHTML = 
+          div.innerHTML = `
             <p><strong>${offer.senderName}</strong> size saldırmazlık pakti teklif ediyor.</p>
             <p>Tur sayısı: <strong>${offer.duration}</strong></p>
             <p>Para talebi: <strong>${offer.cost}$</strong> (Gönderen ödeyecek, siz alacaksınız)</p>
             <button class="accept-btn">Kabul Et</button>
             <button class="reject-btn">Reddet</button>
-          ;
+          `;
           div.querySelector(".accept-btn").addEventListener("click", () => {
             acceptPactOffer(offer.offerId);
           });
@@ -2105,17 +2104,17 @@
       const updates = {};
 
       // Teklifin durumu accepted
-      updates[pactOffers/${offerId}/status] = "accepted";
+      updates[`pactOffers/${offerId}/status`] = "accepted";
 
       // Para transferi
-      updates[players/${offer.senderId}/money] = sender.money - offer.cost;
-      updates[players/${offer.recipientId}/money] = recipient.money + offer.cost;
+      updates[`players/${offer.senderId}/money`] = sender.money - offer.cost;
+      updates[`players/${offer.recipientId}/money`] = recipient.money + offer.cost;
 
       // Pakt kaydı
       if (!roomData.pacts) {
         updates["pacts"] = {};
       }
-      updates[pacts/${pactId}] = {
+      updates[`pacts/${pactId}`] = {
         playerA: offer.senderId,
         playerB: offer.recipientId,
         active: true,
@@ -2127,7 +2126,7 @@
       roomRef.update(updates);
 
       broadcastNotification(
-        Pakt Anlaşması: ${sender.name} & ${recipient.name} (${offer.duration} tur, ${offer.cost}$)
+        `Pakt Anlaşması: ${sender.name} & ${recipient.name} (${offer.duration} tur, ${offer.cost}$)`
       );
       showNotification("Pakt teklifi kabul edildi!");
     }
@@ -2137,7 +2136,7 @@
       if (!offer || offer.status !== "pending") return;
       roomRef.child("pactOffers").child(offerId).update({ status: "rejected" });
       broadcastNotification(
-        Pakt Reddedildi: ${offer.senderName} teklifi reddedildi.
+        `Pakt Reddedildi: ${offer.senderName} teklifi reddedildi.`
       );
       showNotification("Pakt teklifi reddedildi.");
     }
@@ -2191,7 +2190,7 @@
       const updates = {};
       let attackResult = "";
 
-      // Kendi toprağına asker yollamak (aslında "saldırı" sayılmaz ama basitçe ekliyoruz)
+      // Kendi toprağına asker yollamak (aslında "saldırı" sayılmaz)
       if (target.owner === currentPlayerId) {
         updates["countryData/" + selectedCountry + "/soldiers"] =
           target.soldiers + soldiersToSend;
@@ -2219,17 +2218,17 @@
             defenderCountries = defenderCountries.filter((c) => c !== selectedCountry);
             updates["players/" + target.owner + "/countries"] = defenderCountries;
           }
-          attackResult = ${selectedCountry} fethedildi! (${soldiersToSend} vs ${target.soldiers});
+          attackResult = `${selectedCountry} fethedildi! (${soldiersToSend} vs ${target.soldiers})`;
         } else {
           // Savunma kazandı
           updates["countryData/" + selectedCountry + "/soldiers"] =
             target.soldiers - soldiersToSend;
-          attackResult = ${selectedCountry} savunuldu! (${soldiersToSend} vs ${target.soldiers});
+          attackResult = `${selectedCountry} savunuldu! (${soldiersToSend} vs ${target.soldiers})`;
         }
         nextTurn();
       }
       roomRef.update(updates);
-      broadcastNotification(Saldırı: ${roomData.players[currentPlayerId].name} → ${selectedCountry}. ${attackResult});
+      broadcastNotification(`Saldırı: ${roomData.players[currentPlayerId].name} → ${selectedCountry}. ${attackResult}`);
       showNotification(attackResult);
     }
 
@@ -2305,7 +2304,7 @@
       updates["countryData/" + selectedCountry + "/barracksCount"] =
         (target.barracksCount || 0) + quantity;
       roomRef.update(updates);
-      broadcastNotification(${currentPlayerData.name} ${quantity} adet kışla kurdu (${selectedCountry}));
+      broadcastNotification(`${currentPlayerData.name} ${quantity} adet kışla kurdu (${selectedCountry})`);
       showNotification(quantity + " adet kışla kuruldu.");
     }
 
@@ -2343,7 +2342,7 @@
       updates["countryData/" + selectedCountry + "/factories"] =
         (target.factories || 0) + quantity;
       roomRef.update(updates);
-      broadcastNotification(${currentPlayerData.name} ${quantity} adet fabrika kurdu (${selectedCountry}));
+      broadcastNotification(`${currentPlayerData.name} ${quantity} adet fabrika kurdu (${selectedCountry})`);
       showNotification(quantity + " adet fabrika kuruldu.");
     }
 
@@ -2374,12 +2373,12 @@
         return;
       }
       const updates = {};
-      updates[players/${localPlayerId}/money] = currentPlayerData.money - totalMoney;
-      updates[players/${localPlayerId}/petrol] = currentPlayerData.petrol - totalPetrol;
-      updates[countryData/${selectedCountry}/refineries] =
+      updates[`players/${localPlayerId}/money`] = currentPlayerData.money - totalMoney;
+      updates[`players/${localPlayerId}/petrol`] = currentPlayerData.petrol - totalPetrol;
+      updates[`countryData/${selectedCountry}/refineries`] =
         (target.refineries || 0) + quantity;
       roomRef.update(updates);
-      broadcastNotification(${currentPlayerData.name} ${quantity} adet rafine kurdu (${selectedCountry}));
+      broadcastNotification(`${currentPlayerData.name} ${quantity} adet rafine kurdu (${selectedCountry})`);
       showNotification(quantity + " adet rafine kuruldu. Üretim kapasitesi arttı.");
     }
 
@@ -2410,16 +2409,16 @@
         return;
       }
       const updates = {};
-      updates[players/${localPlayerId}/money] = currentPlayerData.money - totalMoney;
-      updates[players/${localPlayerId}/petrol] = currentPlayerData.petrol - totalPetrol;
-      updates[countryData/${selectedCountry}/grainMills] =
+      updates[`players/${localPlayerId}/money`] = currentPlayerData.money - totalMoney;
+      updates[`players/${localPlayerId}/petrol`] = currentPlayerData.petrol - totalPetrol;
+      updates[`countryData/${selectedCountry}/grainMills`] =
         (target.grainMills || 0) + quantity;
       roomRef.update(updates);
-      broadcastNotification(${currentPlayerData.name} ${quantity} adet değirmen kurdu (${selectedCountry}));
+      broadcastNotification(`${currentPlayerData.name} ${quantity} adet değirmen kurdu (${selectedCountry})`);
       showNotification(quantity + " adet değirmen kuruldu. Buğday üretimi arttı.");
     }
 
-    // ASKER ÇEK
+    // ASKER ÇEK - DÜZENLEMELİ HALİ:
     function pullSoldiers() {
       if (!selectedCountry) {
         showNotification("Bir ülke seçin!");
@@ -2438,18 +2437,30 @@
 
       const updates = {};
 
-      // Kendi ülkemizden mi çekiyoruz?
+      // Eğer ülkenin sahibi bizsek, sadece KENDİ askerlerimizi çekelim
       if (target.owner === localPlayerId) {
-        if (target.soldiers < count) {
-          showNotification("Bu ülkede yeterli asker yok!");
+        // Ülkedeki toplam destek askerlerini bulalım
+        let totalSupporters = 0;
+        if (target.supporters) {
+          for (let supId in target.supporters) {
+            totalSupporters += target.supporters[supId];
+          }
+        }
+        // Sahibi olduğumuz (çekebileceğimiz) asker sayısı = target.soldiers - destek toplamı
+        const occupantSoldiers = target.soldiers - totalSupporters;
+
+        if (occupantSoldiers < count) {
+          showNotification("Bu ülkede çekebileceğiniz kadar kendi askeri yok!");
           return;
         }
-        updates["countryData/" + selectedCountry + "/soldiers"] = target.soldiers - count;
-        updates["players/" + localPlayerId + "/soldiers"] =
-          currentPlayerData.soldiers + count;
-        broadcastNotification(${currentPlayerData.name} ${selectedCountry} ülkesinden ${count} asker çekti.);
+
+        // Güncelleme
+        updates[`countryData/${selectedCountry}/soldiers`] = target.soldiers - count;
+        updates[`players/${localPlayerId}/soldiers`] = currentPlayerData.soldiers + count;
+
+        broadcastNotification(`${currentPlayerData.name} ${selectedCountry} ülkesinden ${count} asker çekti.`);
       } else {
-        // Destek askerimizi geri çekmek
+        // Destek askerimizi geri çekmek (supporters altından bakıyoruz)
         const supportAmount = target.supporters && target.supporters[localPlayerId]
           ? target.supporters[localPlayerId]
           : 0;
@@ -2462,14 +2473,14 @@
           return;
         }
         updates["countryData/" + selectedCountry + "/soldiers"] = target.soldiers - count;
-        updates[countryData/${selectedCountry}/supporters/${localPlayerId}] = supportAmount - count;
+        updates[`countryData/${selectedCountry}/supporters/${localPlayerId}`] = supportAmount - count;
 
         if (supportAmount - count <= 0) {
-          updates[countryData/${selectedCountry}/supporters/${localPlayerId}] = null;
+          updates[`countryData/${selectedCountry}/supporters/${localPlayerId}`] = null;
         }
 
         updates["players/" + localPlayerId + "/soldiers"] = currentPlayerData.soldiers + count;
-        broadcastNotification(${currentPlayerData.name}, ${selectedCountry} ülkesine verdiği ${count} askeri geri çekti.);
+        broadcastNotification(`${currentPlayerData.name}, ${selectedCountry} ülkesine verdiği ${count} askeri geri çekti.`);
       }
 
       roomRef.update(updates);
@@ -2507,16 +2518,16 @@
       }
 
       const updates = {};
-      updates[players/${localPlayerId}/soldiers] = currentPlayerData.soldiers - soldiersToSend;
-      updates[countryData/${countryName}/soldiers] = targetCountry.soldiers + soldiersToSend;
+      updates[`players/${localPlayerId}/soldiers`] = currentPlayerData.soldiers - soldiersToSend;
+      updates[`countryData/${countryName}/soldiers`] = targetCountry.soldiers + soldiersToSend;
 
       const oldSupport = targetCountry.supporters && targetCountry.supporters[localPlayerId]
         ? targetCountry.supporters[localPlayerId]
         : 0;
-      updates[countryData/${countryName}/supporters/${localPlayerId}] = oldSupport + soldiersToSend;
+      updates[`countryData/${countryName}/supporters/${localPlayerId}`] = oldSupport + soldiersToSend;
 
       roomRef.update(updates);
-      broadcastNotification(${currentPlayerData.name}, ${roomData.players[recipient].name} (${countryName}) ülkesine ${soldiersToSend} asker destek gönderdi.);
+      broadcastNotification(`${currentPlayerData.name}, ${roomData.players[recipient].name} (${countryName}) ülkesine ${soldiersToSend} asker destek gönderdi.`);
       showNotification("Askeri destek gönderildi!");
     }
     document.getElementById("send-support-btn").addEventListener("click", sendSupport);
@@ -2539,14 +2550,14 @@
         return;
       }
       const updates = {};
-      updates[players/${localPlayerId}/money] = currentPlayerData.money - amount;
-      updates[players/${recipientId}/money] = roomData.players[recipientId].money + amount;
+      updates[`players/${localPlayerId}/money`] = currentPlayerData.money - amount;
+      updates[`players/${recipientId}/money`] = roomData.players[recipientId].money + amount;
       roomRef.update(updates);
       broadcastNotification(
-        ${currentPlayerData.name} → ${roomData.players[recipientId].name} için ${amount}$ gönderdi.
+        `${currentPlayerData.name} → ${roomData.players[recipientId].name} için ${amount}$ gönderdi.`
       );
       showNotification(
-        ${amount}$, ${roomData.players[recipientId].name} oyuncusuna gönderildi.
+        `${amount}$, ${roomData.players[recipientId].name} oyuncusuna gönderildi.`
       );
     }
 
@@ -2567,14 +2578,14 @@
         return;
       }
       const updates = {};
-      updates[players/${localPlayerId}/petrol] = currentPlayerData.petrol - amount;
-      updates[players/${recipientId}/petrol] = roomData.players[recipientId].petrol + amount;
+      updates[`players/${localPlayerId}/petrol`] = currentPlayerData.petrol - amount;
+      updates[`players/${recipientId}/petrol`] = roomData.players[recipientId].petrol + amount;
       roomRef.update(updates);
       broadcastNotification(
-        ${currentPlayerData.name} → ${roomData.players[recipientId].name} için ${amount} varil petrol gönderdi.
+        `${currentPlayerData.name} → ${roomData.players[recipientId].name} için ${amount} varil petrol gönderdi.`
       );
       showNotification(
-        ${amount} varil, ${roomData.players[recipientId].name} oyuncusuna gönderildi.
+        `${amount} varil, ${roomData.players[recipientId].name} oyuncusuna gönderildi.`
       );
     }
 
@@ -2595,14 +2606,14 @@
         return;
       }
       const updates = {};
-      updates[players/${localPlayerId}/wheat] = currentPlayerData.wheat - amount;
-      updates[players/${recipientId}/wheat] = roomData.players[recipientId].wheat + amount;
+      updates[`players/${localPlayerId}/wheat`] = currentPlayerData.wheat - amount;
+      updates[`players/${recipientId}/wheat`] = roomData.players[recipientId].wheat + amount;
       roomRef.update(updates);
       broadcastNotification(
-        ${currentPlayerData.name} → ${roomData.players[recipientId].name} için ${amount} buğday gönderdi.
+        `${currentPlayerData.name} → ${roomData.players[recipientId].name} için ${amount} buğday gönderdi.`
       );
       showNotification(
-        ${amount} buğday, ${roomData.players[recipientId].name} oyuncusuna gönderildi.
+        `${amount} buğday, ${roomData.players[recipientId].name} oyuncusuna gönderildi.`
       );
     }
 
@@ -2632,7 +2643,7 @@
           if (country) {
             // kışla -> asker üretimi
             if (country.barracksCount) {
-              updates[countryData/${cName}/soldiers] =
+              updates[`countryData/${cName}/soldiers`] =
                 (country.soldiers || 0) + 5 * country.barracksCount;
             }
             // para geliri, fabrika eklentisi
@@ -2660,9 +2671,9 @@
           }
         });
 
-        updates[players/${currentPlayerId}/money] = (player.money || 0) + totalMoneyGained;
-        updates[players/${currentPlayerId}/petrol] = (player.petrol || 0) + totalPetrolGained;
-        updates[players/${currentPlayerId}/wheat] = (player.wheat || 0) + totalWheatGained;
+        updates[`players/${currentPlayerId}/money`] = (player.money || 0) + totalMoneyGained;
+        updates[`players/${currentPlayerId}/petrol`] = (player.petrol || 0) + totalPetrolGained;
+        updates[`players/${currentPlayerId}/wheat`] = (player.wheat || 0) + totalWheatGained;
       }
 
       let newTurnIndex = currentTurnIndex + 1;
@@ -2926,7 +2937,7 @@
         embargo: embargoList
       };
       tradeOfferRef.set(newOffer);
-      broadcastNotification(${seller.name} bir ticaret teklifi oluşturdu (${itemType}, adet: ${quantity}, fiyat: ${price}$));
+      broadcastNotification(`${seller.name} bir ticaret teklifi oluşturdu (${itemType}, adet: ${quantity}, fiyat: ${price}$)`);
       showNotification("Ticaret teklifi başarıyla oluşturuldu!");
     }
 
@@ -2955,25 +2966,26 @@
           else if (offer.itemType === "grainmill") itemLabel = "Değirmen";
           else if (offer.itemType === "wheat") itemLabel = "Buğday";
 
-          let html = <p><strong>Satıcı:</strong> ${offer.sellerName}</p>;
-          html += <p><strong>Ürün:</strong> ${itemLabel}</p>;
-          html += <p><strong>Mevcut Miktar:</strong> ${offer.quantity}</p>;
-          html += <p><strong>Birim Fiyat:</strong> ${offer.price} $</p>;
+          let html = `<p><strong>Satıcı:</strong> ${offer.sellerName}</p>`;
+          html += `<p><strong>Ürün:</strong> ${itemLabel}</p>`;
+          html += `<p><strong>Mevcut Miktar:</strong> ${offer.quantity}</p>`;
+          html += `<p><strong>Birim Fiyat:</strong> ${offer.price} $</p>`;
           if (offer.countryName) {
-            html += <p><strong>Ülke (Satıcının):</strong> ${offer.countryName}</p>;
+            html += `<p><strong>Ülke (Satıcının):</strong> ${offer.countryName}</p>`;
           }
           if (offer.embargo && offer.embargo.length > 0) {
             const embUsers = offer.embargo
               .map(e => roomData.players[e]?.name || "???")
               .join(", ");
-            html += <p style="color:red;"><strong>Ambargo Uygulanan Oyuncular:</strong> ${embUsers}</p>;
+            html += `<p style="color:red;"><strong>Ambargo Uygulanan Oyuncular:</strong> ${embUsers}</p>`;
           }
 
           // Eğer satıcı isek iptal butonu, değilsek satın alma
           if (offer.sellerId !== localPlayerId) {
-            html += 
+            html += `
               <label style="font-size:14px;color:#ccc;">Almak istediğiniz miktar:</label>
-              <input type="number" class="partial-buy-quantity" placeholder="Miktar" min="1" max="${offer.quantity}"/>;
+              <input type="number" class="partial-buy-quantity" placeholder="Miktar" min="1" max="${offer.quantity}"/>
+            `;
 
             if (
               offer.itemType === "barracks" ||
@@ -2981,16 +2993,16 @@
               offer.itemType === "refinery" ||
               offer.itemType === "grainmill"
             ) {
-              html += <label style="font-size:14px;color:#ccc;">Hangi ülkenize kurmak istersiniz?</label>
-                      <select class="buyer-country-select">
-                        ${getBuyerCountriesOptionsHTML()}
-                      </select>;
+              html += `<label style="font-size:14px;color:#ccc;">Hangi ülkenize kurmak istersiniz?</label>
+                       <select class="buyer-country-select">
+                         ${getBuyerCountriesOptionsHTML()}
+                       </select>`;
             }
 
-            html += <button class="partial-buy-btn">Satın Al</button>;
+            html += `<button class="partial-buy-btn">Satın Al</button>`;
           } else {
             // Satıcının kendisi iptal edebilir
-            html += <button class="cancel-offer-btn" style="background:linear-gradient(45deg, #c0392b, #e74c3c); margin-top:10px;">İptal</button>;
+            html += `<button class="cancel-offer-btn" style="background:linear-gradient(45deg, #c0392b, #e74c3c); margin-top:10px;">İptal</button>`;
           }
           offerDiv.innerHTML = html;
 
@@ -3032,7 +3044,7 @@
       let html = "";
       if (player.countries && roomData.countryData) {
         player.countries.forEach((cName) => {
-          html += <option value="${cName}">${cName}</option>;
+          html += `<option value="${cName}">${cName}</option>`;
         });
       }
       return html;
@@ -3071,14 +3083,14 @@
       if (offer.itemType === "petrol") {
         if (seller.petrol >= buyAmount) {
           hasEnough = true;
-          updates[players/${offer.sellerId}/petrol] = seller.petrol - buyAmount;
-          updates[players/${localPlayerId}/petrol] = buyer.petrol + buyAmount;
+          updates[`players/${offer.sellerId}/petrol`] = seller.petrol - buyAmount;
+          updates[`players/${localPlayerId}/petrol`] = buyer.petrol + buyAmount;
         }
       } else if (offer.itemType === "wheat") {
         if (seller.wheat >= buyAmount) {
           hasEnough = true;
-          updates[players/${offer.sellerId}/wheat] = seller.wheat - buyAmount;
-          updates[players/${localPlayerId}/wheat] = buyer.wheat + buyAmount;
+          updates[`players/${offer.sellerId}/wheat`] = seller.wheat - buyAmount;
+          updates[`players/${localPlayerId}/wheat`] = buyer.wheat + buyAmount;
         }
       } else {
         // Bina satışı
@@ -3090,22 +3102,22 @@
         if (offer.itemType === "barracks") {
           if (c.barracksCount >= buyAmount) {
             hasEnough = true;
-            updates[countryData/${offer.countryName}/barracksCount] = c.barracksCount - buyAmount;
+            updates[`countryData/${offer.countryName}/barracksCount`] = c.barracksCount - buyAmount;
           }
         } else if (offer.itemType === "factory") {
           if (c.factories >= buyAmount) {
             hasEnough = true;
-            updates[countryData/${offer.countryName}/factories] = c.factories - buyAmount;
+            updates[`countryData/${offer.countryName}/factories`] = c.factories - buyAmount;
           }
         } else if (offer.itemType === "refinery") {
           if (c.refineries >= buyAmount) {
             hasEnough = true;
-            updates[countryData/${offer.countryName}/refineries] = c.refineries - buyAmount;
+            updates[`countryData/${offer.countryName}/refineries`] = c.refineries - buyAmount;
           }
         } else if (offer.itemType === "grainmill") {
           if (c.grainMills >= buyAmount) {
             hasEnough = true;
-            updates[countryData/${offer.countryName}/grainMills] = c.grainMills - buyAmount;
+            updates[`countryData/${offer.countryName}/grainMills`] = c.grainMills - buyAmount;
           }
         }
 
@@ -3120,16 +3132,16 @@
             return;
           }
           if (offer.itemType === "barracks") {
-            updates[countryData/${buyerCountry}/barracksCount] =
+            updates[`countryData/${buyerCountry}/barracksCount`] =
               (roomData.countryData[buyerCountry].barracksCount || 0) + buyAmount;
           } else if (offer.itemType === "factory") {
-            updates[countryData/${buyerCountry}/factories] =
+            updates[`countryData/${buyerCountry}/factories`] =
               (roomData.countryData[buyerCountry].factories || 0) + buyAmount;
           } else if (offer.itemType === "refinery") {
-            updates[countryData/${buyerCountry}/refineries] =
+            updates[`countryData/${buyerCountry}/refineries`] =
               (roomData.countryData[buyerCountry].refineries || 0) + buyAmount;
           } else if (offer.itemType === "grainmill") {
-            updates[countryData/${buyerCountry}/grainMills] =
+            updates[`countryData/${buyerCountry}/grainMills`] =
               (roomData.countryData[buyerCountry].grainMills || 0) + buyAmount;
           }
         }
@@ -3139,25 +3151,25 @@
         return;
       }
 
-      updates[players/${localPlayerId}/money] = buyer.money - totalCost;
-      updates[players/${offer.sellerId}/money] = seller.money + totalCost;
+      updates[`players/${localPlayerId}/money`] = buyer.money - totalCost;
+      updates[`players/${offer.sellerId}/money`] = seller.money + totalCost;
 
       let newQuantity = offer.quantity - buyAmount;
       if (newQuantity <= 0) {
-        updates[tradeOffers/${offerId}/status] = "completed";
+        updates[`tradeOffers/${offerId}/status`] = "completed";
       }
-      updates[tradeOffers/${offerId}/quantity] = newQuantity;
+      updates[`tradeOffers/${offerId}/quantity`] = newQuantity;
 
       roomRef.update(updates, (error) => {
         if (!error) {
           broadcastNotification(
-            Ticaret Onaylandı: ${seller.name} -> ${buyer.name} (${buyAmount} adet "${offer.itemType}")
+            `Ticaret Onaylandı: ${seller.name} -> ${buyer.name} (${buyAmount} adet "${offer.itemType}")`
           );
           showNotification("Ticaret başarıyla gerçekleşti!");
           const chatMessage = {
             sender: "Sistem",
             senderId: "system",
-            text: Ticaret Onaylandı: ${seller.name} -> ${buyer.name}, ${buyAmount} x ${offer.itemType},
+            text: `Ticaret Onaylandı: ${seller.name} -> ${buyer.name}, ${buyAmount} x ${offer.itemType}`,
             recipientId: "",
             timestamp: firebase.database.ServerValue.TIMESTAMP
           };
@@ -3205,7 +3217,7 @@
       if (!roomRef || !roomData) return;
 
       // 1) Mevcut player'ı players'tan sil
-      roomRef.child(players/${localPlayerId}).remove();
+      roomRef.child(`players/${localPlayerId}`).remove();
 
       // 2) playerOrder'dan çıkar
       const newOrder = (roomData.playerOrder || []).filter((id) => id !== localPlayerId);
@@ -3373,4 +3385,4 @@
     });
   </script>
 </body>
-</html> 
+</html>
