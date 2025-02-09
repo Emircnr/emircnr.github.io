@@ -181,7 +181,6 @@
       gap: 10px;
       align-items: flex-end;
     }
-    /* Tek bir bildirim kutusu */
     .notification-item {
       min-width: 200px;
       max-width: 350px;
@@ -722,7 +721,6 @@
       flex-direction: column;
       gap: 8px;
     }
-    /* Ülke seçimi (alırken hangi ülkeye kurulacak) */
     .buyer-country-select {
       margin-top: 5px;
     }
@@ -777,6 +775,17 @@
     #players-popup .popup-content .player-info p {
       margin: 4px 0;
       color: #ddd;
+    }
+    /* Diskalifiye butonu */
+    .disqualify-btn {
+      background: linear-gradient(45deg, #c0392b, #e74c3c);
+      border: none;
+      border-radius: 4px;
+      padding: 5px 8px;
+      color: #fff;
+      cursor: pointer;
+      font-size: 13px;
+      margin-top: 5px;
     }
 
     /**********************************************************
@@ -836,7 +845,7 @@
         width: 90% !important;
         right: 5% !important;
         left: auto !important;
-        bottom: 90px; 
+        bottom: 90px;
       }
     }
   </style>
@@ -1223,6 +1232,7 @@
     let roomData = null;
     let selectedCountry = null;
     let map, geoJsonLayer = null;
+
     // 8 adet renk seçeneği
     const availableColors = [
       "red",
@@ -1236,6 +1246,7 @@
     ];
     let localPlayerColor = null;
     let chatListenerAdded = false;
+
     // Bilgi kartları sabit görünüm mü?
     let infoCardsPermanent = false;
     // Chat bildirim sayısı
@@ -1310,9 +1321,7 @@
 
     function isMyTurn() {
       if (!roomData || !roomData.playerOrder) return false;
-      // Oyun başlamadıysa da false döndürelim.
       if (roomData.gameState !== "started") return false;
-
       const currentTurnIndex = roomData.currentTurnIndex || 0;
       return roomData.playerOrder[currentTurnIndex] === localPlayerId;
     }
@@ -1329,6 +1338,59 @@
         }
       }
       return false;
+    }
+
+    // Oyuncuyu veritabanından tamamen silen / playerOrder listesinden çıkaran fonksiyon
+    function removePlayerFromRoom(playerId) {
+      if (!roomData || !roomData.players || !roomData.playerOrder) return;
+      if (!roomData.players[playerId]) return;
+
+      // 1) players/<playerId> sil
+      // 2) playerOrder'dan çıkar
+      // 3) eğer currentTurnIndex o oyuncuya aitse, turu ileri al
+      // 4) disqualify vb. bildirim at
+      let updates = {};
+      updates["players/" + playerId] = null; // Kaldır
+      const newOrder = (roomData.playerOrder || []).filter(id => id !== playerId);
+      updates["playerOrder"] = newOrder;
+
+      // currentTurnIndex düzenle
+      let curIndex = roomData.currentTurnIndex || 0;
+      const wasCurrent = (newOrder[curIndex] === playerId);
+      // Veya eğer disqualify sırasında currentTurnIndex saptığından yeni sıfır da out-of-range olabilir
+      if (curIndex >= newOrder.length) {
+        curIndex = 0;
+      }
+      if (wasCurrent) {
+        // Otomatik sonraki tura geçelim
+        curIndex = curIndex; // Aslında bir sonraki index'e atabiliriz ama
+        // bu güncellemeyi nextTurn içinde de yapıyoruz.
+      }
+
+      // Oyun içinde tek oyuncu kalırsa vs. senaryolar (isteğe göre eklenebilir)
+      // Biz basit tutuyoruz.
+
+      updates["currentTurnIndex"] = curIndex;
+      roomRef.update(updates, () => {
+        // Eğer diskalifiye edilen oyuncu sırasındaysa turu atla
+        if (roomData.gameState === "started" && newOrder.length > 0) {
+          // Tekrar bir "value" alıp nextTurn yapmak mantıklı olabilir
+          // Burada basitça "eğer disqalify anında currentTurnIndex'teki yok olduysa nextTurn(true)" demek yeterli
+          setTimeout(() => {
+            // Tek seferlik snapshot al
+            roomRef.once("value", snap => {
+              const updatedData = snap.val();
+              // Tekrar check
+              const cIndex = updatedData.currentTurnIndex || 0;
+              const pOrder = updatedData.playerOrder || [];
+              if (pOrder[cIndex] === playerId) {
+                // Otomatik ileri
+                nextTurn(true);
+              }
+            });
+          }, 500);
+        }
+      });
     }
 
     function autoReconnect() {
@@ -1457,7 +1519,6 @@
           createdAt: firebase.database.ServerValue.TIMESTAMP
         };
 
-        // İlk oyuncu "host" olarak sayılabilir, isHost: true
         newRoomData.players[localPlayerId] = {
           name: playerName,
           color: localPlayerColor,
@@ -1685,16 +1746,32 @@
         if (roomData.playerOrder) {
           roomData.playerOrder.forEach((pid) => {
             const player = roomData.players[pid];
+            if (!player) return; // Güvenlik için
             const playerDiv = document.createElement("div");
             playerDiv.className = "player-info";
             playerDiv.id = "player-info-" + pid;
-            playerDiv.innerHTML =
-              `<p><strong>${player.name}</strong></p>` +
-              `<p>Para: <span>${player.money}</span>$</p>` +
-              `<p>Asker: <span>${player.soldiers}</span></p>` +
-              `<p>Ülkeler: <span>${(player.countries && player.countries.length) || 0}</span></p>` +
-              `<p>Petrol: <span>${player.petrol}</span> varil</p>` +
-              `<p>Buğday: <span>${player.wheat}</span></p>`;
+            playerDiv.innerHTML = `
+              <p><strong>${player.name}</strong></p>
+              <p>Para: <span>${player.money}</span>$</p>
+              <p>Asker: <span>${player.soldiers}</span></p>
+              <p>Ülkeler: <span>${(player.countries && player.countries.length) || 0}</span></p>
+              <p>Petrol: <span>${player.petrol}</span> varil</p>
+              <p>Buğday: <span>${player.wheat}</span></p>
+            `;
+
+            // Eğer biz host isek ve bu oyuncu biz değilsek, diskalifiye butonu
+            if (roomData.players[localPlayerId] && roomData.players[localPlayerId].isHost && pid !== localPlayerId) {
+              const dqBtn = document.createElement("button");
+              dqBtn.className = "disqualify-btn";
+              dqBtn.textContent = "Diskalifiye Et";
+              dqBtn.addEventListener("click", () => {
+                if (confirm(`${player.name} oyuncusunu diskalifiye etmek istediğinize emin misiniz?`)) {
+                  broadcastNotification(`${player.name} diskalifiye edildi!`);
+                  removePlayerFromRoom(pid);
+                }
+              });
+              playerDiv.appendChild(dqBtn);
+            }
             playersInfoDiv.appendChild(playerDiv);
           });
         }
@@ -1733,7 +1810,7 @@
           stopTurnTimer();
         }
       } else {
-        stopTurnTimer(); // Oyun başlamadıysa sayaç sıfır
+        stopTurnTimer();
       }
     }
 
@@ -1743,7 +1820,6 @@
       const countdownSpan = document.getElementById("start-countdown");
       if (!state) return;
 
-      // "waiting" -> Oda kurucusu butonu görebilir, sayım yok
       if (state === "waiting") {
         // Eğer bu oyuncu host ise, buton gözüksün
         if (roomData.players[localPlayerId] && roomData.players[localPlayerId].isHost) {
@@ -1753,13 +1829,11 @@
         }
         countdownSpan.style.display = "none";
       }
-      // "starting" -> Geri sayım var, buton gizli
       else if (state === "starting") {
         startBtn.style.display = "none";
         countdownSpan.style.display = "inline";
         startCountdownListener();
       }
-      // "started" -> Geri sayım ve buton yok
       else if (state === "started") {
         startBtn.style.display = "none";
         countdownSpan.style.display = "none";
@@ -1772,7 +1846,6 @@
     document.getElementById("start-game-btn").addEventListener("click", () => {
       if (!roomData || !roomData.players[localPlayerId].isHost) return;
       if (roomData.gameState !== "waiting") return;
-      // Oyun durumunu "starting" yap, 30sn sonra "started"
       const now = Date.now();
       const startTime = now + 30000; // 30 sn sonrası
       roomRef.update({
@@ -1791,7 +1864,6 @@
         const now = Date.now();
         const diff = roomData.startTime - now;
         if (diff <= 0) {
-          // Sayaç bitti, oyunu "started" yapalım
           clearInterval(startInterval);
           startInterval = null;
           roomRef.update({ gameState: "started" });
@@ -1813,17 +1885,15 @@
       if (country.factories) {
         effectiveIncome = Math.floor(effectiveIncome * (1 + 0.20 * country.factories));
       }
-
       const effectiveOil = country.oilProduction
         ? Math.floor(country.oilProduction * (1 + 0.15 * (country.refineries || 0)))
         : 0;
-
       const effectiveWheat = country.wheatProduction
         ? Math.floor(country.wheatProduction * (1 + 0.20 * (country.grainMills || 0)))
         : 0;
 
-      return (
-        `<div class="country-popup">
+      return `
+        <div class="country-popup">
           <p><i class="fas fa-money-bill-wave"></i> Gelir: ${effectiveIncome}$</p>
           <p><i class="fas fa-users"></i> Asker: ${country.soldiers || 0}</p>
           <p><i class="fas fa-fort-awesome"></i> Kışla: ${country.barracksCount || 0}</p>
@@ -1833,8 +1903,8 @@
           <p><i class="fas fa-wheat-awn"></i> Değirmen: ${country.grainMills || 0}</p>
           <p><i class="fas fa-wheat-awn"></i> Buğday Üretimi: ${effectiveWheat}</p>
           <p><i class="fas fa-crown"></i> Sahip: ${ownerText}</p>
-        </div>`
-      );
+        </div>
+      `;
     }
 
     function updateTooltipsPermanent() {
@@ -1889,19 +1959,21 @@
       wheatSelect.innerHTML = "";
       if (roomData && roomData.playerOrder) {
         roomData.playerOrder.forEach((pid) => {
+          if (!roomData.players[pid]) return; // Filtre
+          const playerName = roomData.players[pid].name;
           const option1 = document.createElement("option");
           option1.value = pid;
-          option1.textContent = roomData.players[pid].name;
+          option1.textContent = playerName;
           moneySelect.appendChild(option1);
 
           const option2 = document.createElement("option");
           option2.value = pid;
-          option2.textContent = roomData.players[pid].name;
+          option2.textContent = playerName;
           petrolSelect.appendChild(option2);
 
           const option3 = document.createElement("option");
           option3.value = pid;
-          option3.textContent = roomData.players[pid].name;
+          option3.textContent = playerName;
           wheatSelect.appendChild(option3);
         });
       }
@@ -1913,7 +1985,7 @@
       pactRecipientSelect.innerHTML = "";
       if (roomData && roomData.playerOrder) {
         roomData.playerOrder.forEach((pid) => {
-          if (pid !== localPlayerId) {
+          if (pid !== localPlayerId && roomData.players[pid]) {
             const option = document.createElement("option");
             option.value = pid;
             option.textContent = roomData.players[pid].name;
@@ -1929,7 +2001,7 @@
       privateSelect.innerHTML = "";
       if (roomData && roomData.playerOrder) {
         roomData.playerOrder.forEach((pid) => {
-          if (pid !== localPlayerId) {
+          if (pid !== localPlayerId && roomData.players[pid]) {
             const option = document.createElement("option");
             option.value = pid;
             option.textContent = roomData.players[pid].name;
@@ -1945,7 +2017,7 @@
       embargoSelect.innerHTML = "";
       if (roomData && roomData.playerOrder) {
         roomData.playerOrder.forEach((pid) => {
-          if (pid !== localPlayerId) {
+          if (pid !== localPlayerId && roomData.players[pid]) {
             const option = document.createElement("option");
             option.value = pid;
             option.textContent = roomData.players[pid].name;
@@ -1959,7 +2031,6 @@
      * PAKT TEKLIFLERI
      *****************************************************************/
     function sendPactOffer() {
-      // Pakt teklifi sadece sıranızdaysa
       if (!isMyTurn()) {
         showNotification("Sıranız değil!");
         return;
@@ -1978,7 +2049,6 @@
       const currentTurnIndex = roomData.currentTurnIndex || 0;
       const currentPlayerId = roomData.playerOrder[currentTurnIndex];
       const senderData = roomData.players[currentPlayerId];
-      // Teklifi yapanın parası yeterli mi?
       if (senderData.money < cost) {
         showNotification("Bu teklifi yapmak için yeterli paranız yok!");
         return;
@@ -2036,16 +2106,11 @@
           hasOffer = true;
           const div = document.createElement("div");
           div.className = "pact-offer-item";
-          div.innerHTML =
-            "<p><strong>" +
-            offer.senderName +
-            "</strong> " +
-            offer.turns +
-            " tur boyunca, " +
-            offer.cost +
-            "$ karşılığında saldırmazlık teklifi yaptı.</p>" +
-            '<button class="accept-btn">Kabul Et</button>' +
-            '<button class="reject-btn">Reddet</button>';
+          div.innerHTML = `
+            <p><strong>${offer.senderName}</strong> ${offer.turns} tur boyunca, ${offer.cost}$ karşılığında saldırmazlık teklifi yaptı.</p>
+            <button class="accept-btn">Kabul Et</button>
+            <button class="reject-btn">Reddet</button>
+          `;
 
           div.querySelector(".accept-btn").addEventListener("click", () => {
             acceptPactOffer(offer.offerId);
@@ -2063,7 +2128,6 @@
     }
 
     function acceptPactOffer(offerId) {
-      console.log("Pact Accept Clicked: ", offerId);
       const offer = roomData.pactOffers[offerId];
       if (!offer || offer.status !== "pending") return;
 
@@ -2074,7 +2138,6 @@
       const recipientData = roomData.players[offer.recipientId];
       if (!senderData || !recipientData) return;
 
-      // Eğer teklifin sahibi sonradan parayı harcadıysa?
       if (senderData.money < offer.cost) {
         showNotification("Teklifi yapan oyuncunun yeterli parası kalmadı. Teklif iptal.");
         roomRef.child("pactOffers").child(offerId).update({ status: "rejected" });
@@ -2115,10 +2178,8 @@
 
     /*****************************************************************
      * OYUN İŞLEVLERİ
-     * Not: "Attack" ve "Send Pact" hariç diğerleri her zaman yapılabilir
      *****************************************************************/
     function attack() {
-      // Saldırı sadece sıranızda
       if (!isMyTurn()) {
         showNotification("Sıranız değil!");
         return;
@@ -2201,7 +2262,6 @@
     }
 
     function buySoldiers() {
-      // Asker satın alma her zaman serbest
       const count = parseInt(document.getElementById("soldiers-to-buy").value);
       if (isNaN(count) || count <= 0) {
         showNotification("Geçerli bir asker sayısı girin!");
@@ -2210,7 +2270,6 @@
       const costMoney = 10 * count;
       const costWheat = 25 * count;
 
-      // Her zaman localPlayerId kullanalım
       const currentPlayerData = roomData.players[localPlayerId];
       if (currentPlayerData.money < costMoney) {
         showNotification("Yeterli paranız yok!");
@@ -2232,7 +2291,6 @@
     }
 
     function buyBarracks() {
-      // Bina kurma her zaman
       if (!selectedCountry) {
         showNotification("Bir ülke seçin!");
         return;
@@ -2277,7 +2335,6 @@
     }
 
     function buildFactory() {
-      // Bina kurma her zaman
       if (!selectedCountry) {
         showNotification("Bir ülke seçin!");
         return;
@@ -2316,7 +2373,6 @@
     }
 
     function buildRefinery() {
-      // Bina kurma her zaman
       if (!selectedCountry) {
         showNotification("Bir ülke seçin!");
         return;
@@ -2353,7 +2409,6 @@
     }
 
     function buildGrainMill() {
-      // Bina kurma her zaman
       if (!selectedCountry) {
         showNotification("Bir ülke seçin!");
         return;
@@ -2390,7 +2445,6 @@
     }
 
     function pullSoldiers() {
-      // Asker çekme her zaman
       if (!selectedCountry) {
         showNotification("Bir ülke seçin!");
         return;
@@ -2420,7 +2474,6 @@
     }
 
     function sendMoney() {
-      // Her zaman
       const amount = parseInt(document.getElementById("money-to-send").value);
       const recipientId = document.getElementById("recipient-player").value;
       if (isNaN(amount) || amount <= 0) {
@@ -2449,7 +2502,6 @@
     }
 
     function sendPetrol() {
-      // Her zaman
       const amount = parseInt(document.getElementById("petrol-to-send").value);
       const recipientId = document.getElementById("recipient-player-petrol").value;
       if (isNaN(amount) || amount <= 0) {
@@ -2478,7 +2530,6 @@
     }
 
     function sendWheat() {
-      // Her zaman
       const amount = parseInt(document.getElementById("wheat-to-send").value);
       const recipientId = document.getElementById("recipient-player-wheat").value;
       if (isNaN(amount) || amount <= 0) {
@@ -2506,12 +2557,13 @@
       );
     }
 
+    // Turu bitiren fonksiyon
     function nextTurn(autoEnd = false) {
       if (!isMyTurn()) {
         showNotification("Sıranız değil!");
         return;
       }
-      stopTurnTimer(); // Mevcut turn sayacını durdur
+      stopTurnTimer();
 
       const currentTurnIndex = roomData.currentTurnIndex || 0;
       const currentPlayerId = roomData.playerOrder[currentTurnIndex];
@@ -2862,28 +2914,28 @@
             html += `<p style="color:red;"><strong>Ambargo Uygulanan Oyuncular:</strong> ${embUsers}</p>`;
           }
 
-          // Eğer satıcı isek iptal butonu, değilsek satın alma
           if (offer.sellerId !== localPlayerId) {
             html += `
               <label style="font-size:14px;color:#ccc;">Almak istediğiniz miktar:</label>
-              <input type="number" class="partial-buy-quantity" placeholder="Miktar" min="1" max="${offer.quantity}"/>`;
+              <input type="number" class="partial-buy-quantity" placeholder="Miktar" min="1" max="${offer.quantity}"/>
+            `;
 
-            // Bina tipi ise, alıcı kendi ülkelerinden birine kurmalı
             if (
               offer.itemType === "barracks" ||
               offer.itemType === "factory" ||
               offer.itemType === "refinery" ||
               offer.itemType === "grainmill"
             ) {
-              html += `<label style="font-size:14px;color:#ccc;">Hangi ülkenize kurmak istersiniz?</label>
-                      <select class="buyer-country-select">
-                        ${getBuyerCountriesOptionsHTML()}
-                      </select>`;
+              html += `
+                <label style="font-size:14px;color:#ccc;">Hangi ülkenize kurmak istersiniz?</label>
+                <select class="buyer-country-select">
+                  ${getBuyerCountriesOptionsHTML()}
+                </select>
+              `;
             }
 
             html += `<button class="partial-buy-btn">Satın Al</button>`;
           } else {
-            // Satıcının kendisi iptal edebilir
             html += `<button class="cancel-offer-btn" style="background:linear-gradient(45deg, #c0392b, #e74c3c); margin-top:10px;">İptal</button>`;
           }
           offerDiv.innerHTML = html;
@@ -3003,7 +3055,6 @@
           }
         }
 
-        // Satın alan taraf hangi ülkesine kuracak?
         if (hasEnough) {
           if (!buyerCountry || !roomData.countryData[buyerCountry]) {
             showNotification("Binaları kuracağınız ülkeyi seçiniz!");
@@ -3094,12 +3145,17 @@
 
     document.getElementById("end-turn-btn").addEventListener("click", () => nextTurn(false));
 
+    // Odadan çıkış - tamamen oda verilerinden sil
     document.getElementById("exit-room-btn").addEventListener("click", () => {
-      document.getElementById("game-container").style.display = "none";
-      document.getElementById("lobby-container").style.display = "block";
-      document.body.classList.add("lobby");
-      stopTurnTimer();
-      clearInterval(startInterval);
+      if (confirm("Oyundan çıkmak istediğinize emin misiniz?")) {
+        removePlayerFromRoom(localPlayerId);
+        localStorage.removeItem("roomCode"); // tekrar otomatik bağlanmasın
+        document.getElementById("game-container").style.display = "none";
+        document.getElementById("lobby-container").style.display = "block";
+        document.body.classList.add("lobby");
+        stopTurnTimer();
+        clearInterval(startInterval);
+      }
     });
 
     const militaryPopup = document.getElementById("military-popup");
