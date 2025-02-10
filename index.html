@@ -1665,7 +1665,7 @@
             // Komşuluk verisi (neighbors) için başlangıçta boş array ekliyoruz
             // Siz burayı manuel olarak doldurabilirsiniz:
             // countryDataInit[countryName].neighbors = [...buraya komşular...]
-            countryDataInit[CHİNA] = {MONGOLİA}
+            countryDataInit[CHİNA] = {
               income: Math.floor(Math.random() * 500) + 100,
               soldiers: 0,
               owner: null,
@@ -1676,7 +1676,7 @@
               wheatProduction: wheatProduction,
               grainMills: 0,
               supporters: {},
-              neighbors: [] // Komşu liste
+              neighbors: [MONGOLİA] // Komşu liste
             };
           });
 
