@@ -226,6 +226,7 @@
       position: relative;
     }
     #notifications-bell:hover {
+      /* Artık hiçbir bildirim açılmayacağı için styling isteğe bağlı */
       transform: scale(1);
     }
     /* Paneli gizledik / işlevini kaldırdık */
@@ -1191,14 +1192,19 @@
       <div class="market-section">
         <h3>Yeni Teklif Oluştur</h3>
         <label style="font-size:14px;color:#ccc;">Satmak istediğiniz ürün:</label><br/>
-        <!-- FABRİKA KALDIRILDI -->
+        <!-- Kışla, Rafine, Değirmen KALDIRILDI -->
         <select id="trade-item-type">
           <option value="petrol">Petrol</option>
+          <option value="factory">Fabrika</option>
           <option value="wheat">Buğday</option>
         </select>
         <br/><br/>
 
-        <label style="font-size:14px;color:#ccc;">Miktar (varil/buğday):</label>
+        <label style="font-size:14px;color:#ccc;">Ülke (Fabrika satıyorsanız seçin):</label><br/>
+        <select id="trade-country" style="display:none;"></select>
+
+        <br/><br/>
+        <label style="font-size:14px;color:#ccc;">Miktar (adet/varil/buğday):</label>
         <input type="number" id="trade-quantity" placeholder="Miktar" min="1"/>
 
         <label style="font-size:14px;color:#ccc;">Birim Fiyat ($):</label>
@@ -1255,7 +1261,6 @@
     let roomData = null;
     let selectedCountry = null;
     let map, geoJsonLayer = null;
-
     // 8 adet renk seçeneği
     const availableColors = [
       "red",
@@ -1295,209 +1300,6 @@
 
     // Oyun başlat geri sayım
     let startInterval = null;
-
-    // -----------------------------------------------------------
-    // 2. Turdan sonra komşu olmayan ülkeye saldırı engeli için
-    // Tüm ülkelerin komşuluk verilerini buraya manuel girebilirsiniz.
-    // -----------------------------------------------------------
-   const countryNeighbors = {
-  "Afghanistan": ["Pakistan", "Iran", "Turkmenistan", "Uzbekistan", "Tajikistan", "China"],
-  "Albania": ["Montenegro", "Kosovo", "North Macedonia", "Greece"],
-  "Algeria": ["Tunisia", "Libya", "Niger", "Mali", "Mauritania", "Western Sahara", "Morocco"],
-  "Andorra": ["France", "Spain"],
-  "Angola": ["Namibia", "DR Congo", "Zambia"],
-  "Antigua and Barbuda": [],
-  "Argentina": ["Chile", "Bolivia", "Paraguay", "Brazil", "Uruguay"],
-  "Armenia": ["Turkey", "Georgia", "Azerbaijan", "Iran"],
-  "Australia": [],
-  "Austria": ["Germany", "Czechia", "Slovakia", "Hungary", "Slovenia", "Italy", "Switzerland", "Liechtenstein"],
-  "Azerbaijan": ["Russia", "Georgia", "Armenia", "Iran"],
-  "Bahamas": [],
-  "Bahrain": [],
-  "Bangladesh": ["India", "Myanmar"],
-  "Barbados": [],
-  "Belarus": ["Latvia", "Lithuania", "Poland", "Russia", "Ukraine"],
-  "Belgium": ["Netherlands", "Germany", "Luxembourg", "France"],
-  "Belize": ["Mexico", "Guatemala"],
-  "Benin": ["Burkina Faso", "Niger", "Nigeria", "Togo"],
-  "Bhutan": ["India", "China"],
-  "Bolivia": ["Brazil", "Paraguay", "Argentina", "Chile", "Peru"],
-  "Bosnia and Herzegovina": ["Croatia", "Serbia", "Montenegro"],
-  "Botswana": ["Namibia", "South Africa", "Zimbabwe", "Zambia"],
-  "Brazil": ["Argentina", "Bolivia", "Colombia", "Guyana", "Paraguay", "Peru", "Suriname", "Uruguay", "Venezuela", "French Guiana"],
-  "Brunei": ["Malaysia"],
-  "Bulgaria": ["Romania", "Serbia", "North Macedonia", "Greece", "Turkey"],
-  "Burkina Faso": ["Mali", "Niger", "Benin", "Togo", "Ghana", "Ivory Coast"],
-  "Burundi": ["Rwanda", "Tanzania", "DR Congo"],
-  "Cabo Verde": [],
-  "Cambodia": ["Thailand", "Laos", "Vietnam"],
-  "Cameroon": ["Nigeria", "Chad", "Central African Republic", "Republic of the Congo", "Gabon", "Equatorial Guinea"],
-  "Canada": ["United States of America"],
-  "Central African Republic": ["Chad", "Sudan", "South Sudan", "DR Congo", "Republic of the Congo", "Cameroon"],
-  "Chad": ["Libya", "Sudan", "Central African Republic", "Cameroon", "Nigeria", "Niger"],
-  "Chile": ["Peru", "Bolivia", "Argentina"],
-  "China": ["Mongolia", "Russia", "North Korea", "Vietnam", "Laos", "Myanmar", "India", "Bhutan", "Nepal", "Pakistan", "Afghanistan", "Tajikistan", "Kyrgyzstan", "Kazakhstan"],
-  "Colombia": ["Venezuela", "Brazil", "Peru", "Ecuador", "Panama"],
-  "Comoros": [],
-  "Congo (Brazzaville)": ["Gabon", "Cameroon", "Central African Republic", "DR Congo", "Angola"],
-  "Congo (Kinshasa)": ["Republic of the Congo", "Central African Republic", "South Sudan", "Uganda", "Rwanda", "Burundi", "Tanzania", "Zambia", "Angola"],
-  "Costa Rica": ["Nicaragua", "Panama"],
-  "Croatia": ["Slovenia", "Hungary", "Serbia", "Bosnia and Herzegovina", "Montenegro"],
-  "Cuba": [],
-  "Cyprus": [],
-  "Czechia": ["Germany", "Austria", "Slovakia", "Poland"],
-  "Denmark": ["Germany"],
-  "Djibouti": ["Eritrea", "Ethiopia", "Somalia"],
-  "Dominica": [],
-  "Dominican Republic": ["Haiti"],
-  "Ecuador": ["Colombia", "Peru"],
-  "Egypt": ["Libya", "Sudan", "Israel", "Jordan"],
-  "El Salvador": ["Guatemala", "Honduras"],
-  "Equatorial Guinea": ["Cameroon", "Gabon"],
-  "Eritrea": ["Sudan", "Ethiopia", "Djibouti"],
-  "Estonia": ["Latvia", "Russia"],
-  "Eswatini": ["South Africa", "Mozambique"],
-  "Ethiopia": ["Eritrea", "Djibouti", "Somalia", "Kenya", "South Sudan", "Sudan"],
-  "Fiji": [],
-  "Finland": ["Sweden", "Norway", "Russia"],
-  "France": ["Belgium", "Luxembourg", "Germany", "Switzerland", "Italy", "Monaco", "Spain", "Andorra"],
-  "Gabon": ["Equatorial Guinea", "Cameroon", "Republic of the Congo"],
-  "Gambia": ["Senegal"],
-  "Georgia": ["Russia", "Turkey", "Armenia", "Azerbaijan"],
-  "Germany": ["Denmark", "Poland", "Czechia", "Austria", "Switzerland", "France", "Luxembourg", "Belgium", "Netherlands"],
-  "Ghana": ["Ivory Coast", "Burkina Faso", "Togo"],
-  "Greece": ["Albania", "North Macedonia", "Bulgaria", "Turkey"],
-  "Grenada": [],
-  "Guatemala": ["Mexico", "Belize", "Honduras", "El Salvador"],
-  "Guinea": ["Guinea-Bissau", "Senegal", "Mali", "Ivory Coast", "Liberia", "Sierra Leone"],
-  "Guinea-Bissau": ["Senegal", "Guinea"],
-  "Guyana": ["Venezuela", "Brazil", "Suriname"],
-  "Haiti": ["Dominican Republic"],
-  "Honduras": ["Guatemala", "El Salvador", "Nicaragua"],
-  "Hungary": ["Slovakia", "Ukraine", "Romania", "Serbia", "Croatia", "Slovenia", "Austria"],
-  "Iceland": [],
-  "India": ["Pakistan", "China", "Nepal", "Bhutan", "Bangladesh", "Myanmar"],
-  "Indonesia": ["Papua New Guinea", "East Timor", "Malaysia"],
-  "Iran": ["Iraq", "Turkey", "Armenia", "Azerbaijan", "Turkmenistan", "Afghanistan", "Pakistan"],
-  "Iraq": ["Turkey", "Iran", "Kuwait", "Saudi Arabia", "Jordan", "Syria"],
-  "Ireland": [],
-  "Israel": ["Lebanon", "Syria", "Jordan", "Egypt", "Palestinian Territories"],
-  "Italy": ["France", "Switzerland", "Austria", "Slovenia", "Vatican City", "San Marino"],
-  "Jamaica": [],
-  "Japan": [],
-  "Jordan": ["Syria", "Iraq", "Saudi Arabia", "Israel", "West Bank"],
-  "Kazakhstan": ["Russia", "China", "Kyrgyzstan", "Uzbekistan", "Turkmenistan"],
-  "Kenya": ["Somalia", "Ethiopia", "South Sudan", "Uganda", "Tanzania"],
-  "Kiribati": [],
-  "North Korea": ["China", "South Korea", "Russia"],
-  "South Korea": ["North Korea"],
-  "Kuwait": ["Iraq", "Saudi Arabia"],
-  "Kyrgyzstan": ["Kazakhstan", "Uzbekistan", "Tajikistan", "China"],
-  "Laos": ["China", "Vietnam", "Cambodia", "Thailand", "Myanmar"],
-  "Latvia": ["Estonia", "Lithuania", "Russia", "Belarus"],
-  "Lebanon": ["Syria", "Israel"],
-  "Lesotho": ["South Africa"],
-  "Liberia": ["Sierra Leone", "Guinea", "Ivory Coast"],
-  "Libya": ["Egypt", "Sudan", "Chad", "Niger", "Algeria", "Tunisia"],
-  "Liechtenstein": ["Switzerland", "Austria"],
-  "Lithuania": ["Latvia", "Belarus", "Poland", "Russia"],
-  "Luxembourg": ["Belgium", "Germany", "France"],
-  "Madagascar": [],
-  "Malawi": ["Tanzania", "Mozambique", "Zambia"],
-  "Malaysia": ["Thailand", "Indonesia", "Brunei"],
-  "Maldives": [],
-  "Mali": ["Algeria", "Niger", "Burkina Faso", "Ivory Coast", "Guinea", "Senegal", "Mauritania"],
-  "Malta": [],
-  "Marshall Islands": [],
-  "Mauritania": ["Western Sahara", "Algeria", "Mali", "Senegal"],
-  "Mauritius": [],
-  "Mexico": ["United States of America", "Guatemala", "Belize"],
-  "Micronesia": [],
-  "Moldova": ["Romania", "Ukraine"],
-  "Monaco": ["France"],
-  "Mongolia": ["Russia", "China"],
-  "Montenegro": ["Croatia", "Bosnia and Herzegovina", "Serbia", "Kosovo", "Albania"],
-  "Morocco": ["Algeria", "Western Sahara"],
-  "Mozambique": ["Tanzania", "Malawi", "Zambia", "Zimbabwe", "Eswatini", "South Africa"],
-  "Myanmar": ["Bangladesh", "India", "China", "Laos", "Thailand"],
-  "Namibia": ["Angola", "Zambia", "Botswana", "South Africa"],
-  "Nauru": [],
-  "Nepal": ["China", "India"],
-  "Netherlands": ["Germany", "Belgium"],
-  "New Zealand": [],
-  "Nicaragua": ["Honduras", "Costa Rica"],
-  "Niger": ["Algeria", "Libya", "Chad", "Nigeria", "Benin", "Burkina Faso", "Mali"],
-  "Nigeria": ["Benin", "Niger", "Chad", "Cameroon"],
-  "North Macedonia": ["Kosovo", "Serbia", "Bulgaria", "Greece", "Albania"],
-  "Norway": ["Sweden", "Finland", "Russia"],
-  "Oman": ["United Arab Emirates", "Saudi Arabia", "Yemen"],
-  "Pakistan": ["India", "Afghanistan", "Iran", "China"],
-  "Palau": [],
-  "Palestine": ["Israel", "Jordan"],
-  "Panama": ["Costa Rica", "Colombia"],
-  "Papua New Guinea": ["Indonesia"],
-  "Paraguay": ["Argentina", "Brazil", "Bolivia"],
-  "Peru": ["Ecuador", "Colombia", "Brazil", "Bolivia", "Chile"],
-  "Philippines": [],
-  "Poland": ["Germany", "Czechia", "Slovakia", "Ukraine", "Belarus", "Lithuania", "Russia"],
-  "Portugal": ["Spain"],
-  "Qatar": ["Saudi Arabia"],
-  "Romania": ["Ukraine", "Moldova", "Bulgaria", "Serbia", "Hungary"],
-  "Russia": ["Norway", "Finland", "Estonia", "Latvia", "Lithuania", "Poland", "Belarus", "Ukraine", "Georgia", "Azerbaijan", "Kazakhstan", "China", "Mongolia", "North Korea"],
-  "Rwanda": ["Uganda", "Tanzania", "Burundi", "DR Congo"],
-  "Saint Kitts and Nevis": [],
-  "Saint Lucia": [],
-  "Saint Vincent and the Grenadines": [],
-  "Samoa": [],
-  "San Marino": ["Italy"],
-  "Sao Tome and Principe": [],
-  "Saudi Arabia": ["Jordan", "Iraq", "Kuwait", "Qatar", "United Arab Emirates", "Oman", "Yemen"],
-  "Senegal": ["Mauritania", "Mali", "Guinea", "Guinea-Bissau", "The Gambia"],
-  "Serbia": ["Hungary", "Romania", "Bulgaria", "North Macedonia", "Kosovo", "Montenegro", "Bosnia and Herzegovina", "Croatia"],
-  "Seychelles": [],
-  "Sierra Leone": ["Guinea", "Liberia"],
-  "Singapore": [],
-  "Slovakia": ["Czechia", "Poland", "Ukraine", "Hungary", "Austria"],
-  "Slovenia": ["Italy", "Austria", "Hungary", "Croatia"],
-  "Solomon Islands": [],
-  "Somalia": ["Ethiopia", "Kenya", "Djibouti"],
-  "South Africa": ["Namibia", "Botswana", "Zimbabwe", "Mozambique", "Eswatini", "Lesotho"],
-  "South Sudan": ["Sudan", "Ethiopia", "Kenya", "Uganda", "DR Congo", "Central African Republic"],
-  "Spain": ["Portugal", "France", "Andorra", "Gibraltar"],
-  "Sri Lanka": [],
-  "Sudan": ["Egypt", "Libya", "Chad", "Central African Republic", "South Sudan", "Ethiopia", "Eritrea"],
-  "Suriname": ["Guyana", "French Guiana", "Brazil"],
-  "Sweden": ["Norway", "Finland"],
-  "Switzerland": ["Germany", "Austria", "Liechtenstein", "Italy", "France"],
-  "Syria": ["Turkey", "Iraq", "Jordan", "Israel", "Lebanon"],
-  "Taiwan": [],
-  "Tajikistan": ["Afghanistan", "Uzbekistan", "Kyrgyzstan", "China"],
-  "Tanzania": ["Kenya", "Uganda", "Rwanda", "Burundi", "DR Congo", "Zambia", "Malawi", "Mozambique"],
-  "Thailand": ["Myanmar", "Laos", "Cambodia", "Malaysia"],
-  "Timor-Leste": ["Indonesia"],
-  "Togo": ["Ghana", "Benin", "Burkina Faso"],
-  "Tonga": [],
-  "Trinidad and Tobago": [],
-  "Tunisia": ["Algeria", "Libya"],
-  "Turkey": ["Greece", "Bulgaria", "Georgia", "Armenia", "Iran", "Iraq", "Syria"],
-  "Turkmenistan": ["Kazakhstan", "Uzbekistan", "Afghanistan", "Iran"],
-  "Tuvalu": [],
-  "Uganda": ["South Sudan", "Kenya", "Tanzania", "Rwanda", "DR Congo"],
-  "Ukraine": ["Poland", "Slovakia", "Hungary", "Romania", "Moldova", "Russia", "Belarus"],
-  "United Arab Emirates": ["Oman", "Saudi Arabia"],
-  "United Kingdom": ["Ireland"],
-  "United States of America": ["Canada", "Mexico"],
-  "Uruguay": ["Brazil", "Argentina"],
-  "Uzbekistan": ["Kazakhstan", "Kyrgyzstan", "Tajikistan", "Afghanistan", "Turkmenistan"],
-  "Vanuatu": [],
-  "Vatican City": ["Italy"],
-  "Venezuela": ["Colombia", "Brazil", "Guyana"],
-  "Vietnam": ["China", "Laos", "Cambodia"],
-  "Yemen": ["Saudi Arabia", "Oman"],
-  "Zambia": ["Angola", "DR Congo", "Tanzania", "Malawi", "Mozambique", "Zimbabwe", "Botswana", "Namibia"],
-  "Zimbabwe": ["Zambia", "Mozambique", "South Africa", "Botswana"]
-};
-
 
     /*****************************************************************
      * Bildirim Fonksiyonları
@@ -1545,8 +1347,10 @@
 
       // Kalıcı listemize de ekleyelim (Eskiden zil paneline yansıtılıyordu)
       persistentNotifications.push(text);
+      // updateNotificationsList(); <-- Artık pasif
     }
 
+    // Oda kodu oluştur
     function generateRoomCode() {
       const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
       let code = "";
@@ -1556,6 +1360,7 @@
       return code;
     }
 
+    // Aktif pakt kontrol
     function hasActivePact(playerA, playerB) {
       if (!roomData || !roomData.pacts) return false;
       for (let pactId in roomData.pacts) {
@@ -1572,6 +1377,7 @@
       return false;
     }
 
+    // Otomatik yeniden bağlanma (localStorage)
     function autoReconnect() {
       const savedRoomCode = localStorage.getItem("roomCode");
       if (savedRoomCode) {
@@ -1889,7 +1695,7 @@
         updateGameUI();
         displayPendingPactOffers();
         displayTradeOffers();
-        updateActivePactsList();
+        updateActivePactsList(); // Her değer güncellendiğinde pakt listesi de güncellensin
       });
 
       // Chat ve global notifications sadece bir kere dinlenmeli
@@ -1942,12 +1748,12 @@
               playerDiv.className = "player-info";
               playerDiv.id = "player-info-" + pid;
               playerDiv.innerHTML =
-                `<p><strong>${player.name}</strong></p>` +
-                `<p>Para: <span>${player.money}</span>$</p>` +
-                `<p>Asker: <span>${player.soldiers}</span></p>` +
-                `<p>Ülkeler: <span>${(player.countries && player.countries.length) || 0}</span></p>` +
-                `<p>Petrol: <span>${player.petrol}</span> varil</p>` +
-                `<p>Buğday: <span>${player.wheat}</span></p>`;
+                <p><strong>${player.name}</strong></p> +
+                <p>Para: <span>${player.money}</span>$</p> +
+                <p>Asker: <span>${player.soldiers}</span></p> +
+                <p>Ülkeler: <span>${(player.countries && player.countries.length) || 0}</span></p> +
+                <p>Petrol: <span>${player.petrol}</span> varil</p> +
+                <p>Buğday: <span>${player.wheat}</span></p>;
               playersInfoDiv.appendChild(playerDiv);
             }
           });
@@ -1975,7 +1781,7 @@
 
       updateRecipientSelects();
       updatePactRecipientSelect();
-      updateTradeCountrySelect(); // (Artık fabrika yok ama fonksiyon boşa da olsa dursun)
+      updateTradeCountrySelect();
       updatePrivateMessageRecipientSelect();
       updateEmbargoPlayersSelect();
       updateSupportRecipientSelect();
@@ -2066,7 +1872,7 @@
         : 0;
 
       return (
-        `<div class="country-popup">
+        <div class="country-popup">
           <p><i class="fas fa-money-bill-wave"></i> Gelir: ${effectiveIncome}$</p>
           <p><i class="fas fa-users"></i> Asker: ${country.soldiers || 0}</p>
           <p><i class="fas fa-fort-awesome"></i> Kışla: ${country.barracksCount || 0}</p>
@@ -2076,7 +1882,7 @@
           <p><i class="fas fa-wheat-awn"></i> Değirmen: ${country.grainMills || 0}</p>
           <p><i class="fas fa-wheat-awn"></i> Buğday Üretimi: ${effectiveWheat}</p>
           <p><i class="fas fa-crown"></i> Sahip: ${ownerText}</p>
-        </div>`
+        </div>
       );
     }
 
@@ -2276,7 +2082,7 @@
       pactOfferRef.set(newOffer);
 
       broadcastNotification(
-        `Saldırmazlık Paktı Teklifi: ${senderData.name} → ${roomData.players[recipient].name} (Tur: ${duration}, Para: ${cost}$)`
+        Saldırmazlık Paktı Teklifi: ${senderData.name} → ${roomData.players[recipient].name} (Tur: ${duration}, Para: ${cost}$)
       );
       showNotification("Pakt teklifi gönderildi!");
     });
@@ -2298,11 +2104,12 @@
           div.setAttribute("data-offer-id", offer.offerId);
 
           div.innerHTML = 
-            `<p><strong>${offer.senderName}</strong> size saldırmazlık pakti teklif ediyor.</p>
-             <p>Tur sayısı: <strong>${offer.duration}</strong></p>
-             <p>Para talebi: <strong>${offer.cost}$</strong> (Gönderen ödeyecek, siz alacaksınız)</p>
-             <button class="accept-btn" data-offer-id="${offer.offerId}">Kabul Et</button>
-             <button class="reject-btn" data-offer-id="${offer.offerId}">Reddet</button>`;
+            <p><strong>${offer.senderName}</strong> size saldırmazlık pakti teklif ediyor.</p>
+            <p>Tur sayısı: <strong>${offer.duration}</strong></p>
+            <p>Para talebi: <strong>${offer.cost}$</strong> (Gönderen ödeyecek, siz alacaksınız)</p>
+            <button class="accept-btn" data-offer-id="${offer.offerId}">Kabul Et</button>
+            <button class="reject-btn" data-offer-id="${offer.offerId}">Reddet</button>
+          ;
 
           container.appendChild(div);
         }
@@ -2345,12 +2152,12 @@
       const pactId = db.ref().push().key;
       const updates = {};
 
-      updates[`pactOffers/${offerId}/status`] = "accepted";
+      updates[pactOffers/${offerId}/status] = "accepted";
 
-      updates[`players/${offer.senderId}/money`] = sender.money - offer.cost;
-      updates[`players/${offer.recipientId}/money`] = recipient.money + offer.cost;
+      updates[players/${offer.senderId}/money] = sender.money - offer.cost;
+      updates[players/${offer.recipientId}/money] = recipient.money + offer.cost;
 
-      updates[`pacts/${pactId}`] = {
+      updates[pacts/${pactId}] = {
         playerA: offer.senderId,
         playerB: offer.recipientId,
         active: true,
@@ -2362,7 +2169,7 @@
       roomRef.update(updates);
 
       broadcastNotification(
-        `Pakt Anlaşması: ${sender.name} & ${recipient.name} (${offer.duration} tur, ${offer.cost}$)`
+        Pakt Anlaşması: ${sender.name} & ${recipient.name} (${offer.duration} tur, ${offer.cost}$)
       );
       showNotification("Pakt teklifi kabul edildi!");
     }
@@ -2372,7 +2179,7 @@
       if (!offer || offer.status !== "pending") return;
       roomRef.child("pactOffers").child(offerId).update({ status: "rejected" });
       broadcastNotification(
-        `Pakt Reddedildi: ${offer.senderName} → Teklif reddedildi.`
+        Pakt Reddedildi: ${offer.senderName} → Teklif reddedildi.
       );
       showNotification("Pakt teklifi reddedildi.");
     }
@@ -2395,7 +2202,7 @@
             const turnsLeft = pact.expirationRound - currentRound + 1;
 
             const div = document.createElement("div");
-            div.textContent = `Pakt: ${otherName}, kalan tur: ${turnsLeft}`;
+            div.textContent = Pakt: ${otherName}, kalan tur: ${turnsLeft};
             container.appendChild(div);
           }
         }
@@ -2430,26 +2237,6 @@
 
       const target = roomData.countryData[selectedCountry];
       if (!target) return;
-
-      // --- YENİ KURAL: 2. TURDAN SONRA KOMŞU OLMAYANA SALDIRMA YASAK ---
-      if (roomData.round > 2) {
-        // Oyuncunun sahip olduğu ülkelerden en az biri, "selectedCountry"e komşu mu?
-        let canAttack = false;
-        if (currentPlayerData.countries && currentPlayerData.countries.length > 0) {
-          for (let cName of currentPlayerData.countries) {
-            const neighbors = countryNeighbors[cName] || [];
-            if (neighbors.includes(selectedCountry)) {
-              canAttack = true;
-              break;
-            }
-          }
-        }
-        if (!canAttack) {
-          showNotification("Bu ülkeyle sınır komşusu değilsiniz, saldırı yapamazsınız!");
-          return;
-        }
-      }
-      // ---------------------------------------------------------------
 
       if (roomData.round < 4) {
         if (target.owner) {
@@ -2494,17 +2281,17 @@
             defenderCountries = defenderCountries.filter((c) => c !== selectedCountry);
             updates["players/" + target.owner + "/countries"] = defenderCountries;
           }
-          attackResult = `${selectedCountry} fethedildi! (${soldiersToSend} vs ${target.soldiers})`;
+          attackResult = ${selectedCountry} fethedildi! (${soldiersToSend} vs ${target.soldiers});
         } else {
           updates["countryData/" + selectedCountry + "/soldiers"] =
             target.soldiers - soldiersToSend;
-          attackResult = `${selectedCountry} savunuldu! (${soldiersToSend} vs ${target.soldiers})`;
+          attackResult = ${selectedCountry} savunuldu! (${soldiersToSend} vs ${target.soldiers});
         }
         nextTurn();
       }
       roomRef.update(updates);
       broadcastNotification(
-        `Saldırı: ${roomData.players[currentPlayerId].name} → ${selectedCountry}. ${attackResult}`
+        Saldırı: ${roomData.players[currentPlayerId].name} → ${selectedCountry}. ${attackResult}
       );
       showNotification(attackResult);
     }
@@ -2580,7 +2367,7 @@
       updates["countryData/" + selectedCountry + "/barracksCount"] =
         (target.barracksCount || 0) + quantity;
       roomRef.update(updates);
-      broadcastNotification(`${currentPlayerData.name} ${quantity} adet kışla kurdu (${selectedCountry})`);
+      broadcastNotification(${currentPlayerData.name} ${quantity} adet kışla kurdu (${selectedCountry}));
       showNotification(quantity + " adet kışla kuruldu.");
     }
 
@@ -2619,7 +2406,7 @@
       updates["countryData/" + selectedCountry + "/factories"] =
         (target.factories || 0) + quantity;
       roomRef.update(updates);
-      broadcastNotification(`${currentPlayerData.name} ${quantity} adet fabrika kurdu (${selectedCountry})`);
+      broadcastNotification(${currentPlayerData.name} ${quantity} adet fabrika kurdu (${selectedCountry}));
       showNotification(quantity + " adet fabrika kuruldu.");
     }
 
@@ -2650,12 +2437,12 @@
         return;
       }
       const updates = {};
-      updates[`players/${localPlayerId}/money`] = currentPlayerData.money - totalMoney;
-      updates[`players/${localPlayerId}/petrol`] = currentPlayerData.petrol - totalPetrol;
-      updates[`countryData/${selectedCountry}/refineries`] =
+      updates[players/${localPlayerId}/money] = currentPlayerData.money - totalMoney;
+      updates[players/${localPlayerId}/petrol] = currentPlayerData.petrol - totalPetrol;
+      updates[countryData/${selectedCountry}/refineries] =
         (target.refineries || 0) + quantity;
       roomRef.update(updates);
-      broadcastNotification(`${currentPlayerData.name} ${quantity} adet rafine kurdu (${selectedCountry})`);
+      broadcastNotification(${currentPlayerData.name} ${quantity} adet rafine kurdu (${selectedCountry}));
       showNotification(quantity + " adet rafine kuruldu. Üretim kapasitesi arttı.");
     }
 
@@ -2686,12 +2473,12 @@
         return;
       }
       const updates = {};
-      updates[`players/${localPlayerId}/money`] = currentPlayerData.money - totalMoney;
-      updates[`players/${localPlayerId}/petrol`] = currentPlayerData.petrol - totalPetrol;
-      updates[`countryData/${selectedCountry}/grainMills`] =
+      updates[players/${localPlayerId}/money] = currentPlayerData.money - totalMoney;
+      updates[players/${localPlayerId}/petrol] = currentPlayerData.petrol - totalPetrol;
+      updates[countryData/${selectedCountry}/grainMills] =
         (target.grainMills || 0) + quantity;
       roomRef.update(updates);
-      broadcastNotification(`${currentPlayerData.name} ${quantity} adet değirmen kurdu (${selectedCountry})`);
+      broadcastNotification(${currentPlayerData.name} ${quantity} adet değirmen kurdu (${selectedCountry}));
       showNotification(quantity + " adet değirmen kuruldu. Buğday üretimi arttı.");
     }
 
@@ -2727,9 +2514,9 @@
           showNotification("Bu ülkede çekebileceğiniz kadar kendi askeri yok!");
           return;
         }
-        updates[`countryData/${selectedCountry}/soldiers`] = target.soldiers - count;
-        updates[`players/${localPlayerId}/soldiers`] = currentPlayerData.soldiers + count;
-        broadcastNotification(`${currentPlayerData.name} ${selectedCountry} ülkesinden ${count} asker çekti.`);
+        updates[countryData/${selectedCountry}/soldiers] = target.soldiers - count;
+        updates[players/${localPlayerId}/soldiers] = currentPlayerData.soldiers + count;
+        broadcastNotification(${currentPlayerData.name} ${selectedCountry} ülkesinden ${count} asker çekti.);
       } else {
         // Destek askerini geri çek
         const supportAmount = target.supporters && target.supporters[localPlayerId]
@@ -2743,19 +2530,19 @@
           showNotification("Veri tutarsızlığı: ülkedeki toplam asker sayısı sorunu!");
           return;
         }
-        updates[`countryData/${selectedCountry}/soldiers`] = target.soldiers - count;
+        updates[countryData/${selectedCountry}/soldiers] = target.soldiers - count;
         const newSup = supportAmount - count;
         if (newSup <= 0) {
-          updates[`countryData/${selectedCountry}/supporters/${localPlayerId}`] = null;
+          updates[countryData/${selectedCountry}/supporters/${localPlayerId}] = null;
         } else {
-          updates[`countryData/${selectedCountry}/supporters/${localPlayerId}`] = newSup;
+          updates[countryData/${selectedCountry}/supporters/${localPlayerId}] = newSup;
         }
-        updates[`players/${localPlayerId}/soldiers`] = currentPlayerData.soldiers + count;
-        broadcastNotification(`${currentPlayerData.name}, ${selectedCountry} ülkesine verdiği ${count} askeri geri çekti.`);
+        updates[players/${localPlayerId}/soldiers] = currentPlayerData.soldiers + count;
+        broadcastNotification(${currentPlayerData.name}, ${selectedCountry} ülkesine verdiği ${count} askeri geri çekti.);
       }
 
       roomRef.update(updates);
-      showNotification(`${selectedCountry} ülkesinden ${count} asker çekildi.`);
+      showNotification(${selectedCountry} ülkesinden ${count} asker çekildi.);
     }
 
     // ASKERİ DESTEK
@@ -2789,16 +2576,16 @@
       }
 
       const updates = {};
-      updates[`players/${localPlayerId}/soldiers`] = currentPlayerData.soldiers - soldiersToSend;
-      updates[`countryData/${countryName}/soldiers`] = targetCountry.soldiers + soldiersToSend;
+      updates[players/${localPlayerId}/soldiers] = currentPlayerData.soldiers - soldiersToSend;
+      updates[countryData/${countryName}/soldiers] = targetCountry.soldiers + soldiersToSend;
 
       const oldSupport = targetCountry.supporters && targetCountry.supporters[localPlayerId]
         ? targetCountry.supporters[localPlayerId]
         : 0;
-      updates[`countryData/${countryName}/supporters/${localPlayerId}`] = oldSupport + soldiersToSend;
+      updates[countryData/${countryName}/supporters/${localPlayerId}] = oldSupport + soldiersToSend;
 
       roomRef.update(updates);
-      broadcastNotification(`${currentPlayerData.name}, ${roomData.players[recipient].name} (${countryName}) ülkesine ${soldiersToSend} asker destek gönderdi.`);
+      broadcastNotification(${currentPlayerData.name}, ${roomData.players[recipient].name} (${countryName}) ülkesine ${soldiersToSend} asker destek gönderdi.);
       showNotification("Askeri destek gönderildi!");
     }
     document.getElementById("send-support-btn").addEventListener("click", sendSupport);
@@ -2821,14 +2608,14 @@
         return;
       }
       const updates = {};
-      updates[`players/${localPlayerId}/money`] = currentPlayerData.money - amount;
-      updates[`players/${recipientId}/money`] = roomData.players[recipientId].money + amount;
+      updates[players/${localPlayerId}/money] = currentPlayerData.money - amount;
+      updates[players/${recipientId}/money] = roomData.players[recipientId].money + amount;
       roomRef.update(updates);
       broadcastNotification(
-        `${currentPlayerData.name} → ${roomData.players[recipientId].name} için ${amount}$ gönderdi.`
+        ${currentPlayerData.name} → ${roomData.players[recipientId].name} için ${amount}$ gönderdi.
       );
       showNotification(
-        `${amount}$, ${roomData.players[recipientId].name} oyuncusuna gönderildi.`
+        ${amount}$, ${roomData.players[recipientId].name} oyuncusuna gönderildi.
       );
     }
 
@@ -2849,14 +2636,14 @@
         return;
       }
       const updates = {};
-      updates[`players/${localPlayerId}/petrol`] = currentPlayerData.petrol - amount;
-      updates[`players/${recipientId}/petrol`] = roomData.players[recipientId].petrol + amount;
+      updates[players/${localPlayerId}/petrol] = currentPlayerData.petrol - amount;
+      updates[players/${recipientId}/petrol] = roomData.players[recipientId].petrol + amount;
       roomRef.update(updates);
       broadcastNotification(
-        `${currentPlayerData.name} → ${roomData.players[recipientId].name} için ${amount} varil petrol gönderdi.`
+        ${currentPlayerData.name} → ${roomData.players[recipientId].name} için ${amount} varil petrol gönderdi.
       );
       showNotification(
-        `${amount} varil, ${roomData.players[recipientId].name} oyuncusuna gönderildi.`
+        ${amount} varil, ${roomData.players[recipientId].name} oyuncusuna gönderildi.
       );
     }
 
@@ -2877,14 +2664,14 @@
         return;
       }
       const updates = {};
-      updates[`players/${localPlayerId}/wheat`] = currentPlayerData.wheat - amount;
-      updates[`players/${recipientId}/wheat`] = roomData.players[recipientId].wheat + amount;
+      updates[players/${localPlayerId}/wheat] = currentPlayerData.wheat - amount;
+      updates[players/${recipientId}/wheat] = roomData.players[recipientId].wheat + amount;
       roomRef.update(updates);
       broadcastNotification(
-        `${currentPlayerData.name} → ${roomData.players[recipientId].name} için ${amount} buğday gönderdi.`
+        ${currentPlayerData.name} → ${roomData.players[recipientId].name} için ${amount} buğday gönderdi.
       );
       showNotification(
-        `${amount} buğday, ${roomData.players[recipientId].name} oyuncusuna gönderildi.`
+        ${amount} buğday, ${roomData.players[recipientId].name} oyuncusuna gönderildi.
       );
     }
 
@@ -2913,7 +2700,7 @@
           const country = roomData.countryData[cName];
           if (country) {
             if (country.barracksCount) {
-              updates[`countryData/${cName}/soldiers`] =
+              updates[countryData/${cName}/soldiers] =
                 (country.soldiers || 0) + 5 * country.barracksCount;
             }
             let effectiveIncome = country.income || 0;
@@ -2937,9 +2724,9 @@
           }
         });
 
-        updates[`players/${currentPlayerId}/money`] = (player.money || 0) + totalMoneyGained;
-        updates[`players/${currentPlayerId}/petrol`] = (player.petrol || 0) + totalPetrolGained;
-        updates[`players/${currentPlayerId}/wheat`] = (player.wheat || 0) + totalWheatGained;
+        updates[players/${currentPlayerId}/money] = (player.money || 0) + totalMoneyGained;
+        updates[players/${currentPlayerId}/petrol] = (player.petrol || 0) + totalPetrolGained;
+        updates[players/${currentPlayerId}/wheat] = (player.wheat || 0) + totalWheatGained;
       }
 
       let newTurnIndex = currentTurnIndex + 1;
@@ -3086,7 +2873,7 @@
     }
 
     /*****************************************************************
-     * TİCARET (MARKET) SISTEMI — FABRİKA SATIŞI KALDIRILDI
+     * TİCARET (MARKET) SISTEMI
      *****************************************************************/
     document.getElementById("open-market-btn").addEventListener("click", () => {
       popupStates.market = !popupStates.market;
@@ -3105,25 +2892,30 @@
     });
 
     const itemTypeSelect = document.getElementById("trade-item-type");
-    const tradeCountrySelect = document.getElementById("trade-country"); // Boşta kalsa da hata vermez
-    if(itemTypeSelect) {
-      itemTypeSelect.addEventListener("change", () => {
-        const v = itemTypeSelect.value;
-        // Fabrika satışı yok, yine de varsa kapatalım
-        if (tradeCountrySelect) {
-          tradeCountrySelect.style.display = "none"; 
-        }
-      });
-    }
+    const tradeCountrySelect = document.getElementById("trade-country");
+    itemTypeSelect.addEventListener("change", () => {
+      const v = itemTypeSelect.value;
+      if (v === "petrol" || v === "wheat") {
+        tradeCountrySelect.style.display = "none";
+      } else {
+        tradeCountrySelect.style.display = "block";
+      }
+    });
     document.getElementById("create-trade-offer-btn").addEventListener("click", createTradeOffer);
 
     function updateTradeCountrySelect() {
-      // Fabrika ticareti kalktığı için bu kısım işlevsiz; 
-      // yine de hata vermesin diye var bırakıyoruz.
       if (!tradeCountrySelect) return;
       tradeCountrySelect.innerHTML = "<option value=''>--Ülke Seç--</option>";
       if (!roomData || !roomData.countryData || !roomData.players[localPlayerId]) return;
-      // Normalde fabrika için ülke seçiyorduk, artık gereksiz.
+      Object.keys(roomData.countryData).forEach((cName) => {
+        const c = roomData.countryData[cName];
+        if (c.owner === localPlayerId) {
+          const op = document.createElement("option");
+          op.value = cName;
+          op.textContent = cName;
+          tradeCountrySelect.appendChild(op);
+        }
+      });
     }
 
     function createTradeOffer() {
@@ -3134,6 +2926,11 @@
       const itemType = document.getElementById("trade-item-type").value;
       const quantity = parseInt(document.getElementById("trade-quantity").value);
       const price = parseInt(document.getElementById("trade-price").value);
+      let countryName = null;
+      // Sadece "factory" ise ülke seçmek gerekecek
+      if (itemType === "factory") {
+        countryName = tradeCountrySelect.value;
+      }
 
       if (isNaN(quantity) || quantity <= 0 || isNaN(price) || price <= 0) {
         showNotification("Geçerli adet ve fiyat girin!");
@@ -3148,6 +2945,20 @@
         if (seller.petrol >= quantity) enough = true;
       } else if (itemType === "wheat") {
         if (seller.wheat >= quantity) enough = true;
+      } else {
+        if (!countryName) {
+          showNotification("Satmak istediğiniz fabrika için ülke seçmelisiniz!");
+          return;
+        }
+        const c = roomData.countryData[countryName];
+        if (!c || c.owner !== localPlayerId) {
+          showNotification("Bu ülke size ait değil!");
+          return;
+        }
+        // Fabrika kontrolü
+        if (itemType === "factory" && c.factories >= quantity) {
+          enough = true;
+        }
       }
 
       if (!enough) {
@@ -3169,14 +2980,14 @@
         sellerId: localPlayerId,
         sellerName: seller.name,
         itemType: itemType,
-        countryName: null, // Fabrika yok artık, bu da null kalsın
+        countryName: countryName || null,
         quantity: quantity,
         price: price,
         status: "pending",
         embargo: embargoList
       };
       tradeOfferRef.set(newOffer);
-      broadcastNotification(`${seller.name} bir ticaret teklifi oluşturdu (${itemType}, adet: ${quantity}, fiyat: ${price}$)`);
+      broadcastNotification(${seller.name} bir ticaret teklifi oluşturdu (${itemType}, adet: ${quantity}, fiyat: ${price}$));
       showNotification("Ticaret teklifi başarıyla oluşturuldu!");
     }
 
@@ -3198,28 +3009,40 @@
 
           let itemLabel = "";
           if (offer.itemType === "petrol") itemLabel = "Petrol";
+          else if (offer.itemType === "factory") itemLabel = "Fabrika";
           else if (offer.itemType === "wheat") itemLabel = "Buğday";
 
-          let html = `<p><strong>Satıcı:</strong> ${offer.sellerName}</p>`;
-          html += `<p><strong>Ürün:</strong> ${itemLabel}</p>`;
-          html += `<p><strong>Mevcut Miktar:</strong> ${offer.quantity}</p>`;
-          html += `<p><strong>Birim Fiyat:</strong> ${offer.price} $</p>`;
+          let html = <p><strong>Satıcı:</strong> ${offer.sellerName}</p>;
+          html += <p><strong>Ürün:</strong> ${itemLabel}</p>;
+          html += <p><strong>Mevcut Miktar:</strong> ${offer.quantity}</p>;
+          html += <p><strong>Birim Fiyat:</strong> ${offer.price} $</p>;
+          if (offer.countryName) {
+            html += <p><strong>Ülke (Satıcının):</strong> ${offer.countryName}</p>;
+          }
           if (offer.embargo && offer.embargo.length > 0) {
             const embUsers = offer.embargo
               .map(e => roomData.players[e]?.name || "???")
               .join(", ");
-            html += `<p style="color:red;"><strong>Ambargo Uygulanan Oyuncular:</strong> ${embUsers}</p>`;
+            html += <p style="color:red;"><strong>Ambargo Uygulanan Oyuncular:</strong> ${embUsers}</p>;
           }
 
           if (offer.sellerId !== localPlayerId) {
-            html += `
+            html += 
               <label style="font-size:14px;color:#ccc;">Almak istediğiniz miktar:</label>
               <input type="number" class="partial-buy-quantity" placeholder="Miktar" min="1" max="${offer.quantity}"/>
-              <button class="partial-buy-btn">Satın Al</button>
-            `;
+            ;
+            if (offer.itemType === "factory") {
+              html += 
+                <label style="font-size:14px;color:#ccc;">Hangi ülkenize kurmak istersiniz?</label>
+                <select class="buyer-country-select">
+                  ${getBuyerCountriesOptionsHTML()}
+                </select>
+              ;
+            }
+            html += <button class="partial-buy-btn">Satın Al</button>;
           } else {
             // Satıcı kendisi iptal edebilir
-            html += `<button class="cancel-offer-btn" style="background:linear-gradient(45deg, #c0392b, #e74c3c); margin-top:10px;">İptal</button>`;
+            html += <button class="cancel-offer-btn" style="background:linear-gradient(45deg, #c0392b, #e74c3c); margin-top:10px;">İptal</button>;
           }
           offerDiv.innerHTML = html;
 
@@ -3232,7 +3055,12 @@
                 showNotification("Geçerli miktar girin!");
                 return;
               }
-              acceptTradeOffer(offer.offerId, buyAmt);
+              let chosenCountryForBuildings = null;
+              if (offer.itemType === "factory") {
+                const buyerCountrySelect = offerDiv.querySelector(".buyer-country-select");
+                chosenCountryForBuildings = buyerCountrySelect.value;
+              }
+              acceptTradeOffer(offer.offerId, buyAmt, chosenCountryForBuildings);
             });
           }
           const cancelBtn = offerDiv.querySelector(".cancel-offer-btn");
@@ -3245,7 +3073,19 @@
       });
     }
 
-    function acceptTradeOffer(offerId, buyAmount) {
+    function getBuyerCountriesOptionsHTML() {
+      if (!roomData || !roomData.players[localPlayerId]) return "";
+      const player = roomData.players[localPlayerId];
+      let html = "";
+      if (player.countries && roomData.countryData) {
+        player.countries.forEach((cName) => {
+          html += <option value="${cName}">${cName}</option>;
+        });
+      }
+      return html;
+    }
+
+    function acceptTradeOffer(offerId, buyAmount, buyerCountry) {
       if (!roomData || !roomData.tradeOffers || !roomData.tradeOffers[offerId]) {
         showNotification("Teklif bulunamadı!");
         return;
@@ -3278,14 +3118,37 @@
       if (offer.itemType === "petrol") {
         if (seller.petrol >= buyAmount) {
           hasEnough = true;
-          updates[`players/${offer.sellerId}/petrol`] = seller.petrol - buyAmount;
-          updates[`players/${localPlayerId}/petrol`] = buyer.petrol + buyAmount;
+          updates[players/${offer.sellerId}/petrol] = seller.petrol - buyAmount;
+          updates[players/${localPlayerId}/petrol] = buyer.petrol + buyAmount;
         }
       } else if (offer.itemType === "wheat") {
         if (seller.wheat >= buyAmount) {
           hasEnough = true;
-          updates[`players/${offer.sellerId}/wheat`] = seller.wheat - buyAmount;
-          updates[`players/${localPlayerId}/wheat`] = buyer.wheat + buyAmount;
+          updates[players/${offer.sellerId}/wheat] = seller.wheat - buyAmount;
+          updates[players/${localPlayerId}/wheat] = buyer.wheat + buyAmount;
+        }
+      } else {
+        // factory
+        const c = roomData.countryData[offer.countryName];
+        if (!c || c.owner !== offer.sellerId) {
+          showNotification("Satıcının bu ülke üzerindeki hakkı yok!");
+          return;
+        }
+        if (c.factories >= buyAmount) {
+          hasEnough = true;
+          updates[countryData/${offer.countryName}/factories] = c.factories - buyAmount;
+        }
+        if (hasEnough) {
+          if (!buyerCountry || !roomData.countryData[buyerCountry]) {
+            showNotification("Fabrikayı kuracağınız ülkeyi seçiniz!");
+            return;
+          }
+          if (!buyer.countries.includes(buyerCountry)) {
+            showNotification("Seçtiğiniz ülke size ait değil!");
+            return;
+          }
+          updates[countryData/${buyerCountry}/factories] =
+            (roomData.countryData[buyerCountry].factories || 0) + buyAmount;
         }
       }
       if (!hasEnough) {
@@ -3293,25 +3156,25 @@
         return;
       }
 
-      updates[`players/${localPlayerId}/money`] = buyer.money - totalCost;
-      updates[`players/${offer.sellerId}/money`] = seller.money + totalCost;
+      updates[players/${localPlayerId}/money] = buyer.money - totalCost;
+      updates[players/${offer.sellerId}/money] = seller.money + totalCost;
 
       let newQuantity = offer.quantity - buyAmount;
       if (newQuantity <= 0) {
-        updates[`tradeOffers/${offerId}/status`] = "completed";
+        updates[tradeOffers/${offerId}/status] = "completed";
       }
-      updates[`tradeOffers/${offerId}/quantity`] = newQuantity;
+      updates[tradeOffers/${offerId}/quantity] = newQuantity;
 
       roomRef.update(updates, (error) => {
         if (!error) {
           broadcastNotification(
-            `Ticaret Onaylandı: ${seller.name} -> ${buyer.name} (${buyAmount} adet "${offer.itemType}")`
+            Ticaret Onaylandı: ${seller.name} -> ${buyer.name} (${buyAmount} adet "${offer.itemType}")
           );
           showNotification("Ticaret başarıyla gerçekleşti!");
           const chatMessage = {
             sender: "Sistem",
             senderId: "system",
-            text: `Ticaret Onaylandı: ${seller.name} -> ${buyer.name}, ${buyAmount} x ${offer.itemType}`,
+            text: Ticaret Onaylandı: ${seller.name} -> ${buyer.name}, ${buyAmount} x ${offer.itemType},
             recipientId: "",
             timestamp: firebase.database.ServerValue.TIMESTAMP
           };
@@ -3359,7 +3222,7 @@
       if (!roomRef || !roomData) return;
 
       // Oyuncuyu sil
-      roomRef.child(`players/${localPlayerId}`).remove();
+      roomRef.child(players/${localPlayerId}).remove();
 
       // playerOrder'dan çıkar
       const newOrder = (roomData.playerOrder || []).filter((id) => id !== localPlayerId);
@@ -3368,6 +3231,8 @@
       if (isMyTurn()) {
         stopTurnTimer();
         let idx = roomData.currentTurnIndex || 0;
+        // Mevcut index bizdeyse, biz çıkınca index geçersiz hale geliyor
+        // Basit mantık: eğer idx >= newOrder.length ise round arttır ve idx=0
         if (idx >= newOrder.length) {
           idx = 0;
           let newRound = (roomData.round || 1) + 1;
@@ -3531,6 +3396,7 @@
     const bellBtn = document.getElementById("notifications-bell");
     bellBtn.addEventListener("click", () => {
       // Artık hiçbir işlem yok
+      // Önceden bildirim paneli aç/kapa yapıyordu.
     });
   </script>
 </body>
