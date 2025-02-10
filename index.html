@@ -1665,20 +1665,20 @@
             // Komşuluk verisi (neighbors) için başlangıçta boş array ekliyoruz
             // Siz burayı manuel olarak doldurabilirsiniz:
             // countryDataInit[countryName].neighbors = [...buraya komşular...]
-            countryDataInit[countryName] = {
-              income: Math.floor(Math.random() * 500) + 100,
-              soldiers: 0,
-              owner: null,
-              barracksCount: 0,
-              factories: 0,
-              refineries: 0,
-              oilProduction: oilProduction,
-              wheatProduction: wheatProduction,
-              grainMills: 0,
-              supporters: {},
-              neighbors: [] // Komşu liste
-            };
-          });
+         countryDataInit["CHİNA"] = {
+  income: Math.floor(Math.random() * 500) + 100,
+  soldiers: 0,
+  owner: null,
+  barracksCount: 0,
+  factories: 0,
+  refineries: 0,
+  oilProduction: oilProduction,
+  wheatProduction: wheatProduction,
+  grainMills: 0,
+  supporters: {},
+  neighbors: ["MONGOLİA", "RUSSIA"]  // CHİNA'nın komşuları
+};
+
 
           roomRef.child("countryData").set(countryDataInit);
         });
