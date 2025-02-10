@@ -169,7 +169,7 @@
     }
 
     /**********************************************************
-     * BILDIRIM ALANI (POPUP) - ESKİ (EPHEMERAL) 6s
+     * BILDIRIM ALANI (POPUP) - 6s EKRANDA KALAN
      **********************************************************/
     #notification-area {
       position: fixed;
@@ -206,55 +206,6 @@
         opacity: 0;
         transform: translateX(100%);
       }
-    }
-
-    /**********************************************************
-     * KALICI BILDIRIM PANELI (ZİL İKONU İLE AÇ/KAPA)
-     **********************************************************/
-    #notifications-container {
-      position: fixed;
-      top: 10px;
-      right: 60px; /* Ephemeral bildirimlere çakışmaması için biraz sola aldık */
-      z-index: 3100;
-    }
-    #notifications-bell {
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 24px;
-      color: #fff;
-      position: relative;
-    }
-    #notifications-bell:hover {
-      transform: scale(1.1);
-    }
-    #notifications-panel {
-      display: none;
-      position: absolute;
-      top: 35px;
-      right: 0;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(4px);
-      width: 280px;
-      max-height: 300px;
-      overflow-y: auto;
-      border-radius: 8px;
-      padding: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
-    }
-    #notifications-panel ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    #notifications-panel li {
-      padding: 8px;
-      border-bottom: 1px solid #444;
-      color: #fff;
-      font-size: 14px;
-    }
-    #notifications-panel li:last-child {
-      border-bottom: none;
     }
 
     /**********************************************************
@@ -626,7 +577,7 @@
     }
 
     /**********************************************************
-     * PAKT POPUP (YENİDEN TASARLANMIŞ, BASİT)
+     * PAKT POPUP
      **********************************************************/
     #pact-popup {
       width: 450px;
@@ -688,6 +639,14 @@
     .pact-offer-item .reject-btn {
       background: linear-gradient(45deg, #c0392b, #e74c3c);
       color: #fff;
+    }
+
+    /* Aktif pakt listesi */
+    .active-pact-item {
+      background: rgba(0, 0, 0, 0.45);
+      padding: 8px;
+      border-radius: 5px;
+      margin-bottom: 8px;
     }
 
     /**********************************************************
@@ -866,10 +825,6 @@
         left: auto !important;
         bottom: 90px;
       }
-
-      #notifications-container {
-        right: 50px !important;
-      }
     }
   </style>
 </head>
@@ -906,18 +861,8 @@
     </div>
   </div>
 
-  <!-- ===================== ESKİ USUL KISA BİLDİRİM ALANI ===================== -->
+  <!-- ===================== KISA SÜRELİ BİLDİRİMLER ===================== -->
   <div id="notification-area"></div>
-
-  <!-- ===================== ZİL ve KALICI BİLDİRİMLER PANELİ ===================== -->
-  <div id="notifications-container">
-    <button id="notifications-bell">
-      <i class="fas fa-bell"></i>
-    </button>
-    <div id="notifications-panel">
-      <ul id="notifications-list"></ul>
-    </div>
-  </div>
 
   <!-- ===================== OYUN EKRANI ===================== -->
   <div id="game-container">
@@ -1061,10 +1006,11 @@
       </button>
 
       <h3>Fabrika Kur (Her Zaman)</h3>
+      <p style="font-size:14px; color:#ccc;">(1 Fabrika = 500$ + 100 varil)</p>
       <input
         type="number"
         id="factory-quantity"
-        placeholder="Adet (250$ + 90 varil / adet)"
+        placeholder="Adet"
         min="1"
       />
       <button id="build-factory-btn">
@@ -1177,7 +1123,7 @@
     </div>
   </div>
 
-  <!-- ===================== SALDIRMAZLIK PAKTI POPUP (YENİ) ===================== -->
+  <!-- ===================== SALDIRMAZLIK PAKTI POPUP ===================== -->
   <div id="pact-popup" class="modern-popup">
     <div id="pact-popup-header" class="popup-header">
       <span>Saldırmazlık Pakti</span>
@@ -1193,6 +1139,9 @@
 
       <h3>Gelen Teklifler</h3>
       <div id="pact-pending-offers"></div>
+
+      <h3>Aktif Paktlarınız</h3>
+      <div id="active-pacts-container"></div>
     </div>
   </div>
 
@@ -1209,15 +1158,12 @@
         <label style="font-size:14px;color:#ccc;">Satmak istediğiniz ürün:</label><br/>
         <select id="trade-item-type">
           <option value="petrol">Petrol</option>
-          <option value="barracks">Kışla</option>
           <option value="factory">Fabrika</option>
-          <option value="refinery">Rafine</option>
-          <option value="grainmill">Değirmen</option>
           <option value="wheat">Buğday</option>
         </select>
         <br/><br/>
 
-        <label style="font-size:14px;color:#ccc;">Ülke (bina satıyorsanız seçin):</label><br/>
+        <label style="font-size:14px;color:#ccc;">Ülke (sadece fabrika satıyorsanız seçin):</label><br/>
         <select id="trade-country" style="display:none;"></select>
 
         <br/><br/>
@@ -1278,6 +1224,7 @@
     let roomData = null;
     let selectedCountry = null;
     let map, geoJsonLayer = null;
+
     // 8 adet renk seçeneği
     const availableColors = [
       "red",
@@ -1297,20 +1244,6 @@
     let unreadMessages = 0;
     let chatOpen = false;
 
-    // Kalıcı bildirimleri burada tutalım (Zil panelinde göstermek için)
-    let persistentNotifications = [];
-
-    // Popup toggle durumları
-    const popupStates = {
-      "military": false,
-      "building": false,
-      "resource": false,
-      "players": false,
-      "chat": false,
-      "pact": false,
-      "market": false
-    };
-
     // 60 saniye sayacı
     let turnTimeRemaining = 60;
     let turnTimerInterval = null;
@@ -1319,10 +1252,10 @@
     let startInterval = null;
 
     /*****************************************************************
-     * Bildirim Fonksiyonları (Hem Ephemeral Hem Panel)
+     * Bildirim Fonksiyonları (Sadece Ephemeral)
      *****************************************************************/
     function showNotification(message, duration = 3000) {
-      // 1) Kısa süreli (ephemeral) bildirim
+      // Kısa süreli (ephemeral) bildirim
       const existing = document.getElementById("notification-area");
       if (!existing) return;
       const item = document.createElement("div");
@@ -1337,7 +1270,7 @@
       }, duration + 800);
     }
 
-    // Sunucuya (DB'ye) giden bildirim (tüm oyunculara)
+    // Sunucuya (DB'ye) giden global bildirim (tüm oyunculara)
     function broadcastNotification(text) {
       if (!roomRef) return;
       roomRef.child("notifications").push({
@@ -1346,7 +1279,7 @@
       });
     }
 
-    // DB'den gelen global bildirimleri hem ephemeral hem panelde göster
+    // DB'den gelen global bildirimleri anlık ekranda göster
     function displayGlobalNotification(text) {
       // Ephemeral
       const nArea = document.getElementById("notification-area");
@@ -1361,34 +1294,7 @@
           }
         }, 6500);
       }
-
-      // Kalıcı panel
-      persistentNotifications.push(text);
-      updateNotificationsList();
     }
-
-    // Zil paneline kalıcı bildirimleri yazdır
-    function updateNotificationsList() {
-      const list = document.getElementById("notifications-list");
-      if (!list) return;
-      list.innerHTML = "";
-      persistentNotifications.forEach((msg) => {
-        const li = document.createElement("li");
-        li.textContent = msg;
-        list.appendChild(li);
-      });
-    }
-
-    // Zil (bell) butonu aç/kapa
-    const bellBtn = document.getElementById("notifications-bell");
-    const notifPanel = document.getElementById("notifications-panel");
-    bellBtn.addEventListener("click", () => {
-      if (notifPanel.style.display === "none" || !notifPanel.style.display) {
-        notifPanel.style.display = "block";
-      } else {
-        notifPanel.style.display = "none";
-      }
-    });
 
     // Oda kodu oluştur
     function generateRoomCode() {
@@ -1734,6 +1640,7 @@
         roomData = snapshot.val();
         updateGameUI();
         displayPendingPactOffers();
+        displayActivePacts();
         displayTradeOffers();
       });
 
@@ -2079,7 +1986,7 @@
     }
 
     /*****************************************************************
-     * SALDIRMAZLIK PAKTI (Event Delegation ile Kabul Et)
+     * SALDIRMAZLIK PAKTI (Teklif ve Liste)
      *****************************************************************/
     document.getElementById("send-pact-offer-btn").addEventListener("click", () => {
       if (!isMyTurn()) {
@@ -2129,7 +2036,6 @@
       showNotification("Pakt teklifi gönderildi!");
     });
 
-    // Gelen teklifleri listele
     function displayPendingPactOffers() {
       const container = document.getElementById("pact-pending-offers");
       if (!container) return;
@@ -2157,6 +2063,34 @@
           container.appendChild(div);
         }
       });
+    }
+
+    // Aktif paktları gösterme
+    function displayActivePacts() {
+      const container = document.getElementById("active-pacts-container");
+      if (!container) return;
+      container.innerHTML = "";
+      if (!roomData || !roomData.pacts) return;
+
+      for (let pactId in roomData.pacts) {
+        const pact = roomData.pacts[pactId];
+        if (pact.active && roomData.round <= pact.expirationRound) {
+          // Bu paktın içinde miyiz?
+          if (pact.playerA === localPlayerId || pact.playerB === localPlayerId) {
+            const otherPlayerId = (pact.playerA === localPlayerId) ? pact.playerB : pact.playerA;
+            const otherPlayerName = roomData.players[otherPlayerId]?.name || "???";
+            const roundsLeft = pact.expirationRound - roomData.round + 1;
+
+            const pactEl = document.createElement("div");
+            pactEl.className = "active-pact-item";
+            pactEl.innerHTML = `
+              <p>Pakt: <strong>${otherPlayerName}</strong></p>
+              <p>Kalan Tur: <strong>${roundsLeft}</strong></p>
+            `;
+            container.appendChild(pactEl);
+          }
+        }
+      }
     }
 
     // Event Delegation ile Kabul / Reddet
@@ -2197,7 +2131,6 @@
       const updates = {};
 
       updates[`pactOffers/${offerId}/status`] = "accepted";
-
       updates[`players/${offer.senderId}/money`] = sender.money - offer.cost;
       updates[`players/${offer.recipientId}/money`] = recipient.money + offer.cost;
 
@@ -2406,8 +2339,10 @@
         showNotification("Bu ülke size ait değil!");
         return;
       }
-      const totalMoney = 250 * quantity;
-      const totalPetrol = 90 * quantity;
+
+      // Talep üzerine 500$ + 100 varil
+      const totalMoney = 500 * quantity;
+      const totalPetrol = 100 * quantity;
 
       if (currentPlayerData.money < totalMoney) {
         showNotification("Yeterli paranız yok!");
@@ -2778,17 +2713,14 @@
     }
 
     document.getElementById("open-chat-btn").addEventListener("click", () => {
-      popupStates.chat = !popupStates.chat;
-      toggleChat(popupStates.chat);
+      toggleChat(chatOpen ? false : true);
     });
     document.getElementById("chat-popup-header").addEventListener("click", (e) => {
       if (e.target.id === "chat-popup-header") {
-        popupStates.chat = false;
         toggleChat(false);
       }
     });
     document.getElementById("close-chat-btn").addEventListener("click", () => {
-      popupStates.chat = false;
       toggleChat(false);
     });
     document.getElementById("send-chat-btn").addEventListener("click", () => {
@@ -2894,18 +2826,15 @@
      * TİCARET (MARKET) SISTEMI
      *****************************************************************/
     document.getElementById("open-market-btn").addEventListener("click", () => {
-      popupStates.market = !popupStates.market;
       const marketPopup = document.getElementById("market-popup");
-      marketPopup.style.display = popupStates.market ? "flex" : "none";
+      marketPopup.style.display = (marketPopup.style.display === "flex") ? "none" : "flex";
     });
     document.getElementById("market-popup-header").addEventListener("click", (e) => {
       if (e.target.id === "market-popup-header") {
-        popupStates.market = false;
         document.getElementById("market-popup").style.display = "none";
       }
     });
     document.getElementById("close-market-btn").addEventListener("click", () => {
-      popupStates.market = false;
       document.getElementById("market-popup").style.display = "none";
     });
 
@@ -2945,12 +2874,8 @@
       const quantity = parseInt(document.getElementById("trade-quantity").value);
       const price = parseInt(document.getElementById("trade-price").value);
       let countryName = null;
-      if (
-        itemType === "barracks" ||
-        itemType === "factory" ||
-        itemType === "refinery" ||
-        itemType === "grainmill"
-      ) {
+      // Sadece "factory" için ülke seçimi
+      if (itemType === "factory") {
         countryName = tradeCountrySelect.value;
       }
       if (isNaN(quantity) || quantity <= 0 || isNaN(price) || price <= 0) {
@@ -2965,9 +2890,9 @@
         if (seller.petrol >= quantity) enough = true;
       } else if (itemType === "wheat") {
         if (seller.wheat >= quantity) enough = true;
-      } else {
+      } else if (itemType === "factory") {
         if (!countryName) {
-          showNotification("Satmak istediğiniz bina için ülke seçmelisiniz!");
+          showNotification("Fabrika satmak için ülke seçmelisiniz!");
           return;
         }
         const c = roomData.countryData[countryName];
@@ -2975,10 +2900,9 @@
           showNotification("Bu ülke size ait değil!");
           return;
         }
-        if (itemType === "barracks" && c.barracksCount >= quantity) enough = true;
-        else if (itemType === "factory" && c.factories >= quantity) enough = true;
-        else if (itemType === "refinery" && c.refineries >= quantity) enough = true;
-        else if (itemType === "grainmill" && c.grainMills >= quantity) enough = true;
+        if (c.factories >= quantity) {
+          enough = true;
+        }
       }
 
       if (!enough) {
@@ -3029,10 +2953,7 @@
 
           let itemLabel = "";
           if (offer.itemType === "petrol") itemLabel = "Petrol";
-          else if (offer.itemType === "barracks") itemLabel = "Kışla";
           else if (offer.itemType === "factory") itemLabel = "Fabrika";
-          else if (offer.itemType === "refinery") itemLabel = "Rafine";
-          else if (offer.itemType === "grainmill") itemLabel = "Değirmen";
           else if (offer.itemType === "wheat") itemLabel = "Buğday";
 
           let html = `<p><strong>Satıcı:</strong> ${offer.sellerName}</p>`;
@@ -3054,12 +2975,7 @@
               <label style="font-size:14px;color:#ccc;">Almak istediğiniz miktar:</label>
               <input type="number" class="partial-buy-quantity" placeholder="Miktar" min="1" max="${offer.quantity}"/>
             `;
-            if (
-              offer.itemType === "barracks" ||
-              offer.itemType === "factory" ||
-              offer.itemType === "refinery" ||
-              offer.itemType === "grainmill"
-            ) {
+            if (offer.itemType === "factory") {
               html += `<label style="font-size:14px;color:#ccc;">Hangi ülkenize kurmak istersiniz?</label>
                        <select class="buyer-country-select">
                          ${getBuyerCountriesOptionsHTML()}
@@ -3082,12 +2998,7 @@
                 return;
               }
               let chosenCountryForBuildings = null;
-              if (
-                offer.itemType === "barracks" ||
-                offer.itemType === "factory" ||
-                offer.itemType === "refinery" ||
-                offer.itemType === "grainmill"
-              ) {
+              if (offer.itemType === "factory") {
                 const buyerCountrySelect = offerDiv.querySelector(".buyer-country-select");
                 chosenCountryForBuildings = buyerCountrySelect.value;
               }
@@ -3158,58 +3069,31 @@
           updates[`players/${offer.sellerId}/wheat`] = seller.wheat - buyAmount;
           updates[`players/${localPlayerId}/wheat`] = buyer.wheat + buyAmount;
         }
-      } else {
+      } else if (offer.itemType === "factory") {
         const c = roomData.countryData[offer.countryName];
         if (!c || c.owner !== offer.sellerId) {
           showNotification("Satıcının bu ülke üzerindeki hakkı yok!");
           return;
         }
-        if (offer.itemType === "barracks") {
-          if (c.barracksCount >= buyAmount) {
-            hasEnough = true;
-            updates[`countryData/${offer.countryName}/barracksCount`] = c.barracksCount - buyAmount;
-          }
-        } else if (offer.itemType === "factory") {
-          if (c.factories >= buyAmount) {
-            hasEnough = true;
-            updates[`countryData/${offer.countryName}/factories`] = c.factories - buyAmount;
-          }
-        } else if (offer.itemType === "refinery") {
-          if (c.refineries >= buyAmount) {
-            hasEnough = true;
-            updates[`countryData/${offer.countryName}/refineries`] = c.refineries - buyAmount;
-          }
-        } else if (offer.itemType === "grainmill") {
-          if (c.grainMills >= buyAmount) {
-            hasEnough = true;
-            updates[`countryData/${offer.countryName}/grainMills`] = c.grainMills - buyAmount;
-          }
+        if (c.factories >= buyAmount) {
+          hasEnough = true;
+          updates[`countryData/${offer.countryName}/factories`] = c.factories - buyAmount;
         }
-
+        // Binayı alıcı kendi ülkesine kuracak
         if (hasEnough) {
           if (!buyerCountry || !roomData.countryData[buyerCountry]) {
-            showNotification("Binaları kuracağınız ülkeyi seçiniz!");
+            showNotification("Fabrikayı kuracağınız ülkeyi seçiniz!");
             return;
           }
           if (!buyer.countries.includes(buyerCountry)) {
             showNotification("Seçtiğiniz ülke size ait değil!");
             return;
           }
-          if (offer.itemType === "barracks") {
-            updates[`countryData/${buyerCountry}/barracksCount`] =
-              (roomData.countryData[buyerCountry].barracksCount || 0) + buyAmount;
-          } else if (offer.itemType === "factory") {
-            updates[`countryData/${buyerCountry}/factories`] =
-              (roomData.countryData[buyerCountry].factories || 0) + buyAmount;
-          } else if (offer.itemType === "refinery") {
-            updates[`countryData/${buyerCountry}/refineries`] =
-              (roomData.countryData[buyerCountry].refineries || 0) + buyAmount;
-          } else if (offer.itemType === "grainmill") {
-            updates[`countryData/${buyerCountry}/grainMills`] =
-              (roomData.countryData[buyerCountry].grainMills || 0) + buyAmount;
-          }
+          updates[`countryData/${buyerCountry}/factories`] =
+            (roomData.countryData[buyerCountry].factories || 0) + buyAmount;
         }
       }
+
       if (!hasEnough) {
         showNotification("Satıcının yeterli miktarı kalmamış!");
         return;
@@ -3276,24 +3160,33 @@
 
     document.getElementById("end-turn-btn").addEventListener("click", () => nextTurn(false));
 
-    // ODADAN ÇIKIŞ
+    // ODADAN ÇIKIŞ (tur sırası bizdeyse sıra otomatik geçsin)
     document.getElementById("exit-room-btn").addEventListener("click", () => {
       if (!roomRef || !roomData) return;
 
-      roomRef.child(`players/${localPlayerId}`).remove();
-
+      const updates = {};
       const newOrder = (roomData.playerOrder || []).filter((id) => id !== localPlayerId);
+
+      // Eğer sıra bizdeyse turu sonraki oyuncuya ver
       if (isMyTurn()) {
         stopTurnTimer();
-        let idx = roomData.currentTurnIndex || 0;
+        let idx = (roomData.currentTurnIndex || 0);
+        // Mevcut indexteki oyuncu biziz, çıkarınca diziden kayacak
+        // Bu yüzden önce indexi +1 yapıp, eğer out of range olduysa 0'a çekiyoruz
+        idx++;
+        let newRound = roomData.round || 1;
         if (idx >= newOrder.length) {
           idx = 0;
-          let newRound = (roomData.round || 1) + 1;
-          roomRef.update({ round: newRound });
+          newRound++;
         }
-        roomRef.update({ currentTurnIndex: idx });
+        updates["round"] = newRound;
+        updates["currentTurnIndex"] = idx;
       }
-      roomRef.update({ playerOrder: newOrder });
+
+      updates["playerOrder"] = newOrder;
+      updates[`players/${localPlayerId}`] = null;
+
+      roomRef.update(updates);
 
       document.getElementById("game-container").style.display = "none";
       document.getElementById("lobby-container").style.display = "block";
@@ -3307,82 +3200,67 @@
 
     const militaryPopup = document.getElementById("military-popup");
     document.getElementById("open-military-btn").addEventListener("click", () => {
-      popupStates.military = !popupStates.military;
-      militaryPopup.style.display = popupStates.military ? "flex" : "none";
+      militaryPopup.style.display = (militaryPopup.style.display === "flex") ? "none" : "flex";
     });
     document.getElementById("military-popup-header").addEventListener("click", (e) => {
       if (e.target.id === "military-popup-header") {
-        popupStates.military = false;
         militaryPopup.style.display = "none";
       }
     });
     document.getElementById("close-military-btn").addEventListener("click", () => {
-      popupStates.military = false;
       militaryPopup.style.display = "none";
     });
 
     const buildingPopup = document.getElementById("building-popup");
     document.getElementById("open-building-btn").addEventListener("click", () => {
-      popupStates.building = !popupStates.building;
-      buildingPopup.style.display = popupStates.building ? "flex" : "none";
+      buildingPopup.style.display = (buildingPopup.style.display === "flex") ? "none" : "flex";
     });
     document.getElementById("building-popup-header").addEventListener("click", (e) => {
       if (e.target.id === "building-popup-header") {
-        popupStates.building = false;
         buildingPopup.style.display = "none";
       }
     });
     document.getElementById("close-building-btn").addEventListener("click", () => {
-      popupStates.building = false;
       buildingPopup.style.display = "none";
     });
 
     const resourcePopup = document.getElementById("resource-popup");
     document.getElementById("open-resource-btn").addEventListener("click", () => {
-      popupStates.resource = !popupStates.resource;
-      resourcePopup.style.display = popupStates.resource ? "flex" : "none";
+      resourcePopup.style.display = (resourcePopup.style.display === "flex") ? "none" : "flex";
     });
     document.getElementById("resource-popup-header").addEventListener("click", (e) => {
       if (e.target.id === "resource-popup-header") {
-        popupStates.resource = false;
         resourcePopup.style.display = "none";
       }
     });
     document.getElementById("close-resource-btn").addEventListener("click", () => {
-      popupStates.resource = false;
       resourcePopup.style.display = "none";
     });
 
     const playersPopup = document.getElementById("players-popup");
     document.getElementById("open-players-btn").addEventListener("click", () => {
-      popupStates.players = !popupStates.players;
-      playersPopup.style.display = popupStates.players ? "flex" : "none";
+      playersPopup.style.display = (playersPopup.style.display === "flex") ? "none" : "flex";
     });
     document.getElementById("players-popup-header").addEventListener("click", (e) => {
       if (e.target.id === "players-popup-header") {
-        popupStates.players = false;
         playersPopup.style.display = "none";
       }
     });
     document.getElementById("close-players-btn").addEventListener("click", () => {
-      popupStates.players = false;
       playersPopup.style.display = "none";
     });
 
+    const pactPopup = document.getElementById("pact-popup");
     document.getElementById("open-pact-btn").addEventListener("click", () => {
-      popupStates.pact = !popupStates.pact;
-      const pactPopup = document.getElementById("pact-popup");
-      pactPopup.style.display = popupStates.pact ? "flex" : "none";
+      pactPopup.style.display = (pactPopup.style.display === "flex") ? "none" : "flex";
     });
     document.getElementById("pact-popup-header").addEventListener("click", (e) => {
       if (e.target.id === "pact-popup-header") {
-        popupStates.pact = false;
-        document.getElementById("pact-popup").style.display = "none";
+        pactPopup.style.display = "none";
       }
     });
     document.getElementById("close-pact-btn").addEventListener("click", () => {
-      popupStates.pact = false;
-      document.getElementById("pact-popup").style.display = "none";
+      pactPopup.style.display = "none";
     });
 
     /*****************************************************************
