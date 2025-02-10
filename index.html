@@ -1198,6 +1198,7 @@
         </select>
         <br/><br/>
 
+        <!-- Fabrika satışı için ülke seçimi kaldırıldı, bu alanı göstermiyoruz -->
         <label style="display:none;">(Fabrika satışı kapalı)</label>
 
         <label style="font-size:14px;color:#ccc;">Miktar (adet/varil/buğday):</label>
@@ -1661,6 +1662,9 @@
               wheatProduction = Math.floor(Math.random() * (700 - 200 + 1)) + 200;
             }
 
+            // Komşuluk verisi (neighbors) için başlangıçta boş array ekliyoruz
+            // Siz burayı manuel olarak doldurabilirsiniz:
+            // countryDataInit[countryName].neighbors = [...buraya komşular...]
             countryDataInit[countryName] = {
               income: Math.floor(Math.random() * 500) + 100,
               soldiers: 0,
@@ -1672,7 +1676,7 @@
               wheatProduction: wheatProduction,
               grainMills: 0,
               supporters: {},
-              neighbors: [] // Komşu liste (isteğe göre doldurulabilir)
+              neighbors: [] // Komşu liste
             };
           });
 
@@ -1692,11 +1696,6 @@
         displayPendingPactOffers();
         displayTradeOffers();
         updateActivePactsList();
-
-        // Oyun başladıysa ve ilk ülkeler henüz atanmadıysa ata
-        if (roomData.gameState === "started" && !roomData.initialCountriesAssigned) {
-          assignInitialCountries();
-        }
       });
 
       // Chat ve global notifications sadece bir kere dinlenmeli
@@ -1797,47 +1796,6 @@
       } else {
         stopTurnTimer();
       }
-    }
-
-    // *** YENİ: Oyunculara başlangıçta rastgele ülke atama ***
-    function assignInitialCountries() {
-      if (!roomData || !roomData.countryData || !roomData.playerOrder) return;
-      const allCountries = Object.keys(roomData.countryData);
-
-      // Fisher-Yates (Knuth) karıştırma
-      for (let i = allCountries.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [allCountries[i], allCountries[j]] = [allCountries[j], allCountries[i]];
-      }
-
-      const updates = {};
-      let index = 0;
-
-      // Her oyuncuya 1 rastgele ülke
-      roomData.playerOrder.forEach((pId) => {
-        const randomCountry = allCountries[index];
-        index++;
-
-        // Sahipliği, asker vs. güncelle
-        updates[`countryData/${randomCountry}/owner`] = pId;
-        updates[`countryData/${randomCountry}/soldiers`] = 10; // Başlangıç askeri
-        updates[`countryData/${randomCountry}/supporters`] = {};
-
-        // Oyuncunun countries listesine ekle
-        let playerCountries = roomData.players[pId].countries || [];
-        playerCountries.push(randomCountry);
-        updates[`players/${pId}/countries`] = playerCountries;
-      });
-
-      // Bu işlemin bir daha tekrarlanmaması için işaret
-      updates["initialCountriesAssigned"] = true;
-
-      roomRef.update(updates, (err) => {
-        if (!err) {
-          broadcastNotification("Her oyuncuya başlangıç ülkesi rastgele atandı!");
-          showNotification("Başlangıç ülkeleri atandı!");
-        }
-      });
     }
 
     function handleGameState(state) {
@@ -2277,6 +2235,7 @@
       if (!target) return;
 
       // ** Komşuluk kontrolü **
+      // Oyuncunun sahip olduğu ülkelerden herhangi biri, target ülkenin neighbors listesinde varsa saldırabilir
       let canAttack = false;
       if (currentPlayerData.countries && currentPlayerData.countries.length > 0) {
         for (let cName of currentPlayerData.countries) {
@@ -2774,7 +2733,8 @@
             }
             if (country.wheatProduction) {
               const effectiveWheat = Math.floor(
-                country.wheatProduction * (1 + 0.20 * (country.grainMills || 0)))
+                country.wheatProduction * (1 + 0.20 * (country.grainMills || 0))
+              );
               totalWheatGained += effectiveWheat;
             }
           }
@@ -2949,12 +2909,13 @@
 
     const itemTypeSelect = document.getElementById("trade-item-type");
     itemTypeSelect.addEventListener("change", () => {
-      // Fabrika satışı olmadığı için ekstra işlem yok
+      // Fabrika kaldırıldığı için burada ekstra bir işleme gerek yok
     });
     document.getElementById("create-trade-offer-btn").addEventListener("click", createTradeOffer);
 
     function updateTradeCountrySelect() {
-      // Fabrika satışı kaldırıldığı için burası boş bırakıldı.
+      // Fabrika satışı kaldırıldığı için bir ülke seçtirmiyoruz.
+      // Bu fonksiyon boş kalsa da hata vermesin diye yine de tanımlı.
     }
 
     function createTradeOffer() {
@@ -3000,7 +2961,8 @@
         sellerId: localPlayerId,
         sellerName: seller.name,
         itemType: itemType,
-        countryName: null, // Fabrika satışı kaldırıldı
+        // Fabrika için countryName yok; kaldırıldı
+        countryName: null,
         quantity: quantity,
         price: price,
         status: "pending",
