@@ -1763,8 +1763,9 @@
      * Cesium (3D) Başlatma
      *****************************************************************/
     function initializeCesium() {
-      // Kendi Cesium Ion access tokenınızı ekleyin:
-      Cesium.Ion.defaultAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI5YjZiYjMxOS04NDAxLTQzM2QtODMzMS1kZGFiOTYyMDdhZjQiLCJpZCI6Mjc1MDU0LCJpYXQiOjE3MzkyNjM4MzJ9.C1Gk3G5VdYUwWj1AjoolRs04BsgPGqLAi1OQpIqlsxw";
+      // Buraya kendi Cesium Ion Access Token'inizi ekleyin:
+      Cesium.Ion.defaultAccessToken =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI5YjZiYjMxOS04NDAxLTQzM2QtODMzMS1kZGFiOTYyMDdhZjQiLCJpZCI6Mjc1MDU0LCJpYXQiOjE3MzkyNjM4MzJ9.C1Gk3G5VdYUwWj1AjoolRs04BsgPGqLAi1OQpIqlsxw";
 
       viewer = new Cesium.Viewer("cesiumContainer", {
         terrainProvider: Cesium.createWorldTerrain(),
