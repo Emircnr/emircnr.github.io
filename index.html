@@ -229,7 +229,7 @@
       transform: scale(1);
     }
     #notifications-panel {
-      display: none; /* Paneli gizliyoruz, işlev yok */
+      display: none;
     }
 
     /**********************************************************
@@ -666,7 +666,7 @@
     }
 
     /**********************************************************
-     * TİCARET POPUP (Fabrika satma kaldırıldı)
+     * TİCARET POPUP
      **********************************************************/
     .market-popup {
       width: 500px;
@@ -967,7 +967,7 @@
       <button id="close-military-btn">&times;</button>
     </div>
     <div class="popup-content">
-      <h3>Saldırı (Sadece Kendi Sıranda, Yalnızca Komşu Ülkeye)</h3>
+      <h3>Saldırı (Sadece Kendi Sıranda)</h3>
       <input
         type="number"
         id="attack-soldiers"
@@ -1037,11 +1037,11 @@
       </button>
 
       <h3>Fabrika Kur (Her Zaman)</h3>
-      <p style="font-size:14px; color:#ccc;">(1 Fabrika = 500$ + 100 Varil Petrol)</p>
+      <!-- Güncel fiyat: 500$ + 100 varil petrol -->
       <input
         type="number"
         id="factory-quantity"
-        placeholder="Adet"
+        placeholder="Adet (500$ + 100 varil / adet)"
         min="1"
       />
       <button id="build-factory-btn">
@@ -1049,11 +1049,10 @@
       </button>
 
       <h3>Rafine Kur (Her Zaman)</h3>
-      <p style="font-size:14px; color:#ccc;">(1 Rafine = 800$ + 250 Varil Petrol)</p>
       <input
         type="number"
         id="refinery-quantity"
-        placeholder="Adet"
+        placeholder="Adet (800$ + 250 varil / adet)"
         min="1"
       />
       <button id="build-refinery-btn">
@@ -1061,7 +1060,7 @@
       </button>
 
       <h3>Değirmen Kur (Her Zaman)</h3>
-      <p style="font-size:14px; color:#ccc;">(1 Değirmen = 200$ + 100 Varil Petrol)</p>
+      <p style="font-size:14px; color:#ccc;">(200$ + 100 Varil Petrol)</p>
       <input
         type="number"
         id="grainmill-quantity"
@@ -1172,7 +1171,6 @@
       <h3>Gelen Teklifler</h3>
       <div id="pact-pending-offers"></div>
 
-      <!-- Aktif Paktlarım (yeni eklenen bölüm) -->
       <div style="margin-top:15px;">
         <h3>Aktif Paktlarım</h3>
         <div id="pact-active-list"></div>
@@ -1180,7 +1178,7 @@
     </div>
   </div>
 
-  <!-- ===================== TİCARET POPUP ===================== -->
+  <!-- ===================== TİCARET POPUP (FABRİKA SATIŞ KALDIRILDI) ===================== -->
   <div id="market-popup" class="market-popup modern-popup">
     <div class="market-header" id="market-popup-header">
       <h2>Ticaret Merkezi</h2>
@@ -1191,15 +1189,18 @@
       <div class="market-section">
         <h3>Yeni Teklif Oluştur</h3>
         <label style="font-size:14px;color:#ccc;">Satmak istediğiniz ürün:</label><br/>
-        <!-- FABRİKA SATIŞI KALDIRILDI -->
+        <!-- FABRİKA SEÇENEĞİ KALDIRILDI -->
         <select id="trade-item-type">
           <option value="petrol">Petrol</option>
           <option value="wheat">Buğday</option>
         </select>
         <br/><br/>
 
-        <label style="display:none;">(Fabrika satışı kapalı)</label>
+        <!-- Ülke seçimi / Fabrika satışı kaldırıldığı için gizlendi -->
+        <label style="font-size:14px;color:#ccc;display:none;">Ülke (Fabrika satıyorsanız):</label><br/>
+        <select id="trade-country" style="display:none;"></select>
 
+        <br/><br/>
         <label style="font-size:14px;color:#ccc;">Miktar (adet/varil/buğday):</label>
         <input type="number" id="trade-quantity" placeholder="Miktar" min="1"/>
 
@@ -1276,7 +1277,7 @@
     let unreadMessages = 0;
     let chatOpen = false;
 
-    // Kalıcı bildirimleri (önceden zil paneline aktarılan) burada tutalım
+    // Kalıcı bildirimleri burada tutalım (önceden zil paneli için kullanılıyordu)
     let persistentNotifications = [];
 
     // Popup toggle durumları
@@ -1297,11 +1298,211 @@
     // Oyun başlat geri sayım
     let startInterval = null;
 
+    /* =========================================================
+     * TÜM ÜLKELERİN KOMŞULUK LİSTESİ BURADA TANIMLANACAK
+     * ========================================================= */
+    let adjacencyList = {const countryNeighbors = {
+  "Afghanistan": ["Pakistan", "Iran", "Turkmenistan", "Uzbekistan", "Tajikistan", "China"],
+  "Albania": ["Montenegro", "Kosovo", "North Macedonia", "Greece"],
+  "Algeria": ["Tunisia", "Libya", "Niger", "Mali", "Mauritania", "Western Sahara", "Morocco"],
+  "Andorra": ["France", "Spain"],
+  "Angola": ["Namibia", "DR Congo", "Zambia"],
+  "Antigua and Barbuda": [],
+  "Argentina": ["Chile", "Bolivia", "Paraguay", "Brazil", "Uruguay"],
+  "Armenia": ["Turkey", "Georgia", "Azerbaijan", "Iran"],
+  "Australia": [],
+  "Austria": ["Germany", "Czechia", "Slovakia", "Hungary", "Slovenia", "Italy", "Switzerland", "Liechtenstein"],
+  "Azerbaijan": ["Russia", "Georgia", "Armenia", "Iran"],
+  "Bahamas": [],
+  "Bahrain": [],
+  "Bangladesh": ["India", "Myanmar"],
+  "Barbados": [],
+  "Belarus": ["Latvia", "Lithuania", "Poland", "Russia", "Ukraine"],
+  "Belgium": ["Netherlands", "Germany", "Luxembourg", "France"],
+  "Belize": ["Mexico", "Guatemala"],
+  "Benin": ["Burkina Faso", "Niger", "Nigeria", "Togo"],
+  "Bhutan": ["India", "China"],
+  "Bolivia": ["Brazil", "Paraguay", "Argentina", "Chile", "Peru"],
+  "Bosnia and Herzegovina": ["Croatia", "Serbia", "Montenegro"],
+  "Botswana": ["Namibia", "South Africa", "Zimbabwe", "Zambia"],
+  "Brazil": ["Argentina", "Bolivia", "Colombia", "Guyana", "Paraguay", "Peru", "Suriname", "Uruguay", "Venezuela", "French Guiana"],
+  "Brunei": ["Malaysia"],
+  "Bulgaria": ["Romania", "Serbia", "North Macedonia", "Greece", "Turkey"],
+  "Burkina Faso": ["Mali", "Niger", "Benin", "Togo", "Ghana", "Ivory Coast"],
+  "Burundi": ["Rwanda", "Tanzania", "DR Congo"],
+  "Cabo Verde": [],
+  "Cambodia": ["Thailand", "Laos", "Vietnam"],
+  "Cameroon": ["Nigeria", "Chad", "Central African Republic", "Republic of the Congo", "Gabon", "Equatorial Guinea"],
+  "Canada": ["United States of America"],
+  "Central African Republic": ["Chad", "Sudan", "South Sudan", "DR Congo", "Republic of the Congo", "Cameroon"],
+  "Chad": ["Libya", "Sudan", "Central African Republic", "Cameroon", "Nigeria", "Niger"],
+  "Chile": ["Peru", "Bolivia", "Argentina"],
+  "China": ["Mongolia", "Russia", "North Korea", "Vietnam", "Laos", "Myanmar", "India", "Bhutan", "Nepal", "Pakistan", "Afghanistan", "Tajikistan", "Kyrgyzstan", "Kazakhstan"],
+  "Colombia": ["Venezuela", "Brazil", "Peru", "Ecuador", "Panama"],
+  "Comoros": [],
+  "Congo (Brazzaville)": ["Gabon", "Cameroon", "Central African Republic", "DR Congo", "Angola"],
+  "Congo (Kinshasa)": ["Republic of the Congo", "Central African Republic", "South Sudan", "Uganda", "Rwanda", "Burundi", "Tanzania", "Zambia", "Angola"],
+  "Costa Rica": ["Nicaragua", "Panama"],
+  "Croatia": ["Slovenia", "Hungary", "Serbia", "Bosnia and Herzegovina", "Montenegro"],
+  "Cuba": [],
+  "Cyprus": [],
+  "Czechia": ["Germany", "Austria", "Slovakia", "Poland"],
+  "Denmark": ["Germany"],
+  "Djibouti": ["Eritrea", "Ethiopia", "Somalia"],
+  "Dominica": [],
+  "Dominican Republic": ["Haiti"],
+  "Ecuador": ["Colombia", "Peru"],
+  "Egypt": ["Libya", "Sudan", "Israel", "Jordan"],
+  "El Salvador": ["Guatemala", "Honduras"],
+  "Equatorial Guinea": ["Cameroon", "Gabon"],
+  "Eritrea": ["Sudan", "Ethiopia", "Djibouti"],
+  "Estonia": ["Latvia", "Russia"],
+  "Eswatini": ["South Africa", "Mozambique"],
+  "Ethiopia": ["Eritrea", "Djibouti", "Somalia", "Kenya", "South Sudan", "Sudan"],
+  "Fiji": [],
+  "Finland": ["Sweden", "Norway", "Russia"],
+  "France": ["Belgium", "Luxembourg", "Germany", "Switzerland", "Italy", "Monaco", "Spain", "Andorra"],
+  "Gabon": ["Equatorial Guinea", "Cameroon", "Republic of the Congo"],
+  "Gambia": ["Senegal"],
+  "Georgia": ["Russia", "Turkey", "Armenia", "Azerbaijan"],
+  "Germany": ["Denmark", "Poland", "Czechia", "Austria", "Switzerland", "France", "Luxembourg", "Belgium", "Netherlands"],
+  "Ghana": ["Ivory Coast", "Burkina Faso", "Togo"],
+  "Greece": ["Albania", "North Macedonia", "Bulgaria", "Turkey"],
+  "Grenada": [],
+  "Guatemala": ["Mexico", "Belize", "Honduras", "El Salvador"],
+  "Guinea": ["Guinea-Bissau", "Senegal", "Mali", "Ivory Coast", "Liberia", "Sierra Leone"],
+  "Guinea-Bissau": ["Senegal", "Guinea"],
+  "Guyana": ["Venezuela", "Brazil", "Suriname"],
+  "Haiti": ["Dominican Republic"],
+  "Honduras": ["Guatemala", "El Salvador", "Nicaragua"],
+  "Hungary": ["Slovakia", "Ukraine", "Romania", "Serbia", "Croatia", "Slovenia", "Austria"],
+  "Iceland": [],
+  "India": ["Pakistan", "China", "Nepal", "Bhutan", "Bangladesh", "Myanmar"],
+  "Indonesia": ["Papua New Guinea", "East Timor", "Malaysia"],
+  "Iran": ["Iraq", "Turkey", "Armenia", "Azerbaijan", "Turkmenistan", "Afghanistan", "Pakistan"],
+  "Iraq": ["Turkey", "Iran", "Kuwait", "Saudi Arabia", "Jordan", "Syria"],
+  "Ireland": [],
+  "Israel": ["Lebanon", "Syria", "Jordan", "Egypt", "Palestinian Territories"],
+  "Italy": ["France", "Switzerland", "Austria", "Slovenia", "Vatican City", "San Marino"],
+  "Jamaica": [],
+  "Japan": [],
+  "Jordan": ["Syria", "Iraq", "Saudi Arabia", "Israel", "West Bank"],
+  "Kazakhstan": ["Russia", "China", "Kyrgyzstan", "Uzbekistan", "Turkmenistan"],
+  "Kenya": ["Somalia", "Ethiopia", "South Sudan", "Uganda", "Tanzania"],
+  "Kiribati": [],
+  "North Korea": ["China", "South Korea", "Russia"],
+  "South Korea": ["North Korea"],
+  "Kuwait": ["Iraq", "Saudi Arabia"],
+  "Kyrgyzstan": ["Kazakhstan", "Uzbekistan", "Tajikistan", "China"],
+  "Laos": ["China", "Vietnam", "Cambodia", "Thailand", "Myanmar"],
+  "Latvia": ["Estonia", "Lithuania", "Russia", "Belarus"],
+  "Lebanon": ["Syria", "Israel"],
+  "Lesotho": ["South Africa"],
+  "Liberia": ["Sierra Leone", "Guinea", "Ivory Coast"],
+  "Libya": ["Egypt", "Sudan", "Chad", "Niger", "Algeria", "Tunisia"],
+  "Liechtenstein": ["Switzerland", "Austria"],
+  "Lithuania": ["Latvia", "Belarus", "Poland", "Russia"],
+  "Luxembourg": ["Belgium", "Germany", "France"],
+  "Madagascar": [],
+  "Malawi": ["Tanzania", "Mozambique", "Zambia"],
+  "Malaysia": ["Thailand", "Indonesia", "Brunei"],
+  "Maldives": [],
+  "Mali": ["Algeria", "Niger", "Burkina Faso", "Ivory Coast", "Guinea", "Senegal", "Mauritania"],
+  "Malta": [],
+  "Marshall Islands": [],
+  "Mauritania": ["Western Sahara", "Algeria", "Mali", "Senegal"],
+  "Mauritius": [],
+  "Mexico": ["United States of America", "Guatemala", "Belize"],
+  "Micronesia": [],
+  "Moldova": ["Romania", "Ukraine"],
+  "Monaco": ["France"],
+  "Mongolia": ["Russia", "China"],
+  "Montenegro": ["Croatia", "Bosnia and Herzegovina", "Serbia", "Kosovo", "Albania"],
+  "Morocco": ["Algeria", "Western Sahara"],
+  "Mozambique": ["Tanzania", "Malawi", "Zambia", "Zimbabwe", "Eswatini", "South Africa"],
+  "Myanmar": ["Bangladesh", "India", "China", "Laos", "Thailand"],
+  "Namibia": ["Angola", "Zambia", "Botswana", "South Africa"],
+  "Nauru": [],
+  "Nepal": ["China", "India"],
+  "Netherlands": ["Germany", "Belgium"],
+  "New Zealand": [],
+  "Nicaragua": ["Honduras", "Costa Rica"],
+  "Niger": ["Algeria", "Libya", "Chad", "Nigeria", "Benin", "Burkina Faso", "Mali"],
+  "Nigeria": ["Benin", "Niger", "Chad", "Cameroon"],
+  "North Macedonia": ["Kosovo", "Serbia", "Bulgaria", "Greece", "Albania"],
+  "Norway": ["Sweden", "Finland", "Russia"],
+  "Oman": ["United Arab Emirates", "Saudi Arabia", "Yemen"],
+  "Pakistan": ["India", "Afghanistan", "Iran", "China"],
+  "Palau": [],
+  "Palestine": ["Israel", "Jordan"],
+  "Panama": ["Costa Rica", "Colombia"],
+  "Papua New Guinea": ["Indonesia"],
+  "Paraguay": ["Argentina", "Brazil", "Bolivia"],
+  "Peru": ["Ecuador", "Colombia", "Brazil", "Bolivia", "Chile"],
+  "Philippines": [],
+  "Poland": ["Germany", "Czechia", "Slovakia", "Ukraine", "Belarus", "Lithuania", "Russia"],
+  "Portugal": ["Spain"],
+  "Qatar": ["Saudi Arabia"],
+  "Romania": ["Ukraine", "Moldova", "Bulgaria", "Serbia", "Hungary"],
+  "Russia": ["Norway", "Finland", "Estonia", "Latvia", "Lithuania", "Poland", "Belarus", "Ukraine", "Georgia", "Azerbaijan", "Kazakhstan", "China", "Mongolia", "North Korea"],
+  "Rwanda": ["Uganda", "Tanzania", "Burundi", "DR Congo"],
+  "Saint Kitts and Nevis": [],
+  "Saint Lucia": [],
+  "Saint Vincent and the Grenadines": [],
+  "Samoa": [],
+  "San Marino": ["Italy"],
+  "Sao Tome and Principe": [],
+  "Saudi Arabia": ["Jordan", "Iraq", "Kuwait", "Qatar", "United Arab Emirates", "Oman", "Yemen"],
+  "Senegal": ["Mauritania", "Mali", "Guinea", "Guinea-Bissau", "The Gambia"],
+  "Serbia": ["Hungary", "Romania", "Bulgaria", "North Macedonia", "Kosovo", "Montenegro", "Bosnia and Herzegovina", "Croatia"],
+  "Seychelles": [],
+  "Sierra Leone": ["Guinea", "Liberia"],
+  "Singapore": [],
+  "Slovakia": ["Czechia", "Poland", "Ukraine", "Hungary", "Austria"],
+  "Slovenia": ["Italy", "Austria", "Hungary", "Croatia"],
+  "Solomon Islands": [],
+  "Somalia": ["Ethiopia", "Kenya", "Djibouti"],
+  "South Africa": ["Namibia", "Botswana", "Zimbabwe", "Mozambique", "Eswatini", "Lesotho"],
+  "South Sudan": ["Sudan", "Ethiopia", "Kenya", "Uganda", "DR Congo", "Central African Republic"],
+  "Spain": ["Portugal", "France", "Andorra", "Gibraltar"],
+  "Sri Lanka": [],
+  "Sudan": ["Egypt", "Libya", "Chad", "Central African Republic", "South Sudan", "Ethiopia", "Eritrea"],
+  "Suriname": ["Guyana", "French Guiana", "Brazil"],
+  "Sweden": ["Norway", "Finland"],
+  "Switzerland": ["Germany", "Austria", "Liechtenstein", "Italy", "France"],
+  "Syria": ["Turkey", "Iraq", "Jordan", "Israel", "Lebanon"],
+  "Taiwan": [],
+  "Tajikistan": ["Afghanistan", "Uzbekistan", "Kyrgyzstan", "China"],
+  "Tanzania": ["Kenya", "Uganda", "Rwanda", "Burundi", "DR Congo", "Zambia", "Malawi", "Mozambique"],
+  "Thailand": ["Myanmar", "Laos", "Cambodia", "Malaysia"],
+  "Timor-Leste": ["Indonesia"],
+  "Togo": ["Ghana", "Benin", "Burkina Faso"],
+  "Tonga": [],
+  "Trinidad and Tobago": [],
+  "Tunisia": ["Algeria", "Libya"],
+  "Turkey": ["Greece", "Bulgaria", "Georgia", "Armenia", "Iran", "Iraq", "Syria"],
+  "Turkmenistan": ["Kazakhstan", "Uzbekistan", "Afghanistan", "Iran"],
+  "Tuvalu": [],
+  "Uganda": ["South Sudan", "Kenya", "Tanzania", "Rwanda", "DR Congo"],
+  "Ukraine": ["Poland", "Slovakia", "Hungary", "Romania", "Moldova", "Russia", "Belarus"],
+  "United Arab Emirates": ["Oman", "Saudi Arabia"],
+  "United Kingdom": ["Ireland"],
+  "United States of America": ["Canada", "Mexico"],
+  "Uruguay": ["Brazil", "Argentina"],
+  "Uzbekistan": ["Kazakhstan", "Kyrgyzstan", "Tajikistan", "Afghanistan", "Turkmenistan"],
+  "Vanuatu": [],
+  "Vatican City": ["Italy"],
+  "Venezuela": ["Colombia", "Brazil", "Guyana"],
+  "Vietnam": ["China", "Laos", "Cambodia"],
+  "Yemen": ["Saudi Arabia", "Oman"],
+  "Zambia": ["Angola", "DR Congo", "Tanzania", "Malawi", "Mozambique", "Zimbabwe", "Botswana", "Namibia"],
+  "Zimbabwe": ["Zambia", "Mozambique", "South Africa", "Botswana"]
+    };
+
     /*****************************************************************
      * Bildirim Fonksiyonları
      *****************************************************************/
     function showNotification(message, duration = 3000) {
-      // Kısa süreli (ephemeral) bildirim
       const existing = document.getElementById("notification-area");
       if (!existing) return;
       const item = document.createElement("div");
@@ -1317,7 +1518,6 @@
     }
 
     function broadcastNotification(text) {
-      // Tüm oyunculara global bildirim
       if (!roomRef) return;
       roomRef.child("notifications").push({
         text: text,
@@ -1325,7 +1525,6 @@
       });
     }
 
-    // DB'den gelen global bildirimi ekrana yansıtır (ephemeral + kalıcı)
     function displayGlobalNotification(text) {
       // Ephemeral
       const nArea = document.getElementById("notification-area");
@@ -1341,11 +1540,12 @@
         }, 6500);
       }
 
-      // Kalıcı listemize de ekleyelim (Eskiden zil panelinde görünüyordu)
+      // Kalıcı listemize de ekleyelim
       persistentNotifications.push(text);
+      // updateNotificationsList();  // Artık pasif
     }
 
-    // Oda kodu oluştur
+    // Rastgele oda kodu
     function generateRoomCode() {
       const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
       let code = "";
@@ -1671,8 +1871,7 @@
               oilProduction: oilProduction,
               wheatProduction: wheatProduction,
               grainMills: 0,
-              supporters: {},
-              neighbors: [] // Komşu liste (isteğe göre doldurulabilir)
+              supporters: {}
             };
           });
 
@@ -1692,11 +1891,6 @@
         displayPendingPactOffers();
         displayTradeOffers();
         updateActivePactsList();
-
-        // Oyun başladıysa ve ilk ülkeler henüz atanmadıysa ata
-        if (roomData.gameState === "started" && !roomData.initialCountriesAssigned) {
-          assignInitialCountries();
-        }
       });
 
       // Chat ve global notifications sadece bir kere dinlenmeli
@@ -1797,47 +1991,6 @@
       } else {
         stopTurnTimer();
       }
-    }
-
-    // *** YENİ: Oyunculara başlangıçta rastgele ülke atama ***
-    function assignInitialCountries() {
-      if (!roomData || !roomData.countryData || !roomData.playerOrder) return;
-      const allCountries = Object.keys(roomData.countryData);
-
-      // Fisher-Yates (Knuth) karıştırma
-      for (let i = allCountries.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [allCountries[i], allCountries[j]] = [allCountries[j], allCountries[i]];
-      }
-
-      const updates = {};
-      let index = 0;
-
-      // Her oyuncuya 1 rastgele ülke
-      roomData.playerOrder.forEach((pId) => {
-        const randomCountry = allCountries[index];
-        index++;
-
-        // Sahipliği, asker vs. güncelle
-        updates[`countryData/${randomCountry}/owner`] = pId;
-        updates[`countryData/${randomCountry}/soldiers`] = 10; // Başlangıç askeri
-        updates[`countryData/${randomCountry}/supporters`] = {};
-
-        // Oyuncunun countries listesine ekle
-        let playerCountries = roomData.players[pId].countries || [];
-        playerCountries.push(randomCountry);
-        updates[`players/${pId}/countries`] = playerCountries;
-      });
-
-      // Bu işlemin bir daha tekrarlanmaması için işaret
-      updates["initialCountriesAssigned"] = true;
-
-      roomRef.update(updates, (err) => {
-        if (!err) {
-          broadcastNotification("Her oyuncuya başlangıç ülkesi rastgele atandı!");
-          showNotification("Başlangıç ülkeleri atandı!");
-        }
-      });
     }
 
     function handleGameState(state) {
@@ -2139,7 +2292,6 @@
           offer.status === "pending" &&
           offer.recipientId === localPlayerId
         ) {
-          // Bir item ekle
           const div = document.createElement("div");
           div.className = "pact-offer-item";
           div.setAttribute("data-offer-id", offer.offerId);
@@ -2149,7 +2301,8 @@
              <p>Tur sayısı: <strong>${offer.duration}</strong></p>
              <p>Para talebi: <strong>${offer.cost}$</strong> (Gönderen ödeyecek, siz alacaksınız)</p>
              <button class="accept-btn" data-offer-id="${offer.offerId}">Kabul Et</button>
-             <button class="reject-btn" data-offer-id="${offer.offerId}">Reddet</button>`;
+             <button class="reject-btn" data-offer-id="${offer.offerId}">Reddet</button>
+            `;
 
           container.appendChild(div);
         }
@@ -2224,7 +2377,6 @@
       showNotification("Pakt teklifi reddedildi.");
     }
 
-    // Her tur verisi güncellendiğinde, aktif paktları göster
     function updateActivePactsList() {
       const container = document.getElementById("pact-active-list");
       if (!container) return;
@@ -2250,7 +2402,7 @@
     /*****************************************************************
      * OYUN İŞLEVLERİ
      *****************************************************************/
-    // SALDIRI (Yalnızca komşu ülkeye)
+    // SALDIRI (2. turdan sonra komşu kontrolü eklendi)
     function attack() {
       if (!isMyTurn()) {
         showNotification("Sıranız değil!");
@@ -2276,23 +2428,7 @@
       const target = roomData.countryData[selectedCountry];
       if (!target) return;
 
-      // ** Komşuluk kontrolü **
-      let canAttack = false;
-      if (currentPlayerData.countries && currentPlayerData.countries.length > 0) {
-        for (let cName of currentPlayerData.countries) {
-          const cData = roomData.countryData[cName];
-          if (cData && cData.neighbors && cData.neighbors.includes(selectedCountry)) {
-            canAttack = true;
-            break;
-          }
-        }
-      }
-      if (!canAttack) {
-        showNotification("Yalnızca komşu ülkelere saldırılabilir! Sahip olduğunuz hiçbir ülke bu ülkeye komşu değil.");
-        return;
-      }
-
-      // İlk 3 tur yalnızca sahipsiz topraklara saldırı
+      // 1) İlk 3 tura kadar sadece sahipsiz topraklara saldırı kısıtı
       if (roomData.round < 4) {
         if (target.owner) {
           showNotification("İlk 3 tur yalnızca sahipsiz topraklara saldırabilirsiniz!");
@@ -2300,7 +2436,27 @@
         }
       }
 
-      // Pakt varsa engel
+      // 2) 2. turdan sonra (yani round >= 3) komşuluk kontrolü
+      if (roomData.round >= 3) {
+        // Bu ülke, oyuncunun elindeki herhangi bir ülkeye komşu mu?
+        let canAttack = false;
+        const playerCountries = currentPlayerData.countries || [];
+        // Seçili ülkenin adjacency listesi
+        const neighborsOfTarget = adjacencyList[selectedCountry] || [];
+
+        for (const cName of playerCountries) {
+          if (neighborsOfTarget.includes(cName)) {
+            canAttack = true;
+            break;
+          }
+        }
+
+        if (!canAttack) {
+          showNotification("Bu ülke, size ait herhangi bir ülkeye komşu değil. Saldırı yapılamaz!");
+          return;
+        }
+      }
+
       if (target.owner && target.owner !== currentPlayerId) {
         if (hasActivePact(currentPlayerId, target.owner)) {
           showNotification("Bu oyuncu ile saldırmazlık paktınız var! Saldıramazsınız.");
@@ -2312,14 +2468,12 @@
       let attackResult = "";
 
       if (target.owner === currentPlayerId) {
-        // Kendi toprağımıza asker yığıyoruz
         updates["countryData/" + selectedCountry + "/soldiers"] =
           target.soldiers + soldiersToSend;
         updates["players/" + currentPlayerId + "/soldiers"] =
           currentPlayerData.soldiers - soldiersToSend;
         attackResult = selectedCountry + " ülkesine " + soldiersToSend + " asker yerleştirildi.";
       } else {
-        // Başka ülkeye saldırma
         updates["players/" + currentPlayerId + "/soldiers"] =
           currentPlayerData.soldiers - soldiersToSend;
         if (soldiersToSend > target.soldiers) {
@@ -2558,7 +2712,6 @@
 
       const updates = {};
 
-      // Sahibi bizsek -> kendi askerimizi çek
       if (target.owner === localPlayerId) {
         let totalSupporters = 0;
         if (target.supporters) {
@@ -2774,7 +2927,8 @@
             }
             if (country.wheatProduction) {
               const effectiveWheat = Math.floor(
-                country.wheatProduction * (1 + 0.20 * (country.grainMills || 0)))
+                country.wheatProduction * (1 + 0.20 * (country.grainMills || 0))
+              );
               totalWheatGained += effectiveWheat;
             }
           }
@@ -2929,7 +3083,7 @@
     }
 
     /*****************************************************************
-     * TİCARET (MARKET) SISTEMI
+     * TİCARET (MARKET) SISTEMI (Fabrika satışı kaldırıldı)
      *****************************************************************/
     document.getElementById("open-market-btn").addEventListener("click", () => {
       popupStates.market = !popupStates.market;
@@ -2947,14 +3101,15 @@
       document.getElementById("market-popup").style.display = "none";
     });
 
-    const itemTypeSelect = document.getElementById("trade-item-type");
-    itemTypeSelect.addEventListener("change", () => {
-      // Fabrika satışı olmadığı için ekstra işlem yok
-    });
+    // Fabrika seçeneği kaldırıldığı için trade-country de gizli
     document.getElementById("create-trade-offer-btn").addEventListener("click", createTradeOffer);
 
     function updateTradeCountrySelect() {
-      // Fabrika satışı kaldırıldığı için burası boş bırakıldı.
+      // Burada fabrika satışı olmadığı için bir şey yapmıyoruz.
+      // Sadece boştan "hidden" tutuyoruz.
+      const tradeCountrySelect = document.getElementById("trade-country");
+      if (!tradeCountrySelect) return;
+      tradeCountrySelect.innerHTML = "<option value=''>--Ülke Seç--</option>";
     }
 
     function createTradeOffer() {
@@ -2974,7 +3129,7 @@
       const seller = roomData.players[localPlayerId];
       let enough = false;
 
-      // Stok kontrol
+      // Stok kontrol (sadece petrol veya buğday)
       if (itemType === "petrol") {
         if (seller.petrol >= quantity) enough = true;
       } else if (itemType === "wheat") {
@@ -3000,7 +3155,7 @@
         sellerId: localPlayerId,
         sellerName: seller.name,
         itemType: itemType,
-        countryName: null, // Fabrika satışı kaldırıldı
+        countryName: null, // fabrika yok
         quantity: quantity,
         price: price,
         status: "pending",
@@ -3021,7 +3176,7 @@
       offersArray.forEach((offer) => {
         if (offer.status === "pending") {
           if (offer.embargo && offer.embargo.includes(localPlayerId)) {
-            return; // Ambargo yiyorsak göremeyiz
+            return;
           }
 
           const offerDiv = document.createElement("div");
@@ -3035,6 +3190,7 @@
           html += `<p><strong>Ürün:</strong> ${itemLabel}</p>`;
           html += `<p><strong>Mevcut Miktar:</strong> ${offer.quantity}</p>`;
           html += `<p><strong>Birim Fiyat:</strong> ${offer.price} $</p>`;
+
           if (offer.embargo && offer.embargo.length > 0) {
             const embUsers = offer.embargo
               .map(e => roomData.players[e]?.name || "???")
@@ -3043,14 +3199,13 @@
           }
 
           if (offer.sellerId !== localPlayerId) {
-            // Satın alma
             html += `
               <label style="font-size:14px;color:#ccc;">Almak istediğiniz miktar:</label>
               <input type="number" class="partial-buy-quantity" placeholder="Miktar" min="1" max="${offer.quantity}"/>
               <button class="partial-buy-btn">Satın Al</button>
             `;
           } else {
-            // Satıcı ise iptal et
+            // Satıcı kendisi iptal edebilir
             html += `<button class="cancel-offer-btn" style="background:linear-gradient(45deg, #c0392b, #e74c3c); margin-top:10px;">İptal</button>`;
           }
           offerDiv.innerHTML = html;
@@ -3359,7 +3514,7 @@
     });
 
     /*****************************************************************
-     * BELL BUTTON İŞLEVİNİ KALDIRDIK (ARTIK BİR ŞEY YAPMIYOR)
+     * BELL BUTTON İŞLEVİNİ KALDIRDIK
      *****************************************************************/
     const bellBtn = document.getElementById("notifications-bell");
     bellBtn.addEventListener("click", () => {
