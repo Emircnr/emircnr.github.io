@@ -169,7 +169,7 @@
     }
 
     /**********************************************************
-     * BILDIRIM ALANI (POPUP) - 6s SONRA KAYBOLAN
+     * BILDIRIM ALANI (POPUP) - 6s EKRANDA KALAN
      **********************************************************/
     #notification-area {
       position: fixed;
@@ -206,31 +206,6 @@
         opacity: 0;
         transform: translateX(100%);
       }
-    }
-
-    /**********************************************************
-     * KALICI BILDIRIM PANELI (ZİL İKONU İLE) - DEĞİŞTİRİLDİ
-     **********************************************************/
-    #notifications-container {
-      position: fixed;
-      top: 10px;
-      right: 60px; /* Eski ephemeral bildirimlere çakışmaması için */
-      z-index: 3100;
-    }
-    #notifications-bell {
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 24px;
-      color: #fff;
-      position: relative;
-    }
-    #notifications-bell:hover {
-      transform: scale(1);
-    }
-    /* Paneli gizledik / işlevini kaldırdık */
-    #notifications-panel {
-      display: none;
     }
 
     /**********************************************************
@@ -666,6 +641,14 @@
       color: #fff;
     }
 
+    /* Aktif pakt listesi */
+    .active-pact-item {
+      background: rgba(0, 0, 0, 0.45);
+      padding: 8px;
+      border-radius: 5px;
+      margin-bottom: 8px;
+    }
+
     /**********************************************************
      * TİCARET POPUP
      **********************************************************/
@@ -842,10 +825,6 @@
         left: auto !important;
         bottom: 90px;
       }
-
-      #notifications-container {
-        right: 50px !important;
-      }
     }
   </style>
 </head>
@@ -882,19 +861,8 @@
     </div>
   </div>
 
-  <!-- ===================== ESKİ USUL KISA BİLDİRİM ALANI ===================== -->
+  <!-- ===================== KISA SÜRELİ BİLDİRİMLER ===================== -->
   <div id="notification-area"></div>
-
-  <!-- ===================== ZİL ve (ESKİ) KALICI BİLDİRİMLER PANELİ ===================== -->
-  <div id="notifications-container">
-    <button id="notifications-bell">
-      <i class="fas fa-bell"></i>
-    </button>
-    <!-- Bildirim panelini tamamen devre dışı bıraktık -->
-    <div id="notifications-panel">
-      <ul id="notifications-list"></ul>
-    </div>
-  </div>
 
   <!-- ===================== OYUN EKRANI ===================== -->
   <div id="game-container">
@@ -1038,11 +1006,11 @@
       </button>
 
       <h3>Fabrika Kur (Her Zaman)</h3>
-      <!-- Güncel fiyat: 500$ + 100 varil petrol -->
+      <p style="font-size:14px; color:#ccc;">(1 Fabrika = 500$ + 100 varil)</p>
       <input
         type="number"
         id="factory-quantity"
-        placeholder="Adet (500$ + 100 varil / adet)"
+        placeholder="Adet"
         min="1"
       />
       <button id="build-factory-btn">
@@ -1155,7 +1123,7 @@
     </div>
   </div>
 
-  <!-- ===================== SALDIRMAZLIK PAKTI POPUP (YENİ) ===================== -->
+  <!-- ===================== SALDIRMAZLIK PAKTI POPUP ===================== -->
   <div id="pact-popup" class="modern-popup">
     <div id="pact-popup-header" class="popup-header">
       <span>Saldırmazlık Pakti</span>
@@ -1172,11 +1140,8 @@
       <h3>Gelen Teklifler</h3>
       <div id="pact-pending-offers"></div>
 
-      <!-- Aktif Paktlarım (yeni eklenen bölüm) -->
-      <div style="margin-top:15px;">
-        <h3>Aktif Paktlarım</h3>
-        <div id="pact-active-list"></div>
-      </div>
+      <h3>Aktif Paktlarınız</h3>
+      <div id="active-pacts-container"></div>
     </div>
   </div>
 
@@ -1191,14 +1156,18 @@
       <div class="market-section">
         <h3>Yeni Teklif Oluştur</h3>
         <label style="font-size:14px;color:#ccc;">Satmak istediğiniz ürün:</label><br/>
-        <!-- FABRİKA KALDIRILDI -->
         <select id="trade-item-type">
           <option value="petrol">Petrol</option>
+          <option value="factory">Fabrika</option>
           <option value="wheat">Buğday</option>
         </select>
         <br/><br/>
 
-        <label style="font-size:14px;color:#ccc;">Miktar (varil/buğday):</label>
+        <label style="font-size:14px;color:#ccc;">Ülke (sadece fabrika satıyorsanız seçin):</label><br/>
+        <select id="trade-country" style="display:none;"></select>
+
+        <br/><br/>
+        <label style="font-size:14px;color:#ccc;">Miktar (adet/varil/buğday):</label>
         <input type="number" id="trade-quantity" placeholder="Miktar" min="1"/>
 
         <label style="font-size:14px;color:#ccc;">Birim Fiyat ($):</label>
@@ -1275,20 +1244,6 @@
     let unreadMessages = 0;
     let chatOpen = false;
 
-    // Kalıcı bildirimleri burada tutalım (önceden zil paneli için kullanılıyordu)
-    let persistentNotifications = [];
-
-    // Popup toggle durumları
-    const popupStates = {
-      "military": false,
-      "building": false,
-      "resource": false,
-      "players": false,
-      "chat": false,
-      "pact": false,
-      "market": false
-    };
-
     // 60 saniye sayacı
     let turnTimeRemaining = 60;
     let turnTimerInterval = null;
@@ -1296,212 +1251,8 @@
     // Oyun başlat geri sayım
     let startInterval = null;
 
-    // -----------------------------------------------------------
-    // 2. Turdan sonra komşu olmayan ülkeye saldırı engeli için
-    // Tüm ülkelerin komşuluk verilerini buraya manuel girebilirsiniz.
-    // -----------------------------------------------------------
-   const countryNeighbors = {
-  "Afghanistan": ["Pakistan", "Iran", "Turkmenistan", "Uzbekistan", "Tajikistan", "China"],
-  "Albania": ["Montenegro", "Kosovo", "North Macedonia", "Greece"],
-  "Algeria": ["Tunisia", "Libya", "Niger", "Mali", "Mauritania", "Western Sahara", "Morocco"],
-  "Andorra": ["France", "Spain"],
-  "Angola": ["Namibia", "democratic republic of congo", "republic of the congo","Zambia"],
-  "Antigua and Barbuda": [],
-  "Argentina": ["ANTARCTİCA","falkland ISLANDS","Chile", "Bolivia", "Paraguay", "Brazil", "Uruguay"],
-  "Armenia": ["Turkey", "Georgia", "Azerbaijan", "Iran"],
-  "Australia": ["FRENCH SOUTHERN AND ANTARCTİC LANDS","NEW ZELAND","NEW CALEDONİA","VANUATU","SOLOMON ISLANDS","PAPUA NEW GUİNEA","EAST TİMOR","INDONESİA",],
-  "Austria": ["Germany", "Czechia", "Slovakia", "Hungary", "Slovenia", "Italy", "Switzerland", "Liechtenstein"],
-  "Azerbaijan": ["Russia", "Georgia", "Armenia", "Iran"],
-  "THE Bahamas": ["UNİTED STATES OF AMERİCA","CUBA","HAİTİ","MOROCCO",],
-  "Bahrain": [],
-  "Bangladesh": ["India", "Myanmar"],
-  "Barbados": [],
-  "Belarus": ["Latvia", "Lithuania", "Poland", "Russia", "Ukraine"],
-  "Belgium": ["UNİTED KİNGDOM","Netherlands", "Germany", "Luxembourg", "France"],
-  "Belize": ["Mexico", "Guatemala","JAMAİCA",],
-  "Benin": ["Burkina Faso", "Niger", "Nigeria", "Togo"],
-  "Bhutan": ["India", "China"],
-  "Bolivia": ["Brazil", "Paraguay", "Argentina", "Chile", "Peru"],
-  "Bosnia and Herzegovina": ["Croatia", "Serbia", "Montenegro"],
-  "Botswana": ["Namibia", "South Africa", "Zimbabwe", "Zambia"],
-  "Brazil": ["LİBERİA","SİERRA LEONE","GUİNEA","GUİNEA BİSSAU","SENEGAL","GAMBİA","Argentina", "Bolivia", "Colombia", "Guyana", "Paraguay", "Peru", "Suriname", "Uruguay", "Venezuela", "French Guiana"],
-  "Brunei": ["CHİNA","VİETNAM","Malaysia"],
-  "Bulgaria": ["Romania", "Serbia", "North Macedonia", "Greece", "Turkey"],
-  "Burkina Faso": ["Mali", "Niger", "Benin", "Togo", "Ghana", "Ivory Coast"],
-  "Burundi": ["Rwanda", "Tanzania", "DR Congo"],
-  "Cabo Verde": [],
-  "Cambodia": ["Thailand", "Laos", "Vietnam"],
-  "Cameroon": ["Nigeria", "Chad", "Central African Republic", "Republic of the Congo", "Gabon", "Equatorial Guinea"],
-  "Canada": ["GREENLAND","United States of America"],
-  "Central African Republic": ["Chad", "Sudan", "South Sudan", "democratic republic of  congo", "Republic of the Congo", "Cameroon"],
-  "Chad": ["Libya", "Sudan", "Central African Republic", "Cameroon", "Nigeria", "Niger"],
-  "Chile": ["Peru", "Bolivia", "Argentina"],
-  "China": ["TAİWAN","Mongolia", "Russia", "North Korea", "Vietnam", "Laos", "Myanmar", "India", "Bhutan", "Nepal", "Pakistan", "Afghanistan", "Tajikistan", "Kyrgyzstan", "Kazakhstan"],
-  "Colombia": ["DOMİNİCAN REPUBLİC","HAİTİ","JAMAİCA","Venezuela", "Brazil", "Peru", "Ecuador", "Panama"],
-  "Comoros": [],
-  "REPUBLİC OF THE CONGO": ["Gabon", "Cameroon", "Central African Republic", "DEMOCRATİC REPUBLİC OF THE CONGO", "Angola"],
-  "DEMOCRATİC REPUBLİC OF THE CONGO": ["Republic of the Congo", "Central African Republic", "South Sudan", "Uganda", "Rwanda", "Burundi", "Tanzania", "Zambia", "Angola"],
-  "Costa Rica": ["Nicaragua", "Panama"],
-  "Croatia": ["Slovenia", "Hungary", "REPUBLİC OF Serbia", "Bosnia and Herzegovina", "Montenegro"],
-  "Cuba": ["MEXİCO","UNİTED STATES OF AMERİCA","jamaica","the bahamas","HAİTİ",],
-  "Cyprus": ["LEBANON","ISRAEL","EGYPT],
-  "NORTHERN CYPRUS":["TURKEY","SYRİA",]
-  "Czechia": ["Germany", "Austria", "Slovakia", "Poland"],
-  "Denmark": ["Germany","SWEDEN","NORWAY",],
-  "Djibouti": ["Eritrea", "Ethiopia", "Somalia"],
-  "Dominica": [],
-  "Dominican Republic": ["Haiti","PUERTO RİCO","COLOMBİA","VENEZUELA",],
-  "Ecuador": ["Colombia", "Peru"],
-  "Egypt": ["CYPRUS","Libya", "Sudan", "Israel", "Jordan"],
-  "El Salvador": ["Guatemala", "Honduras"],
-  "Equatorial Guinea": ["Cameroon", "Gabon"],
-  "Eritrea": ["Sudan", "Ethiopia", "Djibouti"],
-  "Estonia": ["Latvia", "Russia"],
-  "SWAZİLAND": ["South Africa", "Mozambique"],
-  "Ethiopia": ["Eritrea", "Djibouti", "Somalia", "Kenya", "South Sudan", "Sudan"],
-  "Fiji": ["NEW CALEDONİA","VANUATU","NEW ZELAAND"],
-  "Finland": ["Sweden", "Norway", "Russia"],
-  "France": ["UNİTED KİNGDOM","Belgium", "Luxembourg", "Germany", "Switzerland", "Italy", "Monaco", "Spain", "Andorra"],
-  "Gabon": ["Equatorial Guinea", "Cameroon", "Republic of the Congo"],
-  "Gambia": ["Senegal","FRENCH GUİANA","BRAZİL],
-  "Georgia": ["Russia", "Turkey", "Armenia", "Azerbaijan",],
-  "Germany": ["Denmark", "Poland", "Czechia", "Austria", "Switzerland", "France", "Luxembourg", "Belgium", "Netherlands"],
-  "Ghana": ["Ivory Coast", "Burkina Faso", "Togo"],
-  "Greece": ["CYPRUS","Albania", "North Macedonia", "Bulgaria", "Turkey"],
-  "Grenada": [],
-  "Guatemala": ["Mexico", "Belize", "Honduras", "El Salvador"],
-  "Guinea": ["BRAZİL","Guinea Bissau", "Senegal", "Mali", "Ivory Coast", "Liberia", "Sierra Leone"],
-  "Guinea Bissau": ["Senegal", "Guinea","],
-  "Guyana": ["Venezuela", "Brazil", "Suriname"],
-  "Haiti": ["JAMAİCA","COLOMBİA","JAMAİCA","CUBA","Dominican Republic"],
-  "Honduras": ["CUBA","Guatemala","El Salvador", "Nicaragua"],
-  "Hungary": ["Slovakia", "Ukraine", "Romania", "Serbia", "Croatia", "Slovenia", "Austria"],
-  "Iceland": ["GREENLAND","UNİTED KİNGDOM","İRELAND","NORWAY",],
-  "India": ["Pakistan", "China", "Nepal", "Bhutan", "Bangladesh", "Myanmar","SRİ LANKA",],
-  "Indonesia": ["AUSTRALİA","PHİLİPPİNES","SRİ LANKA","Papua New Guinea", "East Timor", "Malaysia"],
-  "Iran": ["Iraq", "Turkey", "Armenia", "Azerbaijan", "Turkmenistan", "Afghanistan", "Pakistan"],
-  "Iraq": ["Turkey", "Iran", "Kuwait", "Saudi Arabia", "Jordan", "Syria"],
-  "Ireland": ["united kingdom","Iceland",],
-  "Israel": ["CYPRUS","Lebanon", "Syria", "Jordan", "Egypt", "WEST BANK",],
-  "Italy": ["tunusia","France", "Switzerland", "Austria", "Slovenia", "Vatican City", "San Marino"],
-  "Jamaica": ["HONDURAS","COLOMBİA","HAİTİ","CUBA","NİCARAGUA","BELİZE",],
-  "Japan": ["CHİNA","NORTH COREA","SOUTH KOREA","TAİWAN","RUSSİA",],
-  "Jordan": ["Syria", "Iraq", "Saudi Arabia", "Israel", "West Bank"],
-  "Kazakhstan": ["Russia", "China", "Kyrgyzstan", "Uzbekistan", "Turkmenistan"],
-  "Kenya": ["Somalia", "Ethiopia", "South Sudan", "Uganda", "Tanzania"],
-  "Kiribati": [],
-  "North Korea": ["JAPAN","China", "South Korea", "Russia"],
-  "South Korea": ["North Korea","JAPAN",],
-  "Kuwait": ["Iraq", "Saudi Arabia"],
-  "Kyrgyzstan": ["Kazakhstan", "Uzbekistan", "Tajikistan", "China"],
-  "Laos": ["China", "Vietnam", "Cambodia", "Thailand", "Myanmar"],
-  "Latvia": ["Estonia", "Lithuania", "Russia", "Belarus"],
-  "Lebanon": ["CYPRUS","Syria", "Israel"],
-  "Lesotho": ["South Africa"],
-  "Liberia": ["BRAZİL","Sierra Leone", "Guinea", "Ivory Coast"],
-  "Libya": ["Egypt", "Sudan", "Chad", "Niger", "Algeria", "Tunisia"],
-  "Liechtenstein": ["Switzerland", "Austria"],
-  "Lithuania": ["Latvia", "Belarus", "Poland", "Russia"],
-  "Luxembourg": ["Belgium", "Germany", "France"],
-  "Madagascar": [],
-  "Malawi": ["Tanzania", "Mozambique", "Zambia"],
-  "Malaysia": ["Thailand", "Indonesia", "Brunei"],
-  "Maldives": [],
-  "Mali": ["Algeria", "Niger", "Burkina Faso", "Ivory Coast", "Guinea", "Senegal", "Mauritania"],
-  "Malta": [],
-  "Marshall Islands": [],
-  "Mauritania": ["Western Sahara", "Algeria", "Mali", "Senegal"],
-  "Mauritius": [],
-  "Mexico": ["United States of America", "Guatemala", "Belize"],
-  "Micronesia": [],
-  "Moldova": ["Romania", "Ukraine"],
-  "Monaco": ["France"],
-  "Mongolia": ["Russia", "China"],
-  "Montenegro": ["Croatia", "Bosnia and Herzegovina", "Serbia", "Kosovo", "Albania"],
-  "Morocco": ["Algeria", "Western Sahara"],
-  "Mozambique": ["Tanzania", "Malawi", "Zambia", "Zimbabwe", "Eswatini", "South Africa"],
-  "Myanmar": ["Bangladesh", "India", "China", "Laos", "Thailand"],
-  "Namibia": ["Angola", "Zambia", "Botswana", "South Africa"],
-  "Nauru": [],
-  "Nepal": ["China", "India"],
-  "Netherlands": ["Germany", "Belgium"],
-  "New Zealand": [],
-  "Nicaragua": ["Honduras", "Costa Rica"],
-  "Niger": ["Algeria", "Libya", "Chad", "Nigeria", "Benin", "Burkina Faso", "Mali"],
-  "Nigeria": ["Benin", "Niger", "Chad", "Cameroon"],
-  "North Macedonia": ["Kosovo", "Serbia", "Bulgaria", "Greece", "Albania"],
-  "Norway": ["Sweden", "Finland", "Russia"],
-  "Oman": ["United Arab Emirates", "Saudi Arabia", "Yemen"],
-  "Pakistan": ["India", "Afghanistan", "Iran", "China"],
-  "Palau": [],
-  "Palestine": ["Israel", "Jordan"],
-  "Panama": ["Costa Rica", "Colombia"],
-  "Papua New Guinea": ["Indonesia"],
-  "Paraguay": ["Argentina", "Brazil", "Bolivia"],
-  "Peru": ["Ecuador", "Colombia", "Brazil", "Bolivia", "Chile"],
-  "Philippines": [],
-  "Poland": ["Germany", "Czechia", "Slovakia", "Ukraine", "Belarus", "Lithuania", "Russia"],
-  "Portugal": ["Spain"],
-  "Qatar": ["Saudi Arabia"],
-  "Romania": ["Ukraine", "Moldova", "Bulgaria", "Serbia", "Hungary"],
-  "Russia": ["Norway", "Finland", "Estonia", "Latvia", "Lithuania", "Poland", "Belarus", "Ukraine", "Georgia", "Azerbaijan", "Kazakhstan", "China", "Mongolia", "North Korea"],
-  "Rwanda": ["Uganda", "Tanzania", "Burundi", "DR Congo"],
-  "Saint Kitts and Nevis": [],
-  "Saint Lucia": [],
-  "Saint Vincent and the Grenadines": [],
-  "Samoa": [],
-  "San Marino": ["Italy"],
-  "Sao Tome and Principe": [],
-  "Saudi Arabia": ["Jordan", "Iraq", "Kuwait", "Qatar", "United Arab Emirates", "Oman", "Yemen"],
-  "Senegal": ["Mauritania", "Mali", "Guinea", "Guinea-Bissau", "The Gambia"],
-  "Serbia": ["Hungary", "Romania", "Bulgaria", "North Macedonia", "Kosovo", "Montenegro", "Bosnia and Herzegovina", "Croatia"],
-  "Seychelles": [],
-  "Sierra Leone": ["Guinea", "Liberia"],
-  "Singapore": [],
-  "Slovakia": ["Czechia", "Poland", "Ukraine", "Hungary", "Austria"],
-  "Slovenia": ["Italy", "Austria", "Hungary", "Croatia"],
-  "Solomon Islands": [],
-  "Somalia": ["Ethiopia", "Kenya", "Djibouti"],
-  "South Africa": ["Namibia", "Botswana", "Zimbabwe", "Mozambique", "Eswatini", "Lesotho"],
-  "South Sudan": ["Sudan", "Ethiopia", "Kenya", "Uganda", "DR Congo", "Central African Republic"],
-  "Spain": ["Portugal", "France", "Andorra", "Gibraltar"],
-  "Sri Lanka": [],
-  "Sudan": ["Egypt", "Libya", "Chad", "Central African Republic", "South Sudan", "Ethiopia", "Eritrea"],
-  "Suriname": ["Guyana", "French Guiana", "Brazil"],
-  "Sweden": ["Norway", "Finland"],
-  "Switzerland": ["Germany", "Austria", "Liechtenstein", "Italy", "France"],
-  "Syria": ["Turkey", "Iraq", "Jordan", "Israel", "Lebanon"],
-  "Taiwan": [],
-  "Tajikistan": ["Afghanistan", "Uzbekistan", "Kyrgyzstan", "China"],
-  "Tanzania": ["Kenya", "Uganda", "Rwanda", "Burundi", "DR Congo", "Zambia", "Malawi", "Mozambique"],
-  "Thailand": ["Myanmar", "Laos", "Cambodia", "Malaysia"],
-  "Timor-Leste": ["Indonesia"],
-  "Togo": ["Ghana", "Benin", "Burkina Faso"],
-  "Tonga": [],
-  "Trinidad and Tobago": [],
-  "Tunisia": ["Algeria", "Libya"],
-  "Turkey": ["Greece", "Bulgaria", "Georgia", "Armenia", "Iran", "Iraq", "Syria"],
-  "Turkmenistan": ["Kazakhstan", "Uzbekistan", "Afghanistan", "Iran"],
-  "Tuvalu": [],
-  "Uganda": ["South Sudan", "Kenya", "Tanzania", "Rwanda", "DR Congo"],
-  "Ukraine": ["Poland", "Slovakia", "Hungary", "Romania", "Moldova", "Russia", "Belarus"],
-  "United Arab Emirates": ["Oman", "Saudi Arabia"],
-  "United Kingdom": ["Ireland"],
-  "United States of America": ["Canada", "Mexico"],
-  "Uruguay": ["Brazil", "Argentina"],
-  "Uzbekistan": ["Kazakhstan", "Kyrgyzstan", "Tajikistan", "Afghanistan", "Turkmenistan"],
-  "Vanuatu": [],
-  "Vatican City": ["Italy"],
-  "Venezuela": ["Colombia", "Brazil", "Guyana"],
-  "Vietnam": ["China", "Laos", "Cambodia"],
-  "Yemen": ["Saudi Arabia", "Oman"],
-  "Zambia": ["Angola", "DR Congo", "Tanzania", "Malawi", "Mozambique", "Zimbabwe", "Botswana", "Namibia"],
-  "Zimbabwe": ["Zambia", "Mozambique", "South Africa", "Botswana"]
-};
-
-
     /*****************************************************************
-     * Bildirim Fonksiyonları
+     * Bildirim Fonksiyonları (Sadece Ephemeral)
      *****************************************************************/
     function showNotification(message, duration = 3000) {
       // Kısa süreli (ephemeral) bildirim
@@ -1519,8 +1270,8 @@
       }, duration + 800);
     }
 
+    // Sunucuya (DB'ye) giden global bildirim (tüm oyunculara)
     function broadcastNotification(text) {
-      // Tüm oyunculara global bildirim
       if (!roomRef) return;
       roomRef.child("notifications").push({
         text: text,
@@ -1528,7 +1279,7 @@
       });
     }
 
-    // Bu fonksiyon, DB'den gelen global bildirimi ekrana yansıtır (ephemeral + kalıcı)
+    // DB'den gelen global bildirimleri anlık ekranda göster
     function displayGlobalNotification(text) {
       // Ephemeral
       const nArea = document.getElementById("notification-area");
@@ -1543,11 +1294,9 @@
           }
         }, 6500);
       }
-
-      // Kalıcı listemize de ekleyelim (Eskiden zil paneline yansıtılıyordu)
-      persistentNotifications.push(text);
     }
 
+    // Oda kodu oluştur
     function generateRoomCode() {
       const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
       let code = "";
@@ -1557,6 +1306,7 @@
       return code;
     }
 
+    // Pakt süresi kontrol
     function hasActivePact(playerA, playerB) {
       if (!roomData || !roomData.pacts) return false;
       for (let pactId in roomData.pacts) {
@@ -1573,6 +1323,7 @@
       return false;
     }
 
+    // Daha önce katıldıysak otomatik bağlan
     function autoReconnect() {
       const savedRoomCode = localStorage.getItem("roomCode");
       if (savedRoomCode) {
@@ -1889,8 +1640,8 @@
         roomData = snapshot.val();
         updateGameUI();
         displayPendingPactOffers();
+        displayActivePacts();
         displayTradeOffers();
-        updateActivePactsList();
       });
 
       // Chat ve global notifications sadece bir kere dinlenmeli
@@ -1976,7 +1727,7 @@
 
       updateRecipientSelects();
       updatePactRecipientSelect();
-      updateTradeCountrySelect(); // (Artık fabrika yok ama fonksiyon boşa da olsa dursun)
+      updateTradeCountrySelect();
       updatePrivateMessageRecipientSelect();
       updateEmbargoPlayersSelect();
       updateSupportRecipientSelect();
@@ -1993,6 +1744,7 @@
       }
     }
 
+    /* Oyun Durumunu Yönetme (waiting, starting, started) */
     function handleGameState(state) {
       const startBtn = document.getElementById("start-game-btn");
       const countdownSpan = document.getElementById("start-countdown");
@@ -2017,6 +1769,7 @@
       }
     }
 
+    // Host, "Oyunu Başlat" butonuna tıklayınca
     document.getElementById("start-game-btn").addEventListener("click", () => {
       if (!roomData || !roomData.players[localPlayerId].isHost) return;
       if (roomData.gameState !== "waiting") return;
@@ -2206,6 +1959,7 @@
         if (roomData.countryData) {
           Object.keys(roomData.countryData).forEach((cName) => {
             const c = roomData.countryData[cName];
+            // Filtreye gerek yok, isterseniz ekleyebilirsiniz
             const op = document.createElement("option");
             op.value = cName;
             op.textContent = cName;
@@ -2232,7 +1986,7 @@
     }
 
     /*****************************************************************
-     * SALDIRMAZLIK PAKTI (Event Delegation ile Kabul Et)
+     * SALDIRMAZLIK PAKTI (Teklif ve Liste)
      *****************************************************************/
     document.getElementById("send-pact-offer-btn").addEventListener("click", () => {
       if (!isMyTurn()) {
@@ -2298,18 +2052,48 @@
           div.className = "pact-offer-item";
           div.setAttribute("data-offer-id", offer.offerId);
 
-          div.innerHTML = 
-            `<p><strong>${offer.senderName}</strong> size saldırmazlık pakti teklif ediyor.</p>
-             <p>Tur sayısı: <strong>${offer.duration}</strong></p>
-             <p>Para talebi: <strong>${offer.cost}$</strong> (Gönderen ödeyecek, siz alacaksınız)</p>
-             <button class="accept-btn" data-offer-id="${offer.offerId}">Kabul Et</button>
-             <button class="reject-btn" data-offer-id="${offer.offerId}">Reddet</button>`;
+          div.innerHTML = `
+            <p><strong>${offer.senderName}</strong> size saldırmazlık pakti teklif ediyor.</p>
+            <p>Tur sayısı: <strong>${offer.duration}</strong></p>
+            <p>Para talebi: <strong>${offer.cost}$</strong> (Gönderen ödeyecek, siz alacaksınız)</p>
+            <button class="accept-btn" data-offer-id="${offer.offerId}">Kabul Et</button>
+            <button class="reject-btn" data-offer-id="${offer.offerId}">Reddet</button>
+          `;
 
           container.appendChild(div);
         }
       });
     }
 
+    // Aktif paktları gösterme
+    function displayActivePacts() {
+      const container = document.getElementById("active-pacts-container");
+      if (!container) return;
+      container.innerHTML = "";
+      if (!roomData || !roomData.pacts) return;
+
+      for (let pactId in roomData.pacts) {
+        const pact = roomData.pacts[pactId];
+        if (pact.active && roomData.round <= pact.expirationRound) {
+          // Bu paktın içinde miyiz?
+          if (pact.playerA === localPlayerId || pact.playerB === localPlayerId) {
+            const otherPlayerId = (pact.playerA === localPlayerId) ? pact.playerB : pact.playerA;
+            const otherPlayerName = roomData.players[otherPlayerId]?.name || "???";
+            const roundsLeft = pact.expirationRound - roomData.round + 1;
+
+            const pactEl = document.createElement("div");
+            pactEl.className = "active-pact-item";
+            pactEl.innerHTML = `
+              <p>Pakt: <strong>${otherPlayerName}</strong></p>
+              <p>Kalan Tur: <strong>${roundsLeft}</strong></p>
+            `;
+            container.appendChild(pactEl);
+          }
+        }
+      }
+    }
+
+    // Event Delegation ile Kabul / Reddet
     document.getElementById("pact-pending-offers").addEventListener("click", function(e) {
       if (e.target.classList.contains("accept-btn")) {
         const offerId = e.target.getAttribute("data-offer-id");
@@ -2347,7 +2131,6 @@
       const updates = {};
 
       updates[`pactOffers/${offerId}/status`] = "accepted";
-
       updates[`players/${offer.senderId}/money`] = sender.money - offer.cost;
       updates[`players/${offer.recipientId}/money`] = recipient.money + offer.cost;
 
@@ -2378,31 +2161,6 @@
       showNotification("Pakt teklifi reddedildi.");
     }
 
-    // Her tur verisi güncellendiğinde, aktif paktları göster
-    function updateActivePactsList() {
-      const container = document.getElementById("pact-active-list");
-      if (!container) return;
-      container.innerHTML = "";
-      if (!roomData || !roomData.pacts) return;
-      const currentRound = roomData.round || 1;
-
-      Object.values(roomData.pacts).forEach((pact) => {
-        // Pakt hala aktif mi?
-        if (pact.active && currentRound <= pact.expirationRound) {
-          // Bizimle ilgili mi?
-          if (pact.playerA === localPlayerId || pact.playerB === localPlayerId) {
-            const otherId = (pact.playerA === localPlayerId) ? pact.playerB : pact.playerA;
-            const otherName = roomData.players[otherId]?.name || "???";
-            const turnsLeft = pact.expirationRound - currentRound + 1;
-
-            const div = document.createElement("div");
-            div.textContent = `Pakt: ${otherName}, kalan tur: ${turnsLeft}`;
-            container.appendChild(div);
-          }
-        }
-      });
-    }
-
     /*****************************************************************
      * OYUN İŞLEVLERİ
      *****************************************************************/
@@ -2431,26 +2189,6 @@
 
       const target = roomData.countryData[selectedCountry];
       if (!target) return;
-
-      // --- YENİ KURAL: 2. TURDAN SONRA KOMŞU OLMAYANA SALDIRMA YASAK ---
-      if (roomData.round > 2) {
-        // Oyuncunun sahip olduğu ülkelerden en az biri, "selectedCountry"e komşu mu?
-        let canAttack = false;
-        if (currentPlayerData.countries && currentPlayerData.countries.length > 0) {
-          for (let cName of currentPlayerData.countries) {
-            const neighbors = countryNeighbors[cName] || [];
-            if (neighbors.includes(selectedCountry)) {
-              canAttack = true;
-              break;
-            }
-          }
-        }
-        if (!canAttack) {
-          showNotification("Bu ülkeyle sınır komşusu değilsiniz, saldırı yapamazsınız!");
-          return;
-        }
-      }
-      // ---------------------------------------------------------------
 
       if (roomData.round < 4) {
         if (target.owner) {
@@ -2601,7 +2339,8 @@
         showNotification("Bu ülke size ait değil!");
         return;
       }
-      // Güncellenen maliyet: 500$ + 100 varil
+
+      // Talep üzerine 500$ + 100 varil
       const totalMoney = 500 * quantity;
       const totalPetrol = 100 * quantity;
 
@@ -2660,7 +2399,7 @@
       showNotification(quantity + " adet rafine kuruldu. Üretim kapasitesi arttı.");
     }
 
-    function buildGrainmill() {
+    function buildGrainMill() {
       if (!selectedCountry) {
         showNotification("Bir ülke seçin!");
         return;
@@ -2974,17 +2713,14 @@
     }
 
     document.getElementById("open-chat-btn").addEventListener("click", () => {
-      popupStates.chat = !popupStates.chat;
-      toggleChat(popupStates.chat);
+      toggleChat(chatOpen ? false : true);
     });
     document.getElementById("chat-popup-header").addEventListener("click", (e) => {
       if (e.target.id === "chat-popup-header") {
-        popupStates.chat = false;
         toggleChat(false);
       }
     });
     document.getElementById("close-chat-btn").addEventListener("click", () => {
-      popupStates.chat = false;
       toggleChat(false);
     });
     document.getElementById("send-chat-btn").addEventListener("click", () => {
@@ -3087,44 +2823,46 @@
     }
 
     /*****************************************************************
-     * TİCARET (MARKET) SISTEMI — FABRİKA SATIŞI KALDIRILDI
+     * TİCARET (MARKET) SISTEMI
      *****************************************************************/
     document.getElementById("open-market-btn").addEventListener("click", () => {
-      popupStates.market = !popupStates.market;
       const marketPopup = document.getElementById("market-popup");
-      marketPopup.style.display = popupStates.market ? "flex" : "none";
+      marketPopup.style.display = (marketPopup.style.display === "flex") ? "none" : "flex";
     });
     document.getElementById("market-popup-header").addEventListener("click", (e) => {
       if (e.target.id === "market-popup-header") {
-        popupStates.market = false;
         document.getElementById("market-popup").style.display = "none";
       }
     });
     document.getElementById("close-market-btn").addEventListener("click", () => {
-      popupStates.market = false;
       document.getElementById("market-popup").style.display = "none";
     });
 
     const itemTypeSelect = document.getElementById("trade-item-type");
-    const tradeCountrySelect = document.getElementById("trade-country"); // Boşta kalsa da hata vermez
-    if(itemTypeSelect) {
-      itemTypeSelect.addEventListener("change", () => {
-        const v = itemTypeSelect.value;
-        // Fabrika satışı yok, yine de varsa kapatalım
-        if (tradeCountrySelect) {
-          tradeCountrySelect.style.display = "none"; 
-        }
-      });
-    }
+    const tradeCountrySelect = document.getElementById("trade-country");
+    itemTypeSelect.addEventListener("change", () => {
+      const v = itemTypeSelect.value;
+      if (v === "petrol" || v === "wheat") {
+        tradeCountrySelect.style.display = "none";
+      } else {
+        tradeCountrySelect.style.display = "block";
+      }
+    });
     document.getElementById("create-trade-offer-btn").addEventListener("click", createTradeOffer);
 
     function updateTradeCountrySelect() {
-      // Fabrika ticareti kalktığı için bu kısım işlevsiz; 
-      // yine de hata vermesin diye var bırakıyoruz.
       if (!tradeCountrySelect) return;
       tradeCountrySelect.innerHTML = "<option value=''>--Ülke Seç--</option>";
       if (!roomData || !roomData.countryData || !roomData.players[localPlayerId]) return;
-      // Normalde fabrika için ülke seçiyorduk, artık gereksiz.
+      Object.keys(roomData.countryData).forEach((cName) => {
+        const c = roomData.countryData[cName];
+        if (c.owner === localPlayerId) {
+          const op = document.createElement("option");
+          op.value = cName;
+          op.textContent = cName;
+          tradeCountrySelect.appendChild(op);
+        }
+      });
     }
 
     function createTradeOffer() {
@@ -3135,7 +2873,11 @@
       const itemType = document.getElementById("trade-item-type").value;
       const quantity = parseInt(document.getElementById("trade-quantity").value);
       const price = parseInt(document.getElementById("trade-price").value);
-
+      let countryName = null;
+      // Sadece "factory" için ülke seçimi
+      if (itemType === "factory") {
+        countryName = tradeCountrySelect.value;
+      }
       if (isNaN(quantity) || quantity <= 0 || isNaN(price) || price <= 0) {
         showNotification("Geçerli adet ve fiyat girin!");
         return;
@@ -3144,11 +2886,23 @@
       const seller = roomData.players[localPlayerId];
       let enough = false;
 
-      // Stok kontrol
       if (itemType === "petrol") {
         if (seller.petrol >= quantity) enough = true;
       } else if (itemType === "wheat") {
         if (seller.wheat >= quantity) enough = true;
+      } else if (itemType === "factory") {
+        if (!countryName) {
+          showNotification("Fabrika satmak için ülke seçmelisiniz!");
+          return;
+        }
+        const c = roomData.countryData[countryName];
+        if (!c || c.owner !== localPlayerId) {
+          showNotification("Bu ülke size ait değil!");
+          return;
+        }
+        if (c.factories >= quantity) {
+          enough = true;
+        }
       }
 
       if (!enough) {
@@ -3170,7 +2924,7 @@
         sellerId: localPlayerId,
         sellerName: seller.name,
         itemType: itemType,
-        countryName: null, // Fabrika yok artık, bu da null kalsın
+        countryName: countryName || null,
         quantity: quantity,
         price: price,
         status: "pending",
@@ -3199,12 +2953,16 @@
 
           let itemLabel = "";
           if (offer.itemType === "petrol") itemLabel = "Petrol";
+          else if (offer.itemType === "factory") itemLabel = "Fabrika";
           else if (offer.itemType === "wheat") itemLabel = "Buğday";
 
           let html = `<p><strong>Satıcı:</strong> ${offer.sellerName}</p>`;
           html += `<p><strong>Ürün:</strong> ${itemLabel}</p>`;
           html += `<p><strong>Mevcut Miktar:</strong> ${offer.quantity}</p>`;
           html += `<p><strong>Birim Fiyat:</strong> ${offer.price} $</p>`;
+          if (offer.countryName) {
+            html += `<p><strong>Ülke (Satıcının):</strong> ${offer.countryName}</p>`;
+          }
           if (offer.embargo && offer.embargo.length > 0) {
             const embUsers = offer.embargo
               .map(e => roomData.players[e]?.name || "???")
@@ -3216,8 +2974,14 @@
             html += `
               <label style="font-size:14px;color:#ccc;">Almak istediğiniz miktar:</label>
               <input type="number" class="partial-buy-quantity" placeholder="Miktar" min="1" max="${offer.quantity}"/>
-              <button class="partial-buy-btn">Satın Al</button>
             `;
+            if (offer.itemType === "factory") {
+              html += `<label style="font-size:14px;color:#ccc;">Hangi ülkenize kurmak istersiniz?</label>
+                       <select class="buyer-country-select">
+                         ${getBuyerCountriesOptionsHTML()}
+                       </select>`;
+            }
+            html += `<button class="partial-buy-btn">Satın Al</button>`;
           } else {
             // Satıcı kendisi iptal edebilir
             html += `<button class="cancel-offer-btn" style="background:linear-gradient(45deg, #c0392b, #e74c3c); margin-top:10px;">İptal</button>`;
@@ -3233,7 +2997,12 @@
                 showNotification("Geçerli miktar girin!");
                 return;
               }
-              acceptTradeOffer(offer.offerId, buyAmt);
+              let chosenCountryForBuildings = null;
+              if (offer.itemType === "factory") {
+                const buyerCountrySelect = offerDiv.querySelector(".buyer-country-select");
+                chosenCountryForBuildings = buyerCountrySelect.value;
+              }
+              acceptTradeOffer(offer.offerId, buyAmt, chosenCountryForBuildings);
             });
           }
           const cancelBtn = offerDiv.querySelector(".cancel-offer-btn");
@@ -3246,7 +3015,19 @@
       });
     }
 
-    function acceptTradeOffer(offerId, buyAmount) {
+    function getBuyerCountriesOptionsHTML() {
+      if (!roomData || !roomData.players[localPlayerId]) return "";
+      const player = roomData.players[localPlayerId];
+      let html = "";
+      if (player.countries && roomData.countryData) {
+        player.countries.forEach((cName) => {
+          html += `<option value="${cName}">${cName}</option>`;
+        });
+      }
+      return html;
+    }
+
+    function acceptTradeOffer(offerId, buyAmount, buyerCountry) {
       if (!roomData || !roomData.tradeOffers || !roomData.tradeOffers[offerId]) {
         showNotification("Teklif bulunamadı!");
         return;
@@ -3288,7 +3069,31 @@
           updates[`players/${offer.sellerId}/wheat`] = seller.wheat - buyAmount;
           updates[`players/${localPlayerId}/wheat`] = buyer.wheat + buyAmount;
         }
+      } else if (offer.itemType === "factory") {
+        const c = roomData.countryData[offer.countryName];
+        if (!c || c.owner !== offer.sellerId) {
+          showNotification("Satıcının bu ülke üzerindeki hakkı yok!");
+          return;
+        }
+        if (c.factories >= buyAmount) {
+          hasEnough = true;
+          updates[`countryData/${offer.countryName}/factories`] = c.factories - buyAmount;
+        }
+        // Binayı alıcı kendi ülkesine kuracak
+        if (hasEnough) {
+          if (!buyerCountry || !roomData.countryData[buyerCountry]) {
+            showNotification("Fabrikayı kuracağınız ülkeyi seçiniz!");
+            return;
+          }
+          if (!buyer.countries.includes(buyerCountry)) {
+            showNotification("Seçtiğiniz ülke size ait değil!");
+            return;
+          }
+          updates[`countryData/${buyerCountry}/factories`] =
+            (roomData.countryData[buyerCountry].factories || 0) + buyAmount;
+        }
       }
+
       if (!hasEnough) {
         showNotification("Satıcının yeterli miktarı kalmamış!");
         return;
@@ -3347,7 +3152,7 @@
     document.getElementById("buy-barracks-btn").addEventListener("click", buyBarracks);
     document.getElementById("build-factory-btn").addEventListener("click", buildFactory);
     document.getElementById("build-refinery-btn").addEventListener("click", buildRefinery);
-    document.getElementById("build-grainmill-btn").addEventListener("click", buildGrainmill);
+    document.getElementById("build-grainmill-btn").addEventListener("click", buildGrainMill);
 
     document.getElementById("send-money-btn").addEventListener("click", sendMoney);
     document.getElementById("send-petrol-btn").addEventListener("click", sendPetrol);
@@ -3355,29 +3160,33 @@
 
     document.getElementById("end-turn-btn").addEventListener("click", () => nextTurn(false));
 
-    // ODADAN ÇIKIŞ
+    // ODADAN ÇIKIŞ (tur sırası bizdeyse sıra otomatik geçsin)
     document.getElementById("exit-room-btn").addEventListener("click", () => {
       if (!roomRef || !roomData) return;
 
-      // Oyuncuyu sil
-      roomRef.child(`players/${localPlayerId}`).remove();
-
-      // playerOrder'dan çıkar
+      const updates = {};
       const newOrder = (roomData.playerOrder || []).filter((id) => id !== localPlayerId);
 
-      // Eğer tur sırası bizdeyse, çıkarken turu da geç
+      // Eğer sıra bizdeyse turu sonraki oyuncuya ver
       if (isMyTurn()) {
         stopTurnTimer();
-        let idx = roomData.currentTurnIndex || 0;
+        let idx = (roomData.currentTurnIndex || 0);
+        // Mevcut indexteki oyuncu biziz, çıkarınca diziden kayacak
+        // Bu yüzden önce indexi +1 yapıp, eğer out of range olduysa 0'a çekiyoruz
+        idx++;
+        let newRound = roomData.round || 1;
         if (idx >= newOrder.length) {
           idx = 0;
-          let newRound = (roomData.round || 1) + 1;
-          roomRef.update({ round: newRound });
+          newRound++;
         }
-        roomRef.update({ currentTurnIndex: idx });
+        updates["round"] = newRound;
+        updates["currentTurnIndex"] = idx;
       }
 
-      roomRef.update({ playerOrder: newOrder });
+      updates["playerOrder"] = newOrder;
+      updates[`players/${localPlayerId}`] = null;
+
+      roomRef.update(updates);
 
       document.getElementById("game-container").style.display = "none";
       document.getElementById("lobby-container").style.display = "block";
@@ -3391,82 +3200,67 @@
 
     const militaryPopup = document.getElementById("military-popup");
     document.getElementById("open-military-btn").addEventListener("click", () => {
-      popupStates.military = !popupStates.military;
-      militaryPopup.style.display = popupStates.military ? "flex" : "none";
+      militaryPopup.style.display = (militaryPopup.style.display === "flex") ? "none" : "flex";
     });
     document.getElementById("military-popup-header").addEventListener("click", (e) => {
       if (e.target.id === "military-popup-header") {
-        popupStates.military = false;
         militaryPopup.style.display = "none";
       }
     });
     document.getElementById("close-military-btn").addEventListener("click", () => {
-      popupStates.military = false;
       militaryPopup.style.display = "none";
     });
 
     const buildingPopup = document.getElementById("building-popup");
     document.getElementById("open-building-btn").addEventListener("click", () => {
-      popupStates.building = !popupStates.building;
-      buildingPopup.style.display = popupStates.building ? "flex" : "none";
+      buildingPopup.style.display = (buildingPopup.style.display === "flex") ? "none" : "flex";
     });
     document.getElementById("building-popup-header").addEventListener("click", (e) => {
       if (e.target.id === "building-popup-header") {
-        popupStates.building = false;
         buildingPopup.style.display = "none";
       }
     });
     document.getElementById("close-building-btn").addEventListener("click", () => {
-      popupStates.building = false;
       buildingPopup.style.display = "none";
     });
 
     const resourcePopup = document.getElementById("resource-popup");
     document.getElementById("open-resource-btn").addEventListener("click", () => {
-      popupStates.resource = !popupStates.resource;
-      resourcePopup.style.display = popupStates.resource ? "flex" : "none";
+      resourcePopup.style.display = (resourcePopup.style.display === "flex") ? "none" : "flex";
     });
     document.getElementById("resource-popup-header").addEventListener("click", (e) => {
       if (e.target.id === "resource-popup-header") {
-        popupStates.resource = false;
         resourcePopup.style.display = "none";
       }
     });
     document.getElementById("close-resource-btn").addEventListener("click", () => {
-      popupStates.resource = false;
       resourcePopup.style.display = "none";
     });
 
     const playersPopup = document.getElementById("players-popup");
     document.getElementById("open-players-btn").addEventListener("click", () => {
-      popupStates.players = !popupStates.players;
-      playersPopup.style.display = popupStates.players ? "flex" : "none";
+      playersPopup.style.display = (playersPopup.style.display === "flex") ? "none" : "flex";
     });
     document.getElementById("players-popup-header").addEventListener("click", (e) => {
       if (e.target.id === "players-popup-header") {
-        popupStates.players = false;
         playersPopup.style.display = "none";
       }
     });
     document.getElementById("close-players-btn").addEventListener("click", () => {
-      popupStates.players = false;
       playersPopup.style.display = "none";
     });
 
+    const pactPopup = document.getElementById("pact-popup");
     document.getElementById("open-pact-btn").addEventListener("click", () => {
-      popupStates.pact = !popupStates.pact;
-      const pactPopup = document.getElementById("pact-popup");
-      pactPopup.style.display = popupStates.pact ? "flex" : "none";
+      pactPopup.style.display = (pactPopup.style.display === "flex") ? "none" : "flex";
     });
     document.getElementById("pact-popup-header").addEventListener("click", (e) => {
       if (e.target.id === "pact-popup-header") {
-        popupStates.pact = false;
-        document.getElementById("pact-popup").style.display = "none";
+        pactPopup.style.display = "none";
       }
     });
     document.getElementById("close-pact-btn").addEventListener("click", () => {
-      popupStates.pact = false;
-      document.getElementById("pact-popup").style.display = "none";
+      pactPopup.style.display = "none";
     });
 
     /*****************************************************************
@@ -3524,14 +3318,6 @@
     gameContainerObserver.observe(document.getElementById("game-container"), {
       attributes: true,
       attributeFilter: ["style"]
-    });
-
-    /*****************************************************************
-     * BELL BUTTON İŞLEVİNİ KALDIRDIK (ARTIK BİR ŞEY YAPMIYOR)
-     *****************************************************************/
-    const bellBtn = document.getElementById("notifications-bell");
-    bellBtn.addEventListener("click", () => {
-      // Artık hiçbir işlem yok
     });
   </script>
 </body>
