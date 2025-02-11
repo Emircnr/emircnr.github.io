@@ -994,7 +994,7 @@
     </div>
     <div class="popup-content">
       <h3>Kışla Kur (Her Zaman)</h3>
-      <p style="font-size:14px; color:#ccc;">(1 Kışla = 140$ + 40 Varil + 90 Buğday)</p>
+      <p style="font-size:14px; color:#ccc;">(1 Kışla = 300$ + 50 Varil + 120 Buğday)</p>
       <input
         type="number"
         id="barracks-quantity"
@@ -1006,7 +1006,7 @@
       </button>
 
       <h3>Fabrika Kur (Her Zaman)</h3>
-      <p style="font-size:14px; color:#ccc;">(1 Fabrika = 500$ + 100 varil)</p>
+      <p style="font-size:14px; color:#ccc;">(1 Fabrika = 500$ + 130 varil)</p>
       <input
         type="number"
         id="factory-quantity"
@@ -1158,15 +1158,12 @@
         <label style="font-size:14px;color:#ccc;">Satmak istediğiniz ürün:</label><br/>
         <select id="trade-item-type">
           <option value="petrol">Petrol</option>
-          <option value="factory">Fabrika</option>
           <option value="wheat">Buğday</option>
         </select>
         <br/><br/>
 
-        <label style="font-size:14px;color:#ccc;">Ülke (sadece fabrika satıyorsanız seçin):</label><br/>
-        <select id="trade-country" style="display:none;"></select>
+        <!-- Artık fabrika satışı olmadığı için ülke seçimi kısmı da kaldırıldı -->
 
-        <br/><br/>
         <label style="font-size:14px;color:#ccc;">Miktar (adet/varil/buğday):</label>
         <input type="number" id="trade-quantity" placeholder="Miktar" min="1"/>
 
@@ -1727,7 +1724,6 @@
 
       updateRecipientSelects();
       updatePactRecipientSelect();
-      updateTradeCountrySelect();
       updatePrivateMessageRecipientSelect();
       updateEmbargoPlayersSelect();
       updateSupportRecipientSelect();
@@ -2295,9 +2291,10 @@
         showNotification("Bu ülke size ait değil!");
         return;
       }
-      const totalMoney = 140 * quantity;
-      const totalPetrol = 40 * quantity;
-      const totalWheat = 90 * quantity;
+      // Güncel kışla maliyeti: 300$ + 50 varil + 120 buğday
+      const totalMoney = 300 * quantity;
+      const totalPetrol = 50 * quantity;
+      const totalWheat = 120 * quantity;
 
       if (currentPlayerData.money < totalMoney) {
         showNotification("Yeterli paranız yok!");
@@ -2340,9 +2337,9 @@
         return;
       }
 
-      // Talep üzerine 500$ + 100 varil
+      // Yeni fabrika maliyeti: 500$ + 130 varil
       const totalMoney = 500 * quantity;
-      const totalPetrol = 100 * quantity;
+      const totalPetrol = 130 * quantity;
 
       if (currentPlayerData.money < totalMoney) {
         showNotification("Yeterli paranız yok!");
@@ -2838,32 +2835,7 @@
       document.getElementById("market-popup").style.display = "none";
     });
 
-    const itemTypeSelect = document.getElementById("trade-item-type");
-    const tradeCountrySelect = document.getElementById("trade-country");
-    itemTypeSelect.addEventListener("change", () => {
-      const v = itemTypeSelect.value;
-      if (v === "petrol" || v === "wheat") {
-        tradeCountrySelect.style.display = "none";
-      } else {
-        tradeCountrySelect.style.display = "block";
-      }
-    });
     document.getElementById("create-trade-offer-btn").addEventListener("click", createTradeOffer);
-
-    function updateTradeCountrySelect() {
-      if (!tradeCountrySelect) return;
-      tradeCountrySelect.innerHTML = "<option value=''>--Ülke Seç--</option>";
-      if (!roomData || !roomData.countryData || !roomData.players[localPlayerId]) return;
-      Object.keys(roomData.countryData).forEach((cName) => {
-        const c = roomData.countryData[cName];
-        if (c.owner === localPlayerId) {
-          const op = document.createElement("option");
-          op.value = cName;
-          op.textContent = cName;
-          tradeCountrySelect.appendChild(op);
-        }
-      });
-    }
 
     function createTradeOffer() {
       if (!roomData || !roomData.players[localPlayerId]) {
@@ -2873,11 +2845,7 @@
       const itemType = document.getElementById("trade-item-type").value;
       const quantity = parseInt(document.getElementById("trade-quantity").value);
       const price = parseInt(document.getElementById("trade-price").value);
-      let countryName = null;
-      // Sadece "factory" için ülke seçimi
-      if (itemType === "factory") {
-        countryName = tradeCountrySelect.value;
-      }
+
       if (isNaN(quantity) || quantity <= 0 || isNaN(price) || price <= 0) {
         showNotification("Geçerli adet ve fiyat girin!");
         return;
@@ -2890,19 +2858,6 @@
         if (seller.petrol >= quantity) enough = true;
       } else if (itemType === "wheat") {
         if (seller.wheat >= quantity) enough = true;
-      } else if (itemType === "factory") {
-        if (!countryName) {
-          showNotification("Fabrika satmak için ülke seçmelisiniz!");
-          return;
-        }
-        const c = roomData.countryData[countryName];
-        if (!c || c.owner !== localPlayerId) {
-          showNotification("Bu ülke size ait değil!");
-          return;
-        }
-        if (c.factories >= quantity) {
-          enough = true;
-        }
       }
 
       if (!enough) {
@@ -2924,7 +2879,7 @@
         sellerId: localPlayerId,
         sellerName: seller.name,
         itemType: itemType,
-        countryName: countryName || null,
+        countryName: null, // Fabrika satışı olmadığı için ülkeName null
         quantity: quantity,
         price: price,
         status: "pending",
@@ -2944,6 +2899,7 @@
       const offersArray = Object.values(roomData.tradeOffers);
       offersArray.forEach((offer) => {
         if (offer.status === "pending") {
+          // Ambargo kontrol
           if (offer.embargo && offer.embargo.includes(localPlayerId)) {
             return;
           }
@@ -2953,16 +2909,24 @@
 
           let itemLabel = "";
           if (offer.itemType === "petrol") itemLabel = "Petrol";
-          else if (offer.itemType === "factory") itemLabel = "Fabrika";
           else if (offer.itemType === "wheat") itemLabel = "Buğday";
 
           let html = `<p><strong>Satıcı:</strong> ${offer.sellerName}</p>`;
           html += `<p><strong>Ürün:</strong> ${itemLabel}</p>`;
           html += `<p><strong>Mevcut Miktar:</strong> ${offer.quantity}</p>`;
           html += `<p><strong>Birim Fiyat:</strong> ${offer.price} $</p>`;
-          if (offer.countryName) {
-            html += `<p><strong>Ülke (Satıcının):</strong> ${offer.countryName}</p>`;
+
+          if (offer.sellerId !== localPlayerId) {
+            html += `
+              <label style="font-size:14px;color:#ccc;">Almak istediğiniz miktar:</label>
+              <input type="number" class="partial-buy-quantity" placeholder="Miktar" min="1" max="${offer.quantity}"/>
+            `;
+            html += `<button class="partial-buy-btn">Satın Al</button>`;
+          } else {
+            // Satıcı kendisi iptal edebilir
+            html += `<button class="cancel-offer-btn" style="background:linear-gradient(45deg, #c0392b, #e74c3c); margin-top:10px;">İptal</button>`;
           }
+
           if (offer.embargo && offer.embargo.length > 0) {
             const embUsers = offer.embargo
               .map(e => roomData.players[e]?.name || "???")
@@ -2970,22 +2934,6 @@
             html += `<p style="color:red;"><strong>Ambargo Uygulanan Oyuncular:</strong> ${embUsers}</p>`;
           }
 
-          if (offer.sellerId !== localPlayerId) {
-            html += `
-              <label style="font-size:14px;color:#ccc;">Almak istediğiniz miktar:</label>
-              <input type="number" class="partial-buy-quantity" placeholder="Miktar" min="1" max="${offer.quantity}"/>
-            `;
-            if (offer.itemType === "factory") {
-              html += `<label style="font-size:14px;color:#ccc;">Hangi ülkenize kurmak istersiniz?</label>
-                       <select class="buyer-country-select">
-                         ${getBuyerCountriesOptionsHTML()}
-                       </select>`;
-            }
-            html += `<button class="partial-buy-btn">Satın Al</button>`;
-          } else {
-            // Satıcı kendisi iptal edebilir
-            html += `<button class="cancel-offer-btn" style="background:linear-gradient(45deg, #c0392b, #e74c3c); margin-top:10px;">İptal</button>`;
-          }
           offerDiv.innerHTML = html;
 
           const partialBuyBtn = offerDiv.querySelector(".partial-buy-btn");
@@ -2997,12 +2945,7 @@
                 showNotification("Geçerli miktar girin!");
                 return;
               }
-              let chosenCountryForBuildings = null;
-              if (offer.itemType === "factory") {
-                const buyerCountrySelect = offerDiv.querySelector(".buyer-country-select");
-                chosenCountryForBuildings = buyerCountrySelect.value;
-              }
-              acceptTradeOffer(offer.offerId, buyAmt, chosenCountryForBuildings);
+              acceptTradeOffer(offer.offerId, buyAmt);
             });
           }
           const cancelBtn = offerDiv.querySelector(".cancel-offer-btn");
@@ -3015,19 +2958,7 @@
       });
     }
 
-    function getBuyerCountriesOptionsHTML() {
-      if (!roomData || !roomData.players[localPlayerId]) return "";
-      const player = roomData.players[localPlayerId];
-      let html = "";
-      if (player.countries && roomData.countryData) {
-        player.countries.forEach((cName) => {
-          html += `<option value="${cName}">${cName}</option>`;
-        });
-      }
-      return html;
-    }
-
-    function acceptTradeOffer(offerId, buyAmount, buyerCountry) {
+    function acceptTradeOffer(offerId, buyAmount) {
       if (!roomData || !roomData.tradeOffers || !roomData.tradeOffers[offerId]) {
         showNotification("Teklif bulunamadı!");
         return;
@@ -3068,29 +2999,6 @@
           hasEnough = true;
           updates[`players/${offer.sellerId}/wheat`] = seller.wheat - buyAmount;
           updates[`players/${localPlayerId}/wheat`] = buyer.wheat + buyAmount;
-        }
-      } else if (offer.itemType === "factory") {
-        const c = roomData.countryData[offer.countryName];
-        if (!c || c.owner !== offer.sellerId) {
-          showNotification("Satıcının bu ülke üzerindeki hakkı yok!");
-          return;
-        }
-        if (c.factories >= buyAmount) {
-          hasEnough = true;
-          updates[`countryData/${offer.countryName}/factories`] = c.factories - buyAmount;
-        }
-        // Binayı alıcı kendi ülkesine kuracak
-        if (hasEnough) {
-          if (!buyerCountry || !roomData.countryData[buyerCountry]) {
-            showNotification("Fabrikayı kuracağınız ülkeyi seçiniz!");
-            return;
-          }
-          if (!buyer.countries.includes(buyerCountry)) {
-            showNotification("Seçtiğiniz ülke size ait değil!");
-            return;
-          }
-          updates[`countryData/${buyerCountry}/factories`] =
-            (roomData.countryData[buyerCountry].factories || 0) + buyAmount;
         }
       }
 
