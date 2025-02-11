@@ -1162,6 +1162,8 @@
         </select>
         <br/><br/>
 
+        <!-- Artık fabrika satışı olmadığı için ülke seçimi kısmı da kaldırıldı -->
+
         <label style="font-size:14px;color:#ccc;">Miktar (adet/varil/buğday):</label>
         <input type="number" id="trade-quantity" placeholder="Miktar" min="1"/>
 
@@ -1452,14 +1454,13 @@
           createdAt: firebase.database.ServerValue.TIMESTAMP
         };
 
-        // Burada başlangıçta petrol: 100 olarak ayarlanıyor
         newRoomData.players[localPlayerId] = {
           name: playerName,
           color: localPlayerColor,
           money: 1000,
           soldiers: 0,
           countries: [],
-          petrol: 100,  // Değiştirildi
+          petrol: 0,
           wheat: 400,
           joinedAt: firebase.database.ServerValue.TIMESTAMP,
           isHost: true
@@ -1516,14 +1517,13 @@
             return;
           }
           const updates = {};
-          // Katılan oyuncu da 100 petrol ile başlasın
           updates["players/" + localPlayerId] = {
             name: playerName,
             color: localPlayerColor,
             money: 1000,
             soldiers: 0,
             countries: [],
-            petrol: 100, // Değiştirildi
+            petrol: 0,
             wheat: 400,
             joinedAt: firebase.database.ServerValue.TIMESTAMP,
             isHost: false
@@ -2183,13 +2183,6 @@
         return;
       }
 
-      // -- BURADA PETROL MALİYETİ KONTROLÜ EKLENDİ --
-      const attackPetrolCost = soldiersToSend; // Saldırıda asker başına 1 varil petrol
-      if (currentPlayerData.petrol < attackPetrolCost) {
-        showNotification(`Yeterli petrolünüz yok! (${attackPetrolCost} varil gerekiyor)`);
-        return;
-      }
-
       const target = roomData.countryData[selectedCountry];
       if (!target) return;
 
@@ -2210,18 +2203,13 @@
       const updates = {};
       let attackResult = "";
 
-      // Önce petrol düşelim
-      updates[`players/${currentPlayerId}/petrol`] = currentPlayerData.petrol - attackPetrolCost;
-
       if (target.owner === currentPlayerId) {
-        // Kendi ülkemize asker ekliyorsak
         updates["countryData/" + selectedCountry + "/soldiers"] =
           target.soldiers + soldiersToSend;
         updates["players/" + currentPlayerId + "/soldiers"] =
           currentPlayerData.soldiers - soldiersToSend;
         attackResult = selectedCountry + " ülkesine " + soldiersToSend + " asker yerleştirildi.";
       } else {
-        // Başka ülkeye saldırı
         updates["players/" + currentPlayerId + "/soldiers"] =
           currentPlayerData.soldiers - soldiersToSend;
         if (soldiersToSend > target.soldiers) {
@@ -2241,11 +2229,11 @@
             defenderCountries = defenderCountries.filter((c) => c !== selectedCountry);
             updates["players/" + target.owner + "/countries"] = defenderCountries;
           }
-          attackResult = `${selectedCountry} fethedildi! (${soldiersToSend} vs ${target.soldiers}, Petrol maliyeti: ${attackPetrolCost} varil)`;
+          attackResult = `${selectedCountry} fethedildi! (${soldiersToSend} vs ${target.soldiers})`;
         } else {
           updates["countryData/" + selectedCountry + "/soldiers"] =
             target.soldiers - soldiersToSend;
-          attackResult = `${selectedCountry} savunuldu! (${soldiersToSend} vs ${target.soldiers}, Petrol maliyeti: ${attackPetrolCost} varil)`;
+          attackResult = `${selectedCountry} savunuldu! (${soldiersToSend} vs ${target.soldiers})`;
         }
         nextTurn();
       }
