@@ -1452,14 +1452,14 @@
           createdAt: firebase.database.ServerValue.TIMESTAMP
         };
 
-        // Oyuna ilk giren (oda kuran) oyuncu 100 varil petrol ile başlar.
+        // Başlangıçta 100 petrol
         newRoomData.players[localPlayerId] = {
           name: playerName,
           color: localPlayerColor,
           money: 1000,
           soldiers: 0,
           countries: [],
-          petrol: 100,  // <--- BAŞLANGIÇ PETROLÜ
+          petrol: 100,
           wheat: 400,
           joinedAt: firebase.database.ServerValue.TIMESTAMP,
           isHost: true
@@ -1522,7 +1522,7 @@
             money: 1000,
             soldiers: 0,
             countries: [],
-            petrol: 100,  // <--- BAŞLANGIÇ PETROLÜ
+            petrol: 100, // Başlangıçta 100 petrol
             wheat: 400,
             joinedAt: firebase.database.ServerValue.TIMESTAMP,
             isHost: false
@@ -1659,15 +1659,6 @@
         chatListenerAdded = true;
       }
     }
-    // ------------------ BURADA KESİYORUZ (1. KISIM) ------------------
-  </script>
-</body>
-</html>
-<script>
-    /* ------------------------------------------------
-     * Buradan itibaren, joinRoomAndListen() fonksiyonunun 
-     * hemen ardından gelen kodlar devam ediyor.
-     * ------------------------------------------------ */
 
     function updateGameUI() {
       if (!roomData) return;
@@ -1963,7 +1954,6 @@
         if (roomData.countryData) {
           Object.keys(roomData.countryData).forEach((cName) => {
             const c = roomData.countryData[cName];
-            // Filtreye gerek yok, isterseniz ekleyebilirsiniz
             const op = document.createElement("option");
             op.value = cName;
             op.textContent = cName;
@@ -2068,7 +2058,6 @@
       });
     }
 
-    // Aktif paktları gösterme
     function displayActivePacts() {
       const container = document.getElementById("active-pacts-container");
       if (!container) return;
@@ -2095,7 +2084,6 @@
       }
     }
 
-    // Event Delegation ile Kabul / Reddet
     document.getElementById("pact-pending-offers").addEventListener("click", function(e) {
       if (e.target.classList.contains("accept-btn")) {
         const offerId = e.target.getAttribute("data-offer-id");
@@ -2166,7 +2154,7 @@
     /*****************************************************************
      * OYUN İŞLEVLERİ
      *****************************************************************/
-    // SALDIRI
+    // SALDIRI (Asker başına 1 varil petrol harcanır)
     function attack() {
       if (!isMyTurn()) {
         showNotification("Sıranız değil!");
@@ -2181,24 +2169,24 @@
         showNotification("Geçerli bir asker sayısı girin!");
         return;
       }
-
-      // SALDIRI İÇİN GEREKEN PETROL (Her Asker = 1 Varil Petrol)
-      const currentPlayerData = roomData.players[localPlayerId];
-      if (!currentPlayerData) return;
-      if (currentPlayerData.petrol < soldiersToSend) {
-        showNotification(`Yeterli petrolünüz yok! (Gerekli: ${soldiersToSend}, Sizin: ${currentPlayerData.petrol})`);
+      const currentTurnIndex = roomData.currentTurnIndex || 0;
+      const currentPlayerId = roomData.playerOrder[currentTurnIndex];
+      const currentPlayerData = roomData.players[currentPlayerId];
+      if (soldiersToSend > currentPlayerData.soldiers) {
+        showNotification("Yeterli askeriniz yok!");
         return;
       }
 
-      if (soldiersToSend > currentPlayerData.soldiers) {
-        showNotification("Yeterli askeriniz yok!");
+      // *** YENİ KURAL: Saldırı için asker kadar petrol gereksinimi ***
+      if (currentPlayerData.petrol < soldiersToSend) {
+        showNotification("Saldırı için yeterli petrolünüz yok!");
         return;
       }
 
       const target = roomData.countryData[selectedCountry];
       if (!target) return;
 
-      // İlk 3 tur sadece sahipsiz topraklara saldırılabilir
+      // İlk 3 tur yalnızca sahipsiz topraklara saldırı kısıtlaması
       if (roomData.round < 4) {
         if (target.owner) {
           showNotification("İlk 3 tur yalnızca sahipsiz topraklara saldırabilirsiniz!");
@@ -2206,9 +2194,9 @@
         }
       }
 
-      // Saldırmazlık paktı kontrol
-      if (target.owner && target.owner !== localPlayerId) {
-        if (hasActivePact(localPlayerId, target.owner)) {
+      // Pakt kontrolü
+      if (target.owner && target.owner !== currentPlayerId) {
+        if (hasActivePact(currentPlayerId, target.owner)) {
           showNotification("Bu oyuncu ile saldırmazlık paktınız var! Saldıramazsınız.");
           return;
         }
@@ -2217,50 +2205,52 @@
       const updates = {};
       let attackResult = "";
 
-      // Petrol düşümü
-      updates[`players/${localPlayerId}/petrol`] = currentPlayerData.petrol - soldiersToSend;
+      // Saldırıyı yaparken petrol de harcanır
+      updates[`players/${currentPlayerId}/petrol`] = currentPlayerData.petrol - soldiersToSend;
 
-      if (target.owner === localPlayerId) {
-        // Kendi ülkemize asker yerleştiriyorsak sadece asker eklenir
-        updates["countryData/" + selectedCountry + "/soldiers"] =
+      // Eğer ülke zaten bize aitse → sadece asker yerleştirme
+      if (target.owner === currentPlayerId) {
+        updates[`countryData/${selectedCountry}/soldiers`] =
           target.soldiers + soldiersToSend;
-        updates["players/" + localPlayerId + "/soldiers"] =
+        updates[`players/${currentPlayerId}/soldiers`] =
           currentPlayerData.soldiers - soldiersToSend;
-        attackResult = `${selectedCountry} ülkesine ${soldiersToSend} asker yerleştirildi.`;
+
+        attackResult = `${selectedCountry} ülkesine ${soldiersToSend} asker yerleştirildi. (${soldiersToSend} varil petrol harcandı)`;
       } else {
-        // Karşı ülkeye saldırı
-        updates["players/" + localPlayerId + "/soldiers"] =
+        // Düşman veya sahipsiz toprak → savaş
+        updates[`players/${currentPlayerId}/soldiers`] =
           currentPlayerData.soldiers - soldiersToSend;
+
         if (soldiersToSend > target.soldiers) {
-          // Başarıyla fethedildi
+          // Fethedildi
           const remaining = soldiersToSend - target.soldiers;
-          updates["countryData/" + selectedCountry + "/soldiers"] = remaining;
-          updates["countryData/" + selectedCountry + "/owner"] = localPlayerId;
-          updates["countryData/" + selectedCountry + "/supporters"] = {};
+          updates[`countryData/${selectedCountry}/soldiers`] = remaining;
+          updates[`countryData/${selectedCountry}/owner`] = currentPlayerId;
+          updates[`countryData/${selectedCountry}/supporters`] = {};
 
           let currentCountries = currentPlayerData.countries || [];
           if (!currentCountries.includes(selectedCountry)) {
             currentCountries.push(selectedCountry);
           }
-          updates["players/" + localPlayerId + "/countries"] = currentCountries;
+          updates[`players/${currentPlayerId}/countries`] = currentCountries;
 
           if (target.owner && roomData.players[target.owner]) {
             let defenderCountries = roomData.players[target.owner].countries || [];
             defenderCountries = defenderCountries.filter((c) => c !== selectedCountry);
-            updates["players/" + target.owner + "/countries"] = defenderCountries;
+            updates[`players/${target.owner}/countries`] = defenderCountries;
           }
-          attackResult = `${selectedCountry} fethedildi! (${soldiersToSend} vs ${target.soldiers})`;
+          attackResult = `${selectedCountry} fethedildi! (${soldiersToSend} vs ${target.soldiers}). (${soldiersToSend} varil petrol harcandı)`;
         } else {
-          // Savunma başarılı
-          updates["countryData/" + selectedCountry + "/soldiers"] =
+          // Savunuldu
+          updates[`countryData/${selectedCountry}/soldiers`] =
             target.soldiers - soldiersToSend;
-          attackResult = `${selectedCountry} savunuldu! (${soldiersToSend} vs ${target.soldiers})`;
+          attackResult = `${selectedCountry} savunuldu! (${soldiersToSend} vs ${target.soldiers}). (${soldiersToSend} varil petrol harcandı)`;
         }
         nextTurn();
       }
       roomRef.update(updates);
       broadcastNotification(
-        `Saldırı: ${roomData.players[localPlayerId].name} → ${selectedCountry}. ${attackResult}`
+        `Saldırı: ${roomData.players[currentPlayerId].name} → ${selectedCountry}. ${attackResult}`
       );
       showNotification(attackResult);
     }
@@ -2312,7 +2302,7 @@
         showNotification("Bu ülke size ait değil!");
         return;
       }
-      // Kışla maliyeti: 300$ + 50 varil + 120 buğday
+      // 1 Kışla = 300$ + 50 varil + 120 buğday
       const totalMoney = 300 * quantity;
       const totalPetrol = 50 * quantity;
       const totalWheat = 120 * quantity;
@@ -2358,7 +2348,7 @@
         return;
       }
 
-      // Fabrika maliyeti: 500$ + 130 varil
+      // Fabrika = 500$ + 130 varil
       const totalMoney = 500 * quantity;
       const totalPetrol = 130 * quantity;
 
@@ -2397,6 +2387,7 @@
         showNotification("Bu ülkede petrol üretim kapasitesi yok!");
         return;
       }
+      // Rafine = 800$ + 250 varil
       const totalMoney = 800 * quantity;
       const totalPetrol = 250 * quantity;
       if (currentPlayerData.money < totalMoney) {
@@ -2433,6 +2424,7 @@
         showNotification("Bu ülkede buğday üretim kapasitesi yok!");
         return;
       }
+      // Değirmen = 200$ + 100 varil
       const totalMoney = 200 * quantity;
       const totalPetrol = 100 * quantity;
       if (currentPlayerData.money < totalMoney) {
@@ -2900,7 +2892,7 @@
         sellerId: localPlayerId,
         sellerName: seller.name,
         itemType: itemType,
-        countryName: null, // Fabrika satışı olmadığı için ülkeName null
+        countryName: null, // Fabrika satışı olmadığı için ülke ismi null
         quantity: quantity,
         price: price,
         status: "pending",
@@ -2941,7 +2933,8 @@
             html += `
               <label style="font-size:14px;color:#ccc;">Almak istediğiniz miktar:</label>
               <input type="number" class="partial-buy-quantity" placeholder="Miktar" min="1" max="${offer.quantity}"/>
-              <button class="partial-buy-btn">Satın Al</button>`;
+              <button class="partial-buy-btn">Satın Al</button>
+            `;
           } else {
             // Satıcı kendisi iptal edebilir
             html += `<button class="cancel-offer-btn" style="background:linear-gradient(45deg, #c0392b, #e74c3c); margin-top:10px;">İptal</button>`;
@@ -3088,7 +3081,7 @@
 
     document.getElementById("end-turn-btn").addEventListener("click", () => nextTurn(false));
 
-    // ODADAN ÇIKIŞ (tur sırası bizdeyse sıra otomatik geçsin)
+    // ODADAN ÇIKIŞ
     document.getElementById("exit-room-btn").addEventListener("click", () => {
       if (!roomRef || !roomData) return;
 
@@ -3099,7 +3092,6 @@
       if (isMyTurn()) {
         stopTurnTimer();
         let idx = (roomData.currentTurnIndex || 0);
-        // Mevcut indexteki oyuncu biziz, çıkarınca diziden kayacak
         idx++;
         let newRound = roomData.round || 1;
         if (idx >= newOrder.length) {
@@ -3246,7 +3238,6 @@
       attributes: true,
       attributeFilter: ["style"]
     });
-  // ----------------------------------------------
-  //  KODUN 2. KISMININ SONU
-  // ----------------------------------------------
-</script>
+  </script>
+</body>
+</html>
