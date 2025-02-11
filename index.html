@@ -228,6 +228,7 @@
     #notifications-bell:hover {
       transform: scale(1);
     }
+    /* Paneli gizledik / işlevini kaldırdık */
     #notifications-panel {
       display: none;
     }
@@ -1171,6 +1172,7 @@
       <h3>Gelen Teklifler</h3>
       <div id="pact-pending-offers"></div>
 
+      <!-- Aktif Paktlarım (yeni eklenen bölüm) -->
       <div style="margin-top:15px;">
         <h3>Aktif Paktlarım</h3>
         <div id="pact-active-list"></div>
@@ -1178,7 +1180,7 @@
     </div>
   </div>
 
-  <!-- ===================== TİCARET POPUP (FABRİKA SATIŞ KALDIRILDI) ===================== -->
+  <!-- ===================== TİCARET POPUP ===================== -->
   <div id="market-popup" class="market-popup modern-popup">
     <div class="market-header" id="market-popup-header">
       <h2>Ticaret Merkezi</h2>
@@ -1189,19 +1191,14 @@
       <div class="market-section">
         <h3>Yeni Teklif Oluştur</h3>
         <label style="font-size:14px;color:#ccc;">Satmak istediğiniz ürün:</label><br/>
-        <!-- FABRİKA SEÇENEĞİ KALDIRILDI -->
+        <!-- FABRİKA KALDIRILDI -->
         <select id="trade-item-type">
           <option value="petrol">Petrol</option>
           <option value="wheat">Buğday</option>
         </select>
         <br/><br/>
 
-        <!-- Ülke seçimi / Fabrika satışı kaldırıldığı için gizlendi -->
-        <label style="font-size:14px;color:#ccc;display:none;">Ülke (Fabrika satıyorsanız):</label><br/>
-        <select id="trade-country" style="display:none;"></select>
-
-        <br/><br/>
-        <label style="font-size:14px;color:#ccc;">Miktar (adet/varil/buğday):</label>
+        <label style="font-size:14px;color:#ccc;">Miktar (varil/buğday):</label>
         <input type="number" id="trade-quantity" placeholder="Miktar" min="1"/>
 
         <label style="font-size:14px;color:#ccc;">Birim Fiyat ($):</label>
@@ -1258,6 +1255,7 @@
     let roomData = null;
     let selectedCountry = null;
     let map, geoJsonLayer = null;
+
     // 8 adet renk seçeneği
     const availableColors = [
       "red",
@@ -1298,10 +1296,11 @@
     // Oyun başlat geri sayım
     let startInterval = null;
 
-    /* =========================================================
-     * TÜM ÜLKELERİN KOMŞULUK LİSTESİ BURADA TANIMLANACAK
-     * ========================================================= */
-    let adjacencyList = {const countryNeighbors = {
+    // -----------------------------------------------------------
+    // 2. Turdan sonra komşu olmayan ülkeye saldırı engeli için
+    // Tüm ülkelerin komşuluk verilerini buraya manuel girebilirsiniz.
+    // -----------------------------------------------------------
+   const countryNeighbors = {
   "Afghanistan": ["Pakistan", "Iran", "Turkmenistan", "Uzbekistan", "Tajikistan", "China"],
   "Albania": ["Montenegro", "Kosovo", "North Macedonia", "Greece"],
   "Algeria": ["Tunisia", "Libya", "Niger", "Mali", "Mauritania", "Western Sahara", "Morocco"],
@@ -1497,12 +1496,14 @@
   "Yemen": ["Saudi Arabia", "Oman"],
   "Zambia": ["Angola", "DR Congo", "Tanzania", "Malawi", "Mozambique", "Zimbabwe", "Botswana", "Namibia"],
   "Zimbabwe": ["Zambia", "Mozambique", "South Africa", "Botswana"]
-    };
+};
+
 
     /*****************************************************************
      * Bildirim Fonksiyonları
      *****************************************************************/
     function showNotification(message, duration = 3000) {
+      // Kısa süreli (ephemeral) bildirim
       const existing = document.getElementById("notification-area");
       if (!existing) return;
       const item = document.createElement("div");
@@ -1518,6 +1519,7 @@
     }
 
     function broadcastNotification(text) {
+      // Tüm oyunculara global bildirim
       if (!roomRef) return;
       roomRef.child("notifications").push({
         text: text,
@@ -1525,6 +1527,7 @@
       });
     }
 
+    // Bu fonksiyon, DB'den gelen global bildirimi ekrana yansıtır (ephemeral + kalıcı)
     function displayGlobalNotification(text) {
       // Ephemeral
       const nArea = document.getElementById("notification-area");
@@ -1540,12 +1543,10 @@
         }, 6500);
       }
 
-      // Kalıcı listemize de ekleyelim
+      // Kalıcı listemize de ekleyelim (Eskiden zil paneline yansıtılıyordu)
       persistentNotifications.push(text);
-      // updateNotificationsList();  // Artık pasif
     }
 
-    // Rastgele oda kodu
     function generateRoomCode() {
       const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
       let code = "";
@@ -1555,7 +1556,6 @@
       return code;
     }
 
-    // Aktif pakt kontrol
     function hasActivePact(playerA, playerB) {
       if (!roomData || !roomData.pacts) return false;
       for (let pactId in roomData.pacts) {
@@ -1572,7 +1572,6 @@
       return false;
     }
 
-    // Otomatik yeniden bağlanma (localStorage)
     function autoReconnect() {
       const savedRoomCode = localStorage.getItem("roomCode");
       if (savedRoomCode) {
@@ -1976,7 +1975,7 @@
 
       updateRecipientSelects();
       updatePactRecipientSelect();
-      updateTradeCountrySelect();
+      updateTradeCountrySelect(); // (Artık fabrika yok ama fonksiyon boşa da olsa dursun)
       updatePrivateMessageRecipientSelect();
       updateEmbargoPlayersSelect();
       updateSupportRecipientSelect();
@@ -2205,6 +2204,7 @@
         supportRecipientCountry.innerHTML = "<option value=''>--Ülke Seç--</option>";
         if (roomData.countryData) {
           Object.keys(roomData.countryData).forEach((cName) => {
+            const c = roomData.countryData[cName];
             const op = document.createElement("option");
             op.value = cName;
             op.textContent = cName;
@@ -2292,6 +2292,7 @@
           offer.status === "pending" &&
           offer.recipientId === localPlayerId
         ) {
+          // Bir item ekle
           const div = document.createElement("div");
           div.className = "pact-offer-item";
           div.setAttribute("data-offer-id", offer.offerId);
@@ -2301,8 +2302,7 @@
              <p>Tur sayısı: <strong>${offer.duration}</strong></p>
              <p>Para talebi: <strong>${offer.cost}$</strong> (Gönderen ödeyecek, siz alacaksınız)</p>
              <button class="accept-btn" data-offer-id="${offer.offerId}">Kabul Et</button>
-             <button class="reject-btn" data-offer-id="${offer.offerId}">Reddet</button>
-            `;
+             <button class="reject-btn" data-offer-id="${offer.offerId}">Reddet</button>`;
 
           container.appendChild(div);
         }
@@ -2377,6 +2377,7 @@
       showNotification("Pakt teklifi reddedildi.");
     }
 
+    // Her tur verisi güncellendiğinde, aktif paktları göster
     function updateActivePactsList() {
       const container = document.getElementById("pact-active-list");
       if (!container) return;
@@ -2385,7 +2386,9 @@
       const currentRound = roomData.round || 1;
 
       Object.values(roomData.pacts).forEach((pact) => {
+        // Pakt hala aktif mi?
         if (pact.active && currentRound <= pact.expirationRound) {
+          // Bizimle ilgili mi?
           if (pact.playerA === localPlayerId || pact.playerB === localPlayerId) {
             const otherId = (pact.playerA === localPlayerId) ? pact.playerB : pact.playerA;
             const otherName = roomData.players[otherId]?.name || "???";
@@ -2402,7 +2405,7 @@
     /*****************************************************************
      * OYUN İŞLEVLERİ
      *****************************************************************/
-    // SALDIRI (2. turdan sonra komşu kontrolü eklendi)
+    // SALDIRI
     function attack() {
       if (!isMyTurn()) {
         showNotification("Sıranız değil!");
@@ -2428,31 +2431,29 @@
       const target = roomData.countryData[selectedCountry];
       if (!target) return;
 
-      // 1) İlk 3 tura kadar sadece sahipsiz topraklara saldırı kısıtı
-      if (roomData.round < 4) {
-        if (target.owner) {
-          showNotification("İlk 3 tur yalnızca sahipsiz topraklara saldırabilirsiniz!");
+      // --- YENİ KURAL: 2. TURDAN SONRA KOMŞU OLMAYANA SALDIRMA YASAK ---
+      if (roomData.round > 2) {
+        // Oyuncunun sahip olduğu ülkelerden en az biri, "selectedCountry"e komşu mu?
+        let canAttack = false;
+        if (currentPlayerData.countries && currentPlayerData.countries.length > 0) {
+          for (let cName of currentPlayerData.countries) {
+            const neighbors = countryNeighbors[cName] || [];
+            if (neighbors.includes(selectedCountry)) {
+              canAttack = true;
+              break;
+            }
+          }
+        }
+        if (!canAttack) {
+          showNotification("Bu ülkeyle sınır komşusu değilsiniz, saldırı yapamazsınız!");
           return;
         }
       }
+      // ---------------------------------------------------------------
 
-      // 2) 2. turdan sonra (yani round >= 3) komşuluk kontrolü
-      if (roomData.round >= 3) {
-        // Bu ülke, oyuncunun elindeki herhangi bir ülkeye komşu mu?
-        let canAttack = false;
-        const playerCountries = currentPlayerData.countries || [];
-        // Seçili ülkenin adjacency listesi
-        const neighborsOfTarget = adjacencyList[selectedCountry] || [];
-
-        for (const cName of playerCountries) {
-          if (neighborsOfTarget.includes(cName)) {
-            canAttack = true;
-            break;
-          }
-        }
-
-        if (!canAttack) {
-          showNotification("Bu ülke, size ait herhangi bir ülkeye komşu değil. Saldırı yapılamaz!");
+      if (roomData.round < 4) {
+        if (target.owner) {
+          showNotification("İlk 3 tur yalnızca sahipsiz topraklara saldırabilirsiniz!");
           return;
         }
       }
@@ -2599,6 +2600,7 @@
         showNotification("Bu ülke size ait değil!");
         return;
       }
+      // Güncellenen maliyet: 500$ + 100 varil
       const totalMoney = 500 * quantity;
       const totalPetrol = 100 * quantity;
 
@@ -2712,6 +2714,7 @@
 
       const updates = {};
 
+      // Sahibi bizsek -> kendi askerimizi çek
       if (target.owner === localPlayerId) {
         let totalSupporters = 0;
         if (target.supporters) {
@@ -3083,7 +3086,7 @@
     }
 
     /*****************************************************************
-     * TİCARET (MARKET) SISTEMI (Fabrika satışı kaldırıldı)
+     * TİCARET (MARKET) SISTEMI — FABRİKA SATIŞI KALDIRILDI
      *****************************************************************/
     document.getElementById("open-market-btn").addEventListener("click", () => {
       popupStates.market = !popupStates.market;
@@ -3101,15 +3104,26 @@
       document.getElementById("market-popup").style.display = "none";
     });
 
-    // Fabrika seçeneği kaldırıldığı için trade-country de gizli
+    const itemTypeSelect = document.getElementById("trade-item-type");
+    const tradeCountrySelect = document.getElementById("trade-country"); // Boşta kalsa da hata vermez
+    if(itemTypeSelect) {
+      itemTypeSelect.addEventListener("change", () => {
+        const v = itemTypeSelect.value;
+        // Fabrika satışı yok, yine de varsa kapatalım
+        if (tradeCountrySelect) {
+          tradeCountrySelect.style.display = "none"; 
+        }
+      });
+    }
     document.getElementById("create-trade-offer-btn").addEventListener("click", createTradeOffer);
 
     function updateTradeCountrySelect() {
-      // Burada fabrika satışı olmadığı için bir şey yapmıyoruz.
-      // Sadece boştan "hidden" tutuyoruz.
-      const tradeCountrySelect = document.getElementById("trade-country");
+      // Fabrika ticareti kalktığı için bu kısım işlevsiz; 
+      // yine de hata vermesin diye var bırakıyoruz.
       if (!tradeCountrySelect) return;
       tradeCountrySelect.innerHTML = "<option value=''>--Ülke Seç--</option>";
+      if (!roomData || !roomData.countryData || !roomData.players[localPlayerId]) return;
+      // Normalde fabrika için ülke seçiyorduk, artık gereksiz.
     }
 
     function createTradeOffer() {
@@ -3129,7 +3143,7 @@
       const seller = roomData.players[localPlayerId];
       let enough = false;
 
-      // Stok kontrol (sadece petrol veya buğday)
+      // Stok kontrol
       if (itemType === "petrol") {
         if (seller.petrol >= quantity) enough = true;
       } else if (itemType === "wheat") {
@@ -3155,7 +3169,7 @@
         sellerId: localPlayerId,
         sellerName: seller.name,
         itemType: itemType,
-        countryName: null, // fabrika yok
+        countryName: null, // Fabrika yok artık, bu da null kalsın
         quantity: quantity,
         price: price,
         status: "pending",
@@ -3190,7 +3204,6 @@
           html += `<p><strong>Ürün:</strong> ${itemLabel}</p>`;
           html += `<p><strong>Mevcut Miktar:</strong> ${offer.quantity}</p>`;
           html += `<p><strong>Birim Fiyat:</strong> ${offer.price} $</p>`;
-
           if (offer.embargo && offer.embargo.length > 0) {
             const embUsers = offer.embargo
               .map(e => roomData.players[e]?.name || "???")
@@ -3275,7 +3288,6 @@
           updates[`players/${localPlayerId}/wheat`] = buyer.wheat + buyAmount;
         }
       }
-
       if (!hasEnough) {
         showNotification("Satıcının yeterli miktarı kalmamış!");
         return;
@@ -3514,7 +3526,7 @@
     });
 
     /*****************************************************************
-     * BELL BUTTON İŞLEVİNİ KALDIRDIK
+     * BELL BUTTON İŞLEVİNİ KALDIRDIK (ARTIK BİR ŞEY YAPMIYOR)
      *****************************************************************/
     const bellBtn = document.getElementById("notifications-bell");
     bellBtn.addEventListener("click", () => {
