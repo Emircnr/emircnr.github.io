@@ -1116,9 +1116,12 @@
       </button>
 
       <h3>Kale Güçlendir (Her Zaman)</h3>
+      <!-- Dinamik maliyeti göstereceğimiz yer: -->
+      <p id="castle-upgrade-cost-info" style="font-size:14px; color:#ccc;"></p>
+
       <p id="castle-upgrade-note">
         Her güçlendirme, kalenin mevcut savunma yüzdesini +%5 arttırır.<br/>
-        Maksimum +%30 ek savunma. 
+        Maksimum +%30 ek savunma.
         <br/>
         <br/>
         Örnek fiyatlandırma:
@@ -1311,21 +1314,13 @@
     </div>
   </div>
 
-  <!-- ======================
-       BURAYA KADAR HTML/CSS
-       2. KISIMDA JAVASCRIPT
-       (GÜNCEL OYUN LOJİĞİ)
-  ====================== -->
+  <!-- =======================================================
+       BURAYA KADAR HTML & CSS (1. KISIM).
+       2. KISIMDA (AYRI CEVAPTA) TÜM JAVASCRIPT KODLARI
+       GELİŞTİRİLMİŞ ŞEKİLDE EKLENECEK.
+  ======================================================= -->
 
-  <!-- Firebase & Diğer JS Kütüphaneleri (2. Kısımda kullanacağız) -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    crossorigin=""
-  ></script>
-
-  <!-- 2. Kısımda JavaScript Kodu Eklenecek -->
+  <!-- (2. Kısım) JS Kodları için placeholder: -->
   <!-- <script src="game-logic.js"></script> -->
 
 </body>
@@ -1389,7 +1384,7 @@
   /*****************************************************************
    * BİLDİRİMLERİ KONTROL EDEN FONKSİYONLAR
    *****************************************************************/
-  // Kısa süreli bildirimleri (ephemeral) göstermek için
+  // Kısa süreli bildirim (ekrana sağ üstte gelen)
   function showNotification(message, duration = 3000) {
     if (notificationsMuted) return; // Bildirim kapalıysa çık
     const existing = document.getElementById("notification-area");
@@ -2029,8 +2024,8 @@
     let castleText = "";
     if (country.castle) {
       const baseDefense = 5; // Kale kuruluysa başlangıç %5
-      const totalDefense = baseDefense + country.castle.defenseLevel * 5;
-      castleText = `Kale Var (Savunma +%${totalDefense})`;
+      const totalDefense = baseDefense + (country.castle.defenseLevel || 0) * 5;
+      castleText = `Var (Savunma +%${totalDefense})`;
     } else {
       castleText = "Kale Yok";
     }
@@ -2457,6 +2452,11 @@
       }
     }
 
+    // Başlangıç: petrolü düş
+    const updates = {};
+    updates[`players/${localPlayerId}/petrol`] =
+      attackerData.petrol - soldiersToSend;
+
     // Kale savunması var mı?
     let castleDefensePercent = 0;
     if (target.castle) {
@@ -2464,11 +2464,6 @@
       const levelUpBonus = (target.castle.defenseLevel || 0) * 5; // +5 her seviye
       castleDefensePercent = base + levelUpBonus; // Toplam savunma yüzdesi
     }
-
-    // Önce petrolü düş
-    const updates = {};
-    updates[`players/${localPlayerId}/petrol`] =
-      attackerData.petrol - soldiersToSend;
 
     // Kale savunması: Saldıran askerlerin castleDefensePercent kadarı kaybedilir
     let effectiveAttackingSoldiers = soldiersToSend;
@@ -2482,7 +2477,7 @@
       );
     }
 
-    // Devamı önceki saldırı mantığı ile aynı
+    // Askeri düş
     updates[`players/${localPlayerId}/soldiers`] =
       attackerData.soldiers - soldiersToSend;
 
@@ -2524,6 +2519,45 @@
       }
       nextTurn();
     }
+
+    // **Saldırıdan Sonra Anında Petrol Toplama**:
+    // Sahip olunan tüm ülkelerden (oilProduction + rafineler) = bonus petrol
+    let totalOilFromCountries = 0;
+    const updatedPetrolSoFar = updates[`players/${localPlayerId}/petrol`]; 
+    // (Bu değer, en başta saldırı için asker x 1 varil = (petrol - soldiersToSend) haline gelmişti)
+
+    // Elde güncel "attackerData.countries" var ama
+    // eğer yeni bir ülke fethedildiyse, "currentCountries" da eklendi:
+    // Dolayısıyla en güncel halini updates üzerinden veya local variable üzerinden okumalıyız.
+    // Biz "currentCountries" isminde diziyi kullandık yukarıda (ülke fethedilirse ekledik).
+    // Fethedilmediyse attackerData.countries = eski hal.
+    // Aşağıdaki gibi son halini bulalım:
+    let finalCountries =
+      updates[`players/${localPlayerId}/countries`] ||
+      attackerData.countries ||
+      [];
+
+    finalCountries.forEach((cName) => {
+      const cData = roomData.countryData[cName];
+      // cData anlık DB'den
+      // eğer cName fethedildiyse "owner" da localPlayerId oldu
+      // ama cData yine de var. 
+      // (Eşzamanlı update: Kod mantığından cData henüz belki tam set edilmedi ama
+      //  "countryData/${selectedCountry}"'i updates ile set ettik. 
+      //  Bu local cData obje, onValue callback ile anca güncellenir. 
+      // Burada cData'yı yine de kullanabiliriz.)
+      if (cData && cData.oilProduction) {
+        // Üretimi hesaplayalım
+        const effectiveOil = Math.floor(
+          cData.oilProduction * (1 + 0.15 * (cData.refineries || 0))
+        );
+        totalOilFromCountries += effectiveOil;
+      }
+    });
+
+    // Net petrol: (petrol - soldiersToSend) + totalOilFromCountries
+    updates[`players/${localPlayerId}/petrol`] =
+      updatedPetrolSoFar + totalOilFromCountries;
 
     roomRef.update(updates);
     broadcastNotification(
@@ -2773,7 +2807,7 @@
       return;
     }
     if (quantity > 1) {
-      showNotification("Bir ülkeye yalnızca 1 tane kale kurulabilir!");
+      showNotification("Bir ülkede yalnızca 1 tane kale kurulabilir!");
       return;
     }
     const currentPlayerData = roomData.players[localPlayerId];
@@ -3164,7 +3198,7 @@
 
     const updates = {};
 
-    // Gelir & Üretim
+    // Gelir & Üretim (tur sonunda)
     if (player.countries && roomData.countryData) {
       let totalMoneyGained = 0;
       let totalPetrolGained = 0;
@@ -3226,7 +3260,7 @@
       roomData.players[nextPlayerId]?.name || "?"
     } adlı oyuncuya geçti.`;
     if (autoEnd) {
-      endText = `${player.name} süresini doldurdu! ` + endText;
+      endText = `${player.name} süresini doldurdu!  ` + endText;
     }
     broadcastNotification(endText);
     showNotification(endText, 1500);
@@ -3716,6 +3750,23 @@
   document
     .getElementById("open-building-btn")
     .addEventListener("click", () => {
+      // Kale maliyet bilgisi her açılışta güncellensin:
+      if (
+        selectedCountry &&
+        roomData &&
+        roomData.countryData &&
+        roomData.countryData[selectedCountry] &&
+        roomData.countryData[selectedCountry].castle
+      ) {
+        const c = roomData.countryData[selectedCountry].castle;
+        document.getElementById("castle-upgrade-cost-info").textContent =
+          `Güçlendirme Maliyeti: ${c.upgradeCostMoney}$ + ` +
+          `${c.upgradeCostPetrol} varil + ${c.upgradeCostWheat} buğday ` +
+          `(Seviye: ${c.defenseLevel})`;
+      } else {
+        document.getElementById("castle-upgrade-cost-info").textContent =
+          "Bu ülkede kale yok veya ülke seçilmedi.";
+      }
       buildingPopup.style.display =
         buildingPopup.style.display === "flex" ? "none" : "flex";
     });
