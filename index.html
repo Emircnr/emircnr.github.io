@@ -62,32 +62,35 @@
       text-decoration: none;
       color: inherit;
     }
+    button {
+      cursor: pointer;
+    }
 
     /*******************************************************
-     * ANA LOBİ (ODA LİSTESİ & ODA OLUŞTUR) SAYFASI
+     * ANA LOBİ (ODA OLUŞTUR, ODA LİSTESİ)
      *******************************************************/
     body.lobby {
       background: linear-gradient(135deg, #150f2f 0%, #1b1638 45%, #222 100%);
       background-size: cover;
       min-height: 100vh;
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: center;
-      padding-top: 40px;
     }
 
     #lobby-container {
       width: 95%;
-      max-width: 900px;
+      max-width: 980px;
       background: rgba(0, 0, 0, 0.4);
       border-radius: 20px;
-      padding: 30px;
+      padding: 20px;
       box-shadow: 0 12px 28px rgba(0, 0, 0, 0.8);
       backdrop-filter: blur(6px);
       animation: fadeInUp 0.8s ease forwards;
       display: flex;
-      flex-direction: column;
-      gap: 20px;
+      gap: 30px;
+      flex-wrap: wrap;
+      justify-content: center;
     }
 
     @keyframes fadeInUp {
@@ -102,37 +105,31 @@
     }
 
     #lobby-container h1 {
+      width: 100%;
       text-align: center;
       color: #64ffda;
-      font-size: 34px;
+      font-size: 36px;
       margin-bottom: 10px;
       text-shadow: 0 0 8px rgba(100, 255, 218, 0.4);
     }
 
-    #lobby-container h2 {
-      color: #f7df1e;
-      text-align: left;
-      font-weight: 500;
-      margin: 20px 0 10px;
-      text-shadow: 0 0 6px rgba(247, 223, 30, 0.4);
-      font-size: 22px;
-    }
-
-    hr {
-      border: none;
-      border-top: 1px solid #444;
-      margin: 10px 0;
-    }
-
-    /* ODA OLUŞTUR KISMI */
+    /* --- Oda Kurma Alanı --- */
     #create-room-section {
-      background: rgba(0, 0, 0, 0.35);
+      flex: 0 1 350px;
+      background: rgba(0, 0, 0, 0.25);
       border-radius: 14px;
       padding: 20px;
-      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     }
-    #create-room-section input[type="text"],
-    #create-room-section input[type="password"] {
+    #create-room-section h2 {
+      color: #f7df1e;
+      text-align: center;
+      font-size: 20px;
+      margin-bottom: 15px;
+      text-shadow: 0 0 6px rgba(247, 223, 30, 0.4);
+    }
+
+    #create-room-section input[type="text"] {
       width: 100%;
       padding: 12px;
       margin-bottom: 15px;
@@ -143,102 +140,113 @@
       color: #333;
       transition: box-shadow 0.3s, border-color 0.3s;
     }
-    #create-room-section input:focus {
+    #create-room-section input[type="text"]:focus {
       border-color: #64ffda;
       box-shadow: 0 0 8px #64ffda;
     }
-    #create-room-section button {
-      width: 100%;
-      padding: 14px;
-      background: linear-gradient(to right, #64ffda, #00c9ff);
-      border: none;
-      border-radius: 8px;
-      font-size: 18px;
-      font-weight: 600;
-      color: #000;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-      transition: transform 0.3s, box-shadow 0.3s;
-    }
-    #create-room-section button:hover {
-      transform: scale(1.03);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
-    }
 
-    /* Renk Seçenekleri (16 adet, ufak boyut) */
+    /* Renk Seçenekleri (Küçük yuvarlaklar) */
     .color-options {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
+      justify-content: center;
       margin-bottom: 15px;
     }
-    .global-color-option {
-      width: 30px;
-      height: 30px;
+    .color-option {
+      width: 28px;
+      height: 28px;
       border-radius: 50%;
       border: 2px solid transparent;
       cursor: pointer;
       transition: transform 0.3s, border-color 0.3s;
     }
-    .global-color-option:hover {
+    .color-option:hover {
       transform: scale(1.15);
       border-color: #fff;
     }
-    .global-color-option.selected {
+    .color-option.selected {
       border-color: #f7df1e;
     }
-    .global-color-option.disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
+
+    /* Oda Kur Butonu */
+    #create-room-btn {
+      width: 100%;
+      padding: 14px;
+      margin-top: 5px;
+      background: linear-gradient(to right, #64ffda, #00c9ff);
+      border: 1px solid #00adb5;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: 600;
+      color: #000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    #create-room-btn:hover {
+      transform: scale(1.03);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
     }
 
-    /* ODA LİSTESİ */
+    /* --- Odalar Listesi --- */
     #rooms-list-section {
-      background: rgba(0, 0, 0, 0.35);
+      flex: 1;
+      background: rgba(0, 0, 0, 0.25);
       border-radius: 14px;
       padding: 20px;
-      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     }
+    #rooms-list-section h2 {
+      color: #f7df1e;
+      text-align: center;
+      font-size: 20px;
+      margin-bottom: 15px;
+      text-shadow: 0 0 6px rgba(247, 223, 30, 0.4);
+    }
+
     #rooms-list {
+      margin-top: 10px;
       display: flex;
       flex-direction: column;
-      gap: 15px;
-    }
-    .room-item {
-      background: rgba(0, 0, 0, 0.2);
-      border: 1px solid #444;
-      border-radius: 8px;
-      padding: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
       gap: 10px;
     }
-    .room-info {
+    .room-item {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 12px 15px;
+      border-radius: 8px;
+      border: 1px solid #444;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .room-item .room-info {
+      font-size: 16px;
       display: flex;
       flex-direction: column;
       gap: 4px;
     }
+    .room-item .room-actions {
+      display: flex;
+      gap: 8px;
+    }
     .room-item button {
-      padding: 10px 14px;
-      border: none;
+      padding: 8px 12px;
       border-radius: 6px;
-      cursor: pointer;
+      border: none;
       font-size: 14px;
-      font-weight: 600;
-      transition: transform 0.3s, box-shadow 0.3s;
+      color: #000;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+      transition: transform 0.3s;
+      background: linear-gradient(135deg, #64ffda, #00c9ff);
     }
     .room-item button:hover {
       transform: scale(1.03);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
     }
-    .join-button {
-      background: linear-gradient(135deg, #7bf1a8, #0ff);
-      color: #000;
-    }
-    .watch-button {
-      background: linear-gradient(135deg, #fdbb2d, #f5e273);
-      color: #000;
+    .room-lock {
+      color: #ff3b3b;
+      margin-left: 5px;
     }
 
     /*******************************************************
@@ -257,7 +265,7 @@
     .notification-item {
       min-width: 200px;
       max-width: 380px;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.5));
+      background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(0,0,0,0.5));
       color: #fff;
       padding: 12px 20px;
       border-radius: 8px;
@@ -269,6 +277,7 @@
       animation: slideIn 0.5s forwards, fadeOut 0.5s 5.5s forwards;
       border: 1px solid rgba(255, 255, 255, 0.2);
     }
+
     @keyframes slideIn {
       to {
         opacity: 1;
@@ -386,9 +395,9 @@
       font-size: 14px;
       color: #000;
       padding: 8px 12px;
+      display: none;
       cursor: pointer;
       transition: transform 0.3s;
-      display: none;
     }
     #start-game-btn:hover {
       transform: scale(1.05);
@@ -459,7 +468,6 @@
       font-size: 14px;
       color: #fff;
       padding: 10px 16px;
-      cursor: pointer;
       transition: transform 0.3s, box-shadow 0.3s;
       z-index: 3000;
       box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
@@ -883,16 +891,13 @@
      * RESPONSIVE (Mobil)
      *******************************************************/
     @media screen and (max-width: 768px) {
-      /* Lobi */
       #lobby-container {
-        width: 90%;
-        margin-top: 20px;
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
       }
-      #lobby-container h1 {
-        font-size: 28px;
-      }
-      #lobby-container h2 {
-        font-size: 18px;
+      #rooms-list-section {
+        flex: 1 1 auto;
       }
 
       /* Üst Bilgi */
@@ -938,23 +943,30 @@
 </head>
 
 <body class="lobby">
-  <!-- =============== LOBİ ALANI (Oda Oluştur + Oda Listesi) =============== -->
+  <!-- =============== LOBİ ALANI (Oda Oluştur / Odalar Listesi) =============== -->
   <div id="lobby-container" class="animate__animated animate__fadeIn">
     <h1>GLOBAL CONQUEST</h1>
+
     <!-- Oda Oluşturma -->
     <div id="create-room-section">
-      <h2>Oda Oluştur</h2>
-      <input type="text" id="room-name" placeholder="Oda İsmi" />
-      <input type="password" id="room-password" placeholder="Şifre (İsteğe Bağlı)" />
-      <div class="color-options" id="host-color-options"></div>
-      <input type="text" id="host-player-name" placeholder="Adınız" />
-      <button id="create-room-btn">Odayı Kur</button>
+      <h2>Oda Kur</h2>
+      <input type="text" id="room-name" placeholder="Oda Adı" />
+      <input type="text" id="room-password" placeholder="Şifre (İsteğe Bağlı)" />
+
+      <!-- Renk Seçenekleri (Tek seferde 8 renk) -->
+      <div class="color-options" id="creator-color-options">
+        <!-- JS ile doldurulacak. class="color-option" örn. style.backgroundColor = "red" -->
+      </div>
+
+      <button id="create-room-btn">Odayı Oluştur</button>
     </div>
-    <hr />
-    <!-- Oda Listesi -->
+
+    <!-- Odalar Listesi -->
     <div id="rooms-list-section">
-      <h2>Aktif Odalar</h2>
-      <div id="rooms-list"><!-- JS ile doldurulacak --></div>
+      <h2>Mevcut Odalar</h2>
+      <div id="rooms-list">
+        <!-- Dinamik olarak Firebase'den odalar listelenecek -->
+      </div>
     </div>
   </div>
 
@@ -963,7 +975,7 @@
 
   <!-- =============== OYUN EKRANI =============== -->
   <div id="game-container">
-    <!-- Üst Bilgi (Tur, Oda İsmi, Sıra, Başlat vb.) -->
+    <!-- Üst Bilgi (Tur, Oda Adı, Sıra, Başlat vb.) -->
     <div id="top-info">
       <p>
         Oda: <span id="display-room-name">-</span> |
@@ -974,7 +986,7 @@
         <i class="fas fa-forward"></i> Tur Sonu
         <span id="turn-timer">60s</span>
       </button>
-      <!-- Oyun Başlat (Sadece Host görür) -->
+      <!-- Oyun Başlat (Sadece Oda Kurucusu görür) -->
       <button id="start-game-btn">Oyunu Başlat</button>
       <!-- 30 Saniye Geri Sayım -->
       <span id="start-countdown">30</span>
@@ -1058,10 +1070,10 @@
       <button id="close-military-btn">&times;</button>
     </div>
     <div class="popup-content">
-      <h3>Saldırı</h3>
+      <h3>Saldırı (Başka Oyuncu Toprağı)</h3>
       <p style="font-size:14px; color:#ddd;">
-        - Hedef ülkeyi haritadan seçin <br />
-        - Gönderilecek asker sayısı girin (1 asker = 1 varil petrol; ancak kendi ülkenize saldırmada petrol <b>harcanmaz</b>)
+        - Hedef ülkeyi haritadan seçin. <br />
+        - Gönderilecek asker sayısı girin (<strong>1 asker = 1 varil petrol</strong>).
       </p>
       <input
         type="number"
@@ -1087,7 +1099,10 @@
         <i class="fas fa-user-plus"></i> Satın Al
       </button>
 
-      <h3>Asker Çek</h3>
+      <h3>Asker Çek (Kendi veya Destek Askeri)</h3>
+      <p style="font-size:14px; color:#ddd;">
+        - Kendi ülkenizden veya destek gönderdiğiniz ülkeden asker çekin.
+      </p>
       <input
         type="number"
         id="pull-soldiers-count"
@@ -1187,8 +1202,8 @@
 
       <h3>Kale Kur</h3>
       <p style="font-size:14px; color:#ddd;">
-        - (1 Kale = 1000$ + 1000 Varil + 1000 Buğday) <br/>
-        - Ülkede yalnızca 1 kale kurulabilir <br/>
+        - (1 Kale = 1000$ + 1000 Varil + 1000 Buğday) <br />
+        - Ülkede yalnızca 1 kale kurulabilir <br />
         - Kale, o ülkeye saldıran askerlerin %5'ini öldürür
       </p>
       <button id="build-castle-btn">
@@ -1197,8 +1212,8 @@
 
       <h3>Kale Güçlendirme</h3>
       <p style="font-size:14px; color:#ddd;">
-        - Her güçlendirme kale savunmasına +%5 ekler (Max %30) <br/>
-        - İlk güçlendirme maliyeti: 1300$ + 1300 Varil + 1300 Buğday <br/>
+        - Her güçlendirme kale savunmasına +%5 ekler (Max %30) <br />
+        - İlk güçlendirme maliyeti: 1300$ + 1300 Varil + 1300 Buğday <br />
         - Sonrakiler her defasında %30 artar
       </p>
       <p style="font-size:14px; color:#64ffda;">
@@ -1387,19 +1402,19 @@
     </div>
   </div>
 
-  <!-- =============== Firebase ve gameLogic =============== -->
-
   <!-- Leaflet JS (Harita) -->
   <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     crossorigin=""
   ></script>
 
-  <!-- Firebase (v9 compat) -->
+  <!-- Firebase (İkinci Kısımda Yapılandırılacak) -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
-  <!-- OYUNUN JS DOSYASI (Aşağıdaki 2. parçada yazılan gameLogic.js içeriği) -->
-  <script src="gameLogic.js"></script>
+  <!--
+    Bu HTML ile uyumlu JS kodu (gameLogic.js) bir sonraki
+    parçada paylaşılacaktır.
+  -->
 </body>
 </html>
