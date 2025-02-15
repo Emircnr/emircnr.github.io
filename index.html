@@ -167,8 +167,8 @@
       gap: 10px;
     }
     .global-color-option {
-      width: 22px;
-      height: 22px;
+      width: 26px;
+      height: 26px;
       border-radius: 50%;
       border: 2px solid transparent;
       cursor: pointer;
@@ -892,6 +892,7 @@
   <!-- =============== LOBİ ALANI (Oda Oluştur / Katıl) =============== -->
   <div id="lobby-container" class="animate__animated animate__fadeIn">
     <h1>GLOBAL CONQUEST</h1>
+
     <!-- Oda Oluşturma -->
     <div id="create-room-section">
       <h2>Oda Oluştur</h2>
@@ -899,16 +900,57 @@
         Maksimum 16 oyuncu desteklenir.
       </p>
       <input type="text" id="creator-player-name" placeholder="Adınız" />
-      <div class="color-options" id="creator-color-options"></div>
-      <!-- Not: Max oyuncu sayısı sabit 16 (artık kullanıcı seçmiyor) -->
+
+      <!-- Statik renk seçenekleri (16 farklı renk) -->
+      <div class="color-options" id="creator-color-options">
+        <button class="global-color-option" style="background:red;" data-color="red"></button>
+        <button class="global-color-option" style="background:blue;" data-color="blue"></button>
+        <button class="global-color-option" style="background:green;" data-color="green"></button>
+        <button class="global-color-option" style="background:yellow;" data-color="yellow"></button>
+        <button class="global-color-option" style="background:purple;" data-color="purple"></button>
+        <button class="global-color-option" style="background:orange;" data-color="orange"></button>
+        <button class="global-color-option" style="background:brown;" data-color="brown"></button>
+        <button class="global-color-option" style="background:pink;" data-color="pink"></button>
+        <button class="global-color-option" style="background:cyan;" data-color="cyan"></button>
+        <button class="global-color-option" style="background:magenta;" data-color="magenta"></button>
+        <button class="global-color-option" style="background:lime;" data-color="lime"></button>
+        <button class="global-color-option" style="background:navy;" data-color="navy"></button>
+        <button class="global-color-option" style="background:maroon;" data-color="maroon"></button>
+        <button class="global-color-option" style="background:teal;" data-color="teal"></button>
+        <button class="global-color-option" style="background:olive;" data-color="olive"></button>
+        <button class="global-color-option" style="background:black;" data-color="black"></button>
+      </div>
+
       <button id="create-room-btn">Oda Oluştur</button>
     </div>
+
     <hr />
+
     <!-- Odaya Katılma -->
     <div id="join-room-section">
       <h2>Odaya Katıl</h2>
       <input type="text" id="join-player-name" placeholder="Adınız" />
-      <div class="color-options" id="join-color-options"></div>
+
+      <!-- Statik renk seçenekleri (16 farklı renk) -->
+      <div class="color-options" id="join-color-options">
+        <button class="global-color-option" style="background:red;" data-color="red"></button>
+        <button class="global-color-option" style="background:blue;" data-color="blue"></button>
+        <button class="global-color-option" style="background:green;" data-color="green"></button>
+        <button class="global-color-option" style="background:yellow;" data-color="yellow"></button>
+        <button class="global-color-option" style="background:purple;" data-color="purple"></button>
+        <button class="global-color-option" style="background:orange;" data-color="orange"></button>
+        <button class="global-color-option" style="background:brown;" data-color="brown"></button>
+        <button class="global-color-option" style="background:pink;" data-color="pink"></button>
+        <button class="global-color-option" style="background:cyan;" data-color="cyan"></button>
+        <button class="global-color-option" style="background:magenta;" data-color="magenta"></button>
+        <button class="global-color-option" style="background:lime;" data-color="lime"></button>
+        <button class="global-color-option" style="background:navy;" data-color="navy"></button>
+        <button class="global-color-option" style="background:maroon;" data-color="maroon"></button>
+        <button class="global-color-option" style="background:teal;" data-color="teal"></button>
+        <button class="global-color-option" style="background:olive;" data-color="olive"></button>
+        <button class="global-color-option" style="background:black;" data-color="black"></button>
+      </div>
+
       <input
         type="text"
         id="room-code"
@@ -1362,16 +1404,18 @@
     </div>
   </div>
 
-  <!-- 
-    PART 2'DEKİ JS KODUNU AYRI BİR DOSYAYA (ör. gameLogic.js) EKLEYECEKSİNİZ!
-    Aşağıdaki gibi:
-    <script src="gameLogic.js"></script>
-  -->
-
-  <!-- Leaflet JS (Harita) -->
+  <!-- =============== HARİTA (Leaflet) =============== -->
   <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     crossorigin=""
   ></script>
+
+  <!-- ==================== 
+       gameLogic.js BURAYA EKLENECEK
+       ====================
+       
+    Örnek (Firebase + Tüm Oyun JS Kodu):
+    <script src="gameLogic.js"></script>
+  -->
 </body>
 </html>
