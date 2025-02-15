@@ -2,14 +2,14 @@
  * Firebase Başlatma
  *****************************************************************/
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-  projectId: "YOUR_PROJECT",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "SENDER_ID",
-  appId: "APP_ID",
-  measurementId: "MEASUREMENT_ID"
+  apiKey: "AIzaSyCINihMNGs-qRYIIBLzXyeaLnM_Lhp-iwg",
+  authDomain: "warmapg-77acb.firebaseapp.com",
+  databaseURL: "https://warmapg-77acb-default-rtdb.firebaseio.com",
+  projectId: "warmapg-77acb",
+  storageBucket: "warmapg-77acb.appspot.com",
+  messagingSenderId: "895613631339",
+  appId: "1:895613631339:web:a7ecc0cfd8ab3ae7e02a2e",
+  measurementId: "G-6SJVLLVDCF"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
