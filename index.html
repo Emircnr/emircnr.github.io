@@ -1366,3 +1366,215 @@
   <script src="gameLogic.js"></script>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Global Conquest</title>
+  <!-- FontAwesome (ikonlar için) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <!-- Basit stil tanımlamaları (popup, buton, vs.) -->
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #131516;
+      color: #eee;
+      font-family: sans-serif;
+    }
+    /* Örnek modern popup stili */
+    .modern-popup {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      width: 460px;
+      max-height: 70vh;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      display: none;
+      flex-direction: column;
+      z-index: 3002;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.8);
+      animation: popupFadeIn 0.5s ease forwards;
+    }
+    @keyframes popupFadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .popup-header {
+      background: rgba(0,0,0,0.6);
+      padding: 15px;
+      border-top-left-radius: 14px;
+      border-top-right-radius: 14px;
+      color: #64ffda;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 18px;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .popup-header button {
+      background: transparent;
+      border: none;
+      color: #eee;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    .popup-content {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      font-size: 15px;
+      color: #eee;
+    }
+    /* Bottom icons (örneğin: asker, bina, ticaret vb.) */
+    #bottom-icons {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 15px;
+      z-index: 3000;
+    }
+    .bottom-icon-btn {
+      width: 50px;
+      height: 50px;
+      border: none;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #64ffda, #00c9ff);
+      color: #000;
+      font-size: 20px;
+      cursor: pointer;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.6);
+      transition: transform 0.3s, box-shadow 0.3s;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+    .bottom-icon-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.8);
+    }
+    /* Örnek diğer düzenlemeler */
+    #game-container {
+      display: none;
+      position: relative;
+      height: 100vh;
+    }
+    #map-container {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+    /* Basit bildirim alanı */
+    #notification-area {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 4000;
+    }
+  </style>
+</head>
+<body>
+  <!-- Lobi alanı (Oda oluşturma/katılma) -->
+  <div id="lobby-container">
+    <!-- Lobi içeriği buraya gelecek -->
+  </div>
+
+  <!-- Oyun ekranı -->
+  <div id="game-container">
+    <!-- Üst bilgi, harita, vs. -->
+    <div id="top-info">
+      <!-- Oda kodu, tur bilgisi, sıradaki oyuncu vs. -->
+    </div>
+    <div id="map-container">
+      <div id="map"></div>
+    </div>
+    <!-- Alt ikonlar -->
+    <div id="bottom-icons">
+      <button id="open-military-btn" class="bottom-icon-btn" title="Asker İşlemleri">
+        <i class="fas fa-shield-alt"></i>
+      </button>
+      <button id="open-building-btn" class="bottom-icon-btn" title="Bina Kurma">
+        <i class="fas fa-building"></i>
+      </button>
+      <button id="open-resource-btn" class="bottom-icon-btn" title="Kaynak Gönderme">
+        <i class="fas fa-hand-holding-usd"></i>
+      </button>
+      <button id="open-pact-btn" class="bottom-icon-btn" title="Saldırmazlık Pakti">
+        <i class="fas fa-handshake"></i>
+      </button>
+      <button id="open-chat-btn" class="bottom-icon-btn" title="Sohbet">
+        <i class="fas fa-comments"></i>
+      </button>
+      <button id="open-market-btn" class="bottom-icon-btn" title="Ticaret Merkezi">
+        <i class="fas fa-store"></i>
+      </button>
+      <!-- Yeni: Zırhlı Araç İşlemleri -->
+      <button id="open-armored-btn" class="bottom-icon-btn" title="Zırhlı Araç İşlemleri">
+        <i class="fas fa-tank"></i>
+      </button>
+      <!-- Odadan Çık butonu -->
+      <button id="exit-room-btn">Odadan Çık</button>
+    </div>
+
+    <!-- Popuplar -->
+
+    <!-- (Mevcut popuplar: asker, bina, kaynak, oyuncular, sohbet, pakt, ticaret) -->
+
+    <!-- Yeni: Zırhlı Araç İşlemleri Popup'ı -->
+    <div id="armored-popup" class="modern-popup">
+      <div class="popup-header">
+        <span>Zırhlı Araç İşlemleri</span>
+        <button id="close-armored-btn">&times;</button>
+      </div>
+      <div class="popup-content">
+        <!-- Zırhlı araç satın alma -->
+        <h3>Zırhlı Araç Satın Al</h3>
+        <p>Fiyat: 10 varil petrol</p>
+        <button id="buy-armored-btn">
+          <i class="fas fa-shopping-cart"></i> Satın Al
+        </button>
+        <hr>
+        <!-- Asker bindirme -->
+        <h3>Asker Bindir</h3>
+        <p>Her zırhlı araç en fazla 10 asker taşıyabilir.</p>
+        <input type="number" id="armored-soldier-count" placeholder="Bindirilecek asker sayısı" min="1" max="10">
+        <button id="board-soldiers-btn">
+          <i class="fas fa-user-plus"></i> Asker Bindir
+        </button>
+        <hr>
+        <!-- Zırhlı aracın hareket ettirilmesi -->
+        <h3>Zırhlı Aracı Hareket Ettir</h3>
+        <p>Hedef ülkeyi seçin. Hareket süresi: 2 dakika.</p>
+        <select id="armored-destination">
+          <option value="">Ülke Seçin</option>
+          <!-- Ülke seçenekleri dinamik olarak eklenecek -->
+        </select>
+        <button id="move-armored-btn">
+          <i class="fas fa-road"></i> Hareket Ettir
+        </button>
+        <div id="armored-progress" style="margin-top:10px; display:none;">
+          <p>Hareket devam ediyor: <span id="armored-timer">120</span> saniye kaldı.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bildirim Alanı -->
+  <div id="notification-area"></div>
+
+  <!-- JS kodları için referans (gameLogic.js vb.) -->
+  <script src="gameLogic.js"></script>
+</body>
+</html>
