@@ -64,7 +64,7 @@
     }
 
     /*******************************************************
-     * ANA LOBİ (Oda Oluştur / Katıl) SAYFASI
+     * ANA LOBİ (ODA OLUŞTUR/KATIL) SAYFASI
      *******************************************************/
     body.lobby {
       background: linear-gradient(135deg, #150f2f 0%, #1b1638 45%, #222 100%);
@@ -73,7 +73,6 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
     }
 
     #lobby-container {
@@ -120,7 +119,8 @@
       margin: 20px 0;
     }
 
-    #lobby-container input[type="text"] {
+    #lobby-container input[type="text"],
+    #lobby-container input[type="number"] {
       width: 100%;
       padding: 12px;
       margin-bottom: 15px;
@@ -132,7 +132,8 @@
       transition: box-shadow 0.3s, border-color 0.3s;
     }
 
-    #lobby-container input[type="text"]:focus {
+    #lobby-container input[type="text"]:focus,
+    #lobby-container input[type="number"]:focus {
       border-color: #64ffda;
       box-shadow: 0 0 8px #64ffda;
     }
@@ -164,7 +165,7 @@
       display: flex;
       justify-content: center;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 8px;
     }
     .global-color-option {
       width: 26px;
@@ -173,6 +174,7 @@
       border: 2px solid transparent;
       cursor: pointer;
       display: inline-block;
+      margin: 0 5px;
       transition: transform 0.3s, border-color 0.3s;
     }
     .global-color-option:hover {
@@ -181,11 +183,6 @@
     }
     .global-color-option.selected {
       border-color: #f7df1e;
-    }
-    .global-color-option:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-      border-color: #999;
     }
 
     /*******************************************************
@@ -204,11 +201,7 @@
     .notification-item {
       min-width: 200px;
       max-width: 380px;
-      background: linear-gradient(
-        135deg,
-        rgba(255, 255, 255, 0.1),
-        rgba(0, 0, 0, 0.5)
-      );
+      background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(0,0,0,0.5));
       color: #fff;
       padding: 12px 20px;
       border-radius: 8px;
@@ -889,68 +882,29 @@
 </head>
 
 <body class="lobby">
-  <!-- =============== LOBİ ALANI (Oda Oluştur / Katıl) =============== -->
+  <!-- =============== LOBBY ALANI (Oda Oluştur / Katıl) =============== -->
   <div id="lobby-container" class="animate__animated animate__fadeIn">
     <h1>GLOBAL CONQUEST</h1>
-
     <!-- Oda Oluşturma -->
     <div id="create-room-section">
       <h2>Oda Oluştur</h2>
-      <p style="text-align:center; font-size:14px; color:#ccc;">
-        Maksimum 16 oyuncu desteklenir.
-      </p>
       <input type="text" id="creator-player-name" placeholder="Adınız" />
-
-      <!-- Statik renk seçenekleri (16 farklı renk) -->
-      <div class="color-options" id="creator-color-options">
-        <button class="global-color-option" style="background:red;" data-color="red"></button>
-        <button class="global-color-option" style="background:blue;" data-color="blue"></button>
-        <button class="global-color-option" style="background:green;" data-color="green"></button>
-        <button class="global-color-option" style="background:yellow;" data-color="yellow"></button>
-        <button class="global-color-option" style="background:purple;" data-color="purple"></button>
-        <button class="global-color-option" style="background:orange;" data-color="orange"></button>
-        <button class="global-color-option" style="background:brown;" data-color="brown"></button>
-        <button class="global-color-option" style="background:pink;" data-color="pink"></button>
-        <button class="global-color-option" style="background:cyan;" data-color="cyan"></button>
-        <button class="global-color-option" style="background:magenta;" data-color="magenta"></button>
-        <button class="global-color-option" style="background:lime;" data-color="lime"></button>
-        <button class="global-color-option" style="background:navy;" data-color="navy"></button>
-        <button class="global-color-option" style="background:maroon;" data-color="maroon"></button>
-        <button class="global-color-option" style="background:teal;" data-color="teal"></button>
-        <button class="global-color-option" style="background:olive;" data-color="olive"></button>
-        <button class="global-color-option" style="background:black;" data-color="black"></button>
-      </div>
-
+      <div class="color-options" id="creator-color-options"></div>
+      <input
+        type="number"
+        id="max-players"
+        placeholder="Oyuncu Sayısı (2-8)"
+        min="2"
+        max="8"
+      />
       <button id="create-room-btn">Oda Oluştur</button>
     </div>
-
     <hr />
-
     <!-- Odaya Katılma -->
     <div id="join-room-section">
       <h2>Odaya Katıl</h2>
       <input type="text" id="join-player-name" placeholder="Adınız" />
-
-      <!-- Statik renk seçenekleri (16 farklı renk) -->
-      <div class="color-options" id="join-color-options">
-        <button class="global-color-option" style="background:red;" data-color="red"></button>
-        <button class="global-color-option" style="background:blue;" data-color="blue"></button>
-        <button class="global-color-option" style="background:green;" data-color="green"></button>
-        <button class="global-color-option" style="background:yellow;" data-color="yellow"></button>
-        <button class="global-color-option" style="background:purple;" data-color="purple"></button>
-        <button class="global-color-option" style="background:orange;" data-color="orange"></button>
-        <button class="global-color-option" style="background:brown;" data-color="brown"></button>
-        <button class="global-color-option" style="background:pink;" data-color="pink"></button>
-        <button class="global-color-option" style="background:cyan;" data-color="cyan"></button>
-        <button class="global-color-option" style="background:magenta;" data-color="magenta"></button>
-        <button class="global-color-option" style="background:lime;" data-color="lime"></button>
-        <button class="global-color-option" style="background:navy;" data-color="navy"></button>
-        <button class="global-color-option" style="background:maroon;" data-color="maroon"></button>
-        <button class="global-color-option" style="background:teal;" data-color="teal"></button>
-        <button class="global-color-option" style="background:olive;" data-color="olive"></button>
-        <button class="global-color-option" style="background:black;" data-color="black"></button>
-      </div>
-
+      <div class="color-options" id="join-color-options"></div>
       <input
         type="text"
         id="room-code"
@@ -1060,11 +1014,10 @@
       <button id="close-military-btn">&times;</button>
     </div>
     <div class="popup-content">
-      <h3>Saldırı (Başka Oyuncu Toprakları)</h3>
+      <h3>Saldırı</h3>
       <p style="font-size:14px; color:#ddd;">
         - Hedef ülkeyi haritadan seçin <br />
-        - Gönderilecek asker sayısı girin <br />
-        - Petrol harcaması: 1 asker = 1 varil petrol
+        - Gönderilecek asker sayısı girin (1 asker = 1 varil petrol)
       </p>
       <input
         type="number"
@@ -1074,20 +1027,6 @@
       />
       <button id="attack-btn">
         <i class="fas fa-crosshairs"></i> Saldırı Yap
-      </button>
-
-      <h3>Kendi Toprağına Asker Ekle</h3>
-      <p style="font-size:14px; color:#ddd;">
-        - Eğer seçilen ülke size aitse asker eklemede petrol harcanmaz.
-      </p>
-      <input
-        type="number"
-        id="own-soldiers"
-        placeholder="Asker sayısı"
-        min="1"
-      />
-      <button id="own-attack-btn">
-        <i class="fas fa-plus"></i> Asker Ekle
       </button>
 
       <h3>Asker Satın Al</h3>
@@ -1119,13 +1058,9 @@
       <p style="font-size:14px; color:#ddd;">
         - Başka oyuncunun ülkesine asker desteği
       </p>
-      <label for="support-recipient" style="font-size:14px; color:#ccc;"
-        >Oyuncu Seç:</label
-      >
+      <label for="support-recipient" style="font-size:14px; color:#ccc;">Oyuncu Seç:</label>
       <select id="support-recipient"></select>
-      <label for="support-recipient-country" style="font-size:14px; color:#ccc;"
-        >Ülke Seç:</label
-      >
+      <label for="support-recipient-country" style="font-size:14px; color:#ccc;">Ülke Seç:</label>
       <select id="support-recipient-country"></select>
       <input
         type="number"
@@ -1359,7 +1294,7 @@
         <br /><br />
 
         <label style="font-size:14px;color:#ccc;"
-          >Miktar (varil/buğday):</label
+          >Miktar (adet/varil/buğday):</label
         >
         <input
           type="number"
@@ -1404,18 +1339,16 @@
     </div>
   </div>
 
-  <!-- =============== HARİTA (Leaflet) =============== -->
+  <!-- ============= Firebase & Leaflet JS ============= -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
   <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     crossorigin=""
   ></script>
 
-  <!-- ==================== 
-       gameLogic.js BURAYA EKLENECEK
-       ====================
-       
-    Örnek (Firebase + Tüm Oyun JS Kodu):
-    <script src="gameLogic.js"></script>
-  -->
+  <!-- ============= 2. Kısım (Tüm Oyun Mantığı) ============= -->
+  <!-- Aşağıdaki satırla, 2. Kısımda vereceğimiz "game.js" dosyasını ekliyoruz. -->
+  <script src="game.js"></script>
 </body>
 </html>
