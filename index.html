@@ -64,30 +64,26 @@
     }
 
     /*******************************************************
-     * ANA LOBİ (ODA LİSTESİ & ODA OLUŞTUR) SAYFASI
+     * ANA LOBİ (ODA OLUŞTUR/KATIL) SAYFASI
      *******************************************************/
     body.lobby {
       background: linear-gradient(135deg, #150f2f 0%, #1b1638 45%, #222 100%);
       background-size: cover;
       min-height: 100vh;
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: center;
-      padding-top: 40px;
     }
 
     #lobby-container {
-      width: 95%;
-      max-width: 900px;
+      width: 90%;
+      max-width: 540px;
       background: rgba(0, 0, 0, 0.4);
       border-radius: 20px;
       padding: 30px;
       box-shadow: 0 12px 28px rgba(0, 0, 0, 0.8);
       backdrop-filter: blur(6px);
       animation: fadeInUp 0.8s ease forwards;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
     }
 
     @keyframes fadeInUp {
@@ -111,28 +107,20 @@
 
     #lobby-container h2 {
       color: #f7df1e;
-      text-align: left;
+      text-align: center;
       font-weight: 500;
       margin: 20px 0 10px;
       text-shadow: 0 0 6px rgba(247, 223, 30, 0.4);
-      font-size: 22px;
     }
 
-    hr {
+    #lobby-container hr {
       border: none;
       border-top: 1px solid #444;
-      margin: 10px 0;
+      margin: 20px 0;
     }
 
-    /* ODA OLUŞTUR KISMI */
-    #create-room-section {
-      background: rgba(0, 0, 0, 0.35);
-      border-radius: 14px;
-      padding: 20px;
-      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.5);
-    }
-    #create-room-section input[type="text"],
-    #create-room-section input[type="password"] {
+    #lobby-container input[type="text"],
+    #lobby-container input[type="number"] {
       width: 100%;
       padding: 12px;
       margin-bottom: 15px;
@@ -143,15 +131,19 @@
       color: #333;
       transition: box-shadow 0.3s, border-color 0.3s;
     }
-    #create-room-section input:focus {
+
+    #lobby-container input[type="text"]:focus,
+    #lobby-container input[type="number"]:focus {
       border-color: #64ffda;
       box-shadow: 0 0 8px #64ffda;
     }
-    #create-room-section button {
+
+    #lobby-container button {
       width: 100%;
       padding: 14px;
+      margin-bottom: 15px;
       background: linear-gradient(to right, #64ffda, #00c9ff);
-      border: none;
+      border: 1px solid #00adb5;
       border-radius: 8px;
       font-size: 18px;
       font-weight: 600;
@@ -160,24 +152,29 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
       transition: transform 0.3s, box-shadow 0.3s;
     }
-    #create-room-section button:hover {
+
+    #lobby-container button:hover {
       transform: scale(1.03);
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
     }
 
-    /* Renk Seçenekleri (16 adet, ufak boyut) */
+    /* Renk Seçenekleri (Küçük yuvarlaklar) */
     .color-options {
+      margin-bottom: 15px;
+      text-align: center;
       display: flex;
+      justify-content: center;
       flex-wrap: wrap;
       gap: 8px;
-      margin-bottom: 15px;
     }
     .global-color-option {
-      width: 30px;
-      height: 30px;
+      width: 26px;
+      height: 26px;
       border-radius: 50%;
       border: 2px solid transparent;
       cursor: pointer;
+      display: inline-block;
+      margin: 0 5px;
       transition: transform 0.3s, border-color 0.3s;
     }
     .global-color-option:hover {
@@ -186,59 +183,6 @@
     }
     .global-color-option.selected {
       border-color: #f7df1e;
-    }
-    .global-color-option.disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-
-    /* ODA LİSTESİ */
-    #rooms-list-section {
-      background: rgba(0, 0, 0, 0.35);
-      border-radius: 14px;
-      padding: 20px;
-      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.5);
-    }
-    #rooms-list {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-    .room-item {
-      background: rgba(0, 0, 0, 0.2);
-      border: 1px solid #444;
-      border-radius: 8px;
-      padding: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-    }
-    .room-info {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .room-item button {
-      padding: 10px 14px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 600;
-      transition: transform 0.3s, box-shadow 0.3s;
-    }
-    .room-item button:hover {
-      transform: scale(1.03);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
-    }
-    .join-button {
-      background: linear-gradient(135deg, #7bf1a8, #0ff);
-      color: #000;
-    }
-    .watch-button {
-      background: linear-gradient(135deg, #fdbb2d, #f5e273);
-      color: #000;
     }
 
     /*******************************************************
@@ -257,7 +201,7 @@
     .notification-item {
       min-width: 200px;
       max-width: 380px;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.5));
+      background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(0,0,0,0.5));
       color: #fff;
       padding: 12px 20px;
       border-radius: 8px;
@@ -269,6 +213,7 @@
       animation: slideIn 0.5s forwards, fadeOut 0.5s 5.5s forwards;
       border: 1px solid rgba(255, 255, 255, 0.2);
     }
+
     @keyframes slideIn {
       to {
         opacity: 1;
@@ -325,7 +270,7 @@
     }
 
     /*******************************************************
-     * ÜST BİLGİ (TUR, ODA İSMİ, SIRA) + BAŞLAT BUTONU
+     * ÜST BİLGİ (TUR, ODA KODU, SIRA) + BAŞLAT BUTONU
      *******************************************************/
     #top-info {
       position: fixed;
@@ -450,9 +395,6 @@
 
     /* Odadan Çık Butonu (Sağ Alt) */
     #exit-room-btn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
       background: linear-gradient(135deg, #ff5d5d, #ff2d2d);
       border: none;
       border-radius: 6px;
@@ -463,6 +405,7 @@
       transition: transform 0.3s, box-shadow 0.3s;
       z-index: 3000;
       box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+      margin-left: 10px;
     }
     #exit-room-btn:hover {
       transform: scale(1.05);
@@ -886,7 +829,6 @@
       /* Lobi */
       #lobby-container {
         width: 90%;
-        margin-top: 20px;
       }
       #lobby-container h1 {
         font-size: 28px;
@@ -938,23 +880,35 @@
 </head>
 
 <body class="lobby">
-  <!-- =============== LOBİ ALANI (Oda Oluştur + Oda Listesi) =============== -->
+  <!-- =============== LOBBY ALANI (Oda Oluştur / Katıl) =============== -->
   <div id="lobby-container" class="animate__animated animate__fadeIn">
     <h1>GLOBAL CONQUEST</h1>
     <!-- Oda Oluşturma -->
     <div id="create-room-section">
       <h2>Oda Oluştur</h2>
-      <input type="text" id="room-name" placeholder="Oda İsmi" />
-      <input type="password" id="room-password" placeholder="Şifre (İsteğe Bağlı)" />
-      <div class="color-options" id="host-color-options"></div>
-      <input type="text" id="host-player-name" placeholder="Adınız" />
-      <button id="create-room-btn">Odayı Kur</button>
+      <input type="text" id="creator-player-name" placeholder="Adınız" />
+      <div class="color-options" id="creator-color-options"></div>
+      <input
+        type="number"
+        id="max-players"
+        placeholder="Oyuncu Sayısı (2-8)"
+        min="2"
+        max="8"
+      />
+      <button id="create-room-btn">Oda Oluştur</button>
     </div>
     <hr />
-    <!-- Oda Listesi -->
-    <div id="rooms-list-section">
-      <h2>Aktif Odalar</h2>
-      <div id="rooms-list"><!-- JS ile doldurulacak --></div>
+    <!-- Odaya Katılma -->
+    <div id="join-room-section">
+      <h2>Odaya Katıl</h2>
+      <input type="text" id="join-player-name" placeholder="Adınız" />
+      <div class="color-options" id="join-color-options"></div>
+      <input
+        type="text"
+        id="room-code"
+        placeholder="Oda Kodu (Örn: AB12CD)"
+      />
+      <button id="join-room-btn">Odaya Katıl</button>
     </div>
   </div>
 
@@ -963,10 +917,10 @@
 
   <!-- =============== OYUN EKRANI =============== -->
   <div id="game-container">
-    <!-- Üst Bilgi (Tur, Oda İsmi, Sıra, Başlat vb.) -->
+    <!-- Üst Bilgi (Tur, Oda Kodu, Sıra, Başlat vb.) -->
     <div id="top-info">
       <p>
-        Oda: <span id="display-room-name">-</span> |
+        Oda Kodu: <span id="display-room-code">-</span> |
         Tur: <span id="current-round">1</span> |
         Sıra: <span id="current-player">?</span>
       </p>
@@ -1048,6 +1002,14 @@
       >
         <i class="fas fa-bell"></i>
       </button>
+      <!-- YENİ: Zırhlı Araç İşlemleri -->
+      <button
+        id="open-armored-btn"
+        class="bottom-icon-btn"
+        title="Zırhlı Araç İşlemleri"
+      >
+        <i class="fas fa-tank"></i>
+      </button>
     </div>
   </div>
 
@@ -1061,7 +1023,7 @@
       <h3>Saldırı</h3>
       <p style="font-size:14px; color:#ddd;">
         - Hedef ülkeyi haritadan seçin <br />
-        - Gönderilecek asker sayısı girin (1 asker = 1 varil petrol; ancak kendi ülkenize saldırmada petrol <b>harcanmaz</b>)
+        - Gönderilecek asker sayısı girin (1 asker = 1 varil petrol)
       </p>
       <input
         type="number"
@@ -1387,7 +1349,64 @@
     </div>
   </div>
 
-  <!-- =============== Firebase ve gameLogic =============== -->
+  <!-- =============== YENİ: ZIRHLI ARAÇ POPUP =============== -->
+  <div id="armored-popup" class="modern-popup">
+    <div class="popup-header">
+      <span>Zırhlı Araç İşlemleri</span>
+      <button id="close-armored-btn">&times;</button>
+    </div>
+    <div class="popup-content">
+      <!-- Zırhlı araç satın alma -->
+      <h3>Zırhlı Araç Satın Al</h3>
+      <p style="font-size:14px; color:#ddd;">1 zırhlı = 10 varil petrol</p>
+      <button id="buy-armored-btn">
+        <i class="fas fa-shopping-cart"></i> Satın Al
+      </button>
+      <hr />
+
+      <!-- Asker bindirme -->
+      <h3>Asker Bindir</h3>
+      <p style="font-size:14px; color:#ddd;">
+        Her zırhlı araç en fazla 10 asker taşıyabilir.
+      </p>
+      <input
+        type="number"
+        id="armored-soldier-count"
+        placeholder="Bindirilecek asker sayısı"
+        min="1"
+        max="10"
+      />
+      <button id="board-soldiers-btn">
+        <i class="fas fa-user-plus"></i> Asker Bindir
+      </button>
+      <hr />
+
+      <!-- Zırhlı aracı hareket ettirme -->
+      <h3>Zırhlı Aracı Hareket Ettir</h3>
+      <p style="font-size:14px; color:#ddd;">
+        - Hedef ülkeyi seçin. Hareket süresi: 2 dakika. <br/>
+        - Haritaya yakınlaştığınızda, zırhlı aracın ilerleyişini görebilirsiniz.
+      </p>
+      <select id="armored-destination">
+        <option value="">Ülke Seçin</option>
+        <!-- Ülke seçenekleri dinamik olarak eklenecek -->
+      </select>
+      <button id="move-armored-btn">
+        <i class="fas fa-road"></i> Hareket Ettir
+      </button>
+
+      <div id="armored-progress" style="margin-top:10px; display:none;">
+        <p>Hareket devam ediyor:
+          <span id="armored-timer" style="color:#f39c12; font-weight:bold;">120</span>
+          saniye kaldı.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================
+       ===============  İLGİLİ JS LİNKLERİ  ===============
+       ================================================== -->
 
   <!-- Leaflet JS (Harita) -->
   <script
@@ -1395,11 +1414,37 @@
     crossorigin=""
   ></script>
 
-  <!-- Firebase (v9 compat) -->
+  <!-- Firebase (İkinci Kısımda Yapılandırılacak) -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
-  <!-- OYUNUN JS DOSYASI (Aşağıdaki 2. parçada yazılan gameLogic.js içeriği) -->
+  <!--
+    BURADA "2. KISIM" (gameLogic.js vb.) eklenecek.
+    (Aşağıdaki firebaseConfig ayarları gameLogic.js tarafında da gerekebilir.)
+  -->
+  <script>
+    /*****************************************************************
+     * Firebase Başlatma
+     *****************************************************************/
+    const firebaseConfig = {
+      apiKey: "AIzaSyCINihMNGs-qRYIIBLzXyeaLnM_Lhp-iwg",
+      authDomain: "warmapg-77acb.firebaseapp.com",
+      databaseURL: "https://warmapg-77acb-default-rtdb.firebaseio.com",
+      projectId: "warmapg-77acb",
+      storageBucket: "warmapg-77acb.appspot.com",
+      messagingSenderId: "895613631339",
+      appId: "1:895613631339:web:a7ecc0cfd8ab3ae7e02a2e",
+      measurementId: "G-6SJVLLVDCF"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+  </script>
+
+  <!--
+    2. Kısım: Tüm Oyun Mantığı ve Firebase İşlemlerinin Yapıldığı
+    gameLogic.js (veya benzeri) dosyası burada yüklenecek.
+    Örnek: <script src="gameLogic.js"></script>
+  -->
   <script src="gameLogic.js"></script>
 </body>
 </html>
