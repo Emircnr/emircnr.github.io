@@ -395,6 +395,9 @@
 
     /* Odadan Çık Butonu (Sağ Alt) */
     #exit-room-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
       background: linear-gradient(135deg, #ff5d5d, #ff2d2d);
       border: none;
       border-radius: 6px;
@@ -405,7 +408,6 @@
       transition: transform 0.3s, box-shadow 0.3s;
       z-index: 3000;
       box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
-      margin-left: 10px;
     }
     #exit-room-btn:hover {
       transform: scale(1.05);
@@ -1002,14 +1004,6 @@
       >
         <i class="fas fa-bell"></i>
       </button>
-      <!-- YENİ: Zırhlı Araç İşlemleri -->
-      <button
-        id="open-armored-btn"
-        class="bottom-icon-btn"
-        title="Zırhlı Araç İşlemleri"
-      >
-        <i class="fas fa-tank"></i>
-      </button>
     </div>
   </div>
 
@@ -1349,61 +1343,6 @@
     </div>
   </div>
 
-  <!-- =============== YENİ: ZIRHLI ARAÇ POPUP =============== -->
-  <div id="armored-popup" class="modern-popup">
-    <div class="popup-header">
-      <span>Zırhlı Araç İşlemleri</span>
-      <button id="close-armored-btn">&times;</button>
-    </div>
-    <div class="popup-content">
-      <!-- Zırhlı araç satın alma -->
-      <h3>Zırhlı Araç Satın Al</h3>
-      <p style="font-size:14px; color:#ddd;">1 zırhlı = 10 varil petrol</p>
-      <button id="buy-armored-btn">
-        <i class="fas fa-shopping-cart"></i> Satın Al
-      </button>
-      <hr />
-
-      <!-- Asker bindirme -->
-      <h3>Asker Bindir</h3>
-      <p style="font-size:14px; color:#ddd;">
-        Her zırhlı araç en fazla 10 asker taşıyabilir.
-      </p>
-      <input
-        type="number"
-        id="armored-soldier-count"
-        placeholder="Bindirilecek asker sayısı"
-        min="1"
-        max="10"
-      />
-      <button id="board-soldiers-btn">
-        <i class="fas fa-user-plus"></i> Asker Bindir
-      </button>
-      <hr />
-
-      <!-- Zırhlı aracı hareket ettirme -->
-      <h3>Zırhlı Aracı Hareket Ettir</h3>
-      <p style="font-size:14px; color:#ddd;">
-        - Hedef ülkeyi seçin. Hareket süresi: 2 dakika. <br/>
-        - Haritaya yakınlaştığınızda, zırhlı aracın ilerleyişini görebilirsiniz.
-      </p>
-      <select id="armored-destination">
-        <option value="">Ülke Seçin</option>
-        <!-- Ülke seçenekleri dinamik olarak eklenecek -->
-      </select>
-      <button id="move-armored-btn">
-        <i class="fas fa-road"></i> Hareket Ettir
-      </button>
-
-      <div id="armored-progress" style="margin-top:10px; display:none;">
-        <p>Hareket devam ediyor:
-          <span id="armored-timer" style="color:#f39c12; font-weight:bold;">120</span>
-          saniye kaldı.
-        </p>
-      </div>
-    </div>
-  </div>
-
   <!-- ==================================================
        ===============  İLGİLİ JS LİNKLERİ  ===============
        ================================================== -->
@@ -1419,31 +1358,10 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
   <!--
-    BURADA "2. KISIM" (gameLogic.js vb.) eklenecek.
-    (Aşağıdaki firebaseConfig ayarları gameLogic.js tarafında da gerekebilir.)
-  -->
-  <script>
-    /*****************************************************************
-     * Firebase Başlatma
-     *****************************************************************/
-    const firebaseConfig = {
-      apiKey: "AIzaSyCINihMNGs-qRYIIBLzXyeaLnM_Lhp-iwg",
-      authDomain: "warmapg-77acb.firebaseapp.com",
-      databaseURL: "https://warmapg-77acb-default-rtdb.firebaseio.com",
-      projectId: "warmapg-77acb",
-      storageBucket: "warmapg-77acb.appspot.com",
-      messagingSenderId: "895613631339",
-      appId: "1:895613631339:web:a7ecc0cfd8ab3ae7e02a2e",
-      measurementId: "G-6SJVLLVDCF"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-  </script>
-
-  <!--
-    2. Kısım: Tüm Oyun Mantığı ve Firebase İşlemlerinin Yapıldığı
-    gameLogic.js (veya benzeri) dosyası burada yüklenecek.
-    Örnek: <script src="gameLogic.js"></script>
+    BURADA "2. KISIM" (gameLogic.js veya benzeri JS dosyası) EKLENECEK.
+    Aşağıdaki satırı 2. kısım kodunuzun olduğu dosya adıyla değiştirin.
+    Örnek:
+    <script src="gameLogic.js"></script>
   -->
   <script src="gameLogic.js"></script>
 </body>
