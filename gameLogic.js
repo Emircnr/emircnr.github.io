@@ -618,7 +618,7 @@ function initializeMap() {
   if (map) return; // Zaten oluşturulmuşsa tekrarlama
 
   // 1) Mapbox erişim anahtarı
-  mapboxgl.accessToken = "YOUR_MAPBOX_ACCESS_TOKEN";
+  mapboxgl.accessToken = "pk.eyJ1IjoiY25yZW1pcjAxIiwiYSI6ImNtN251ZWo2YjA0dTAya3F0cjc5bWV3bDgifQ.PODNLlbvZ9G7xZHgSfVa-Q";
 
   // 2) Haritayı başlat
   map = new mapboxgl.Map({
