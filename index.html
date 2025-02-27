@@ -12,11 +12,10 @@
     rel="stylesheet"
   />
 
-  <!-- Leaflet CSS (Harita için) -->
+  <!-- Mapbox GL CSS (Yeni Harita için) -->
   <link
+    href="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css"
     rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    crossorigin=""
   />
 
   <!-- FontAwesome -->
@@ -64,7 +63,7 @@
     }
 
     /*******************************************************
-     * ANA LOBİ (ODA OLUŞTUR/KATIL) SAYFASI
+     * ANA LOBİ (Oda Oluştur/Katıl) SAYFASI
      *******************************************************/
     body.lobby {
       background: linear-gradient(135deg, #150f2f 0%, #1b1638 45%, #222 100%);
@@ -238,7 +237,7 @@
       overflow: hidden;
     }
 
-    /* Harita Alanı */
+    /* Harita Alanı (Artık Mapbox kullanacağız) */
     #map-container {
       width: 100%;
       height: 100%;
@@ -247,7 +246,7 @@
     #map {
       width: 100%;
       height: 100%;
-      background-color: #0c2022;
+      background-color: #0c2022; /* İsteğe bağlı arka plan rengi */
     }
 
     /* Bilgi Kartları Toggle Butonu */
@@ -415,23 +414,10 @@
     }
 
     /*******************************************************
-     * LEAFLET TOOLTIP
+     * (Eski) Leaflet tooltip sınıfları kaldırıldı.
+     * Yeni harita üzerinde tooltip/popup stilleri de
+     * eğer istenirse benzer şekilde tanımlanabilir.
      *******************************************************/
-    .leaflet-tooltip {
-      background: transparent;
-      border: none;
-      font-family: "Montserrat", sans-serif;
-      font-size: 13px;
-    }
-    .country-popup-tooltip {
-      background: rgba(0, 0, 0, 0.75);
-      color: #fff;
-      border: 1px solid #333;
-      border-radius: 4px;
-      padding: 6px 10px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-      text-align: left;
-    }
 
     /*******************************************************
      * GENEL POPUP TASARIM (Modern Cam Görünümü)
@@ -936,7 +922,7 @@
       <span id="start-countdown">30</span>
     </div>
 
-    <!-- Harita Alanı -->
+    <!-- Harita Alanı (Mapbox GL) -->
     <div id="map-container">
       <div id="map"></div>
       <!-- Bilgi Kartları Aç/Kapa -->
@@ -1347,22 +1333,16 @@
        ===============  İLGİLİ JS LİNKLERİ  ===============
        ================================================== -->
 
-  <!-- Leaflet JS (Harita) -->
+  <!-- Mapbox GL JS (Harita) -->
   <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    crossorigin=""
+    src="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js"
   ></script>
 
-  <!-- Firebase (İkinci Kısımda Yapılandırılacak) -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
-  <!--
-    BURADA "2. KISIM" (gameLogic.js veya benzeri JS dosyası) EKLENECEK.
-    Aşağıdaki satırı 2. kısım kodunuzun olduğu dosya adıyla değiştirin.
-    Örnek:
-    <script src="gameLogic.js"></script>
-  -->
+  <!-- Oyun Mantığı (JS Kısmı, 2. Aşamada Değiştirilecek) -->
   <script src="gameLogic.js"></script>
 </body>
 </html>
