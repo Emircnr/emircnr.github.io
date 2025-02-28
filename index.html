@@ -62,22 +62,31 @@
       text-decoration: none;
       color: inherit;
     }
+    button {
+      cursor: pointer;
+    }
 
     /*******************************************************
-     * ANA LOBİ (ODA OLUŞTUR/KATIL) SAYFASI
+     * SAYFA GÖRÜNÜMLERİ (Auth, Profile, Lobby, Game)
+     * Her biri başlangıçta "display: none" olabilir;
+     * JavaScript ile hangi ekran aktifse gösterilir.
      *******************************************************/
-    body.lobby {
-      background: linear-gradient(135deg, #150f2f 0%, #1b1638 45%, #222 100%);
-      background-size: cover;
+    /* Ortak container stilleri */
+    .container-page {
+      display: none; /* JS ile aktif edildiğinde block/flex */
       min-height: 100vh;
+    }
+
+    /* -- AUTH (Giriş/Kayıt) -- */
+    #auth-container {
       display: flex;
       align-items: center;
       justify-content: center;
+      background: linear-gradient(135deg, #150f2f 0%, #1b1638 45%, #222 100%);
     }
-
-    #lobby-container {
+    #auth-wrapper {
       width: 90%;
-      max-width: 540px;
+      max-width: 450px;
       background: rgba(0, 0, 0, 0.4);
       border-radius: 20px;
       padding: 30px;
@@ -85,7 +94,6 @@
       backdrop-filter: blur(6px);
       animation: fadeInUp 0.8s ease forwards;
     }
-
     @keyframes fadeInUp {
       from {
         opacity: 0;
@@ -96,31 +104,38 @@
         transform: translateY(0);
       }
     }
-
-    #lobby-container h1 {
+    #auth-wrapper h1 {
       text-align: center;
       color: #64ffda;
-      font-size: 34px;
-      margin-bottom: 10px;
+      font-size: 30px;
+      margin-bottom: 20px;
       text-shadow: 0 0 8px rgba(100, 255, 218, 0.4);
     }
-
-    #lobby-container h2 {
-      color: #f7df1e;
+    .auth-tabs {
+      display: flex;
+      margin-bottom: 20px;
+    }
+    .auth-tab {
+      flex: 1;
       text-align: center;
-      font-weight: 500;
-      margin: 20px 0 10px;
-      text-shadow: 0 0 6px rgba(247, 223, 30, 0.4);
+      padding: 10px 0;
+      cursor: pointer;
+      font-weight: 600;
+      color: #eee;
+      border-bottom: 2px solid transparent;
+      transition: border-color 0.3s;
+    }
+    .auth-tab.active {
+      color: #64ffda;
+      border-color: #64ffda;
     }
 
-    #lobby-container hr {
-      border: none;
-      border-top: 1px solid #444;
-      margin: 20px 0;
+    .auth-form {
+      margin-bottom: 15px;
     }
-
-    #lobby-container input[type="text"],
-    #lobby-container input[type="number"] {
+    .auth-form input[type="text"],
+    .auth-form input[type="email"],
+    .auth-form input[type="password"] {
       width: 100%;
       padding: 12px;
       margin-bottom: 15px;
@@ -131,14 +146,11 @@
       color: #333;
       transition: box-shadow 0.3s, border-color 0.3s;
     }
-
-    #lobby-container input[type="text"]:focus,
-    #lobby-container input[type="number"]:focus {
+    .auth-form input:focus {
       border-color: #64ffda;
       box-shadow: 0 0 8px #64ffda;
     }
-
-    #lobby-container button {
+    .auth-form button {
       width: 100%;
       padding: 14px;
       margin-bottom: 15px;
@@ -152,13 +164,261 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
       transition: transform 0.3s, box-shadow 0.3s;
     }
-
-    #lobby-container button:hover {
+    .auth-form button:hover {
       transform: scale(1.03);
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
     }
 
-    /* Renk Seçenekleri (Küçük yuvarlaklar) */
+    /* -- PROFILE -- */
+    #profile-container {
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(135deg, #342f2e 0%, #1b1638 45%, #222 100%);
+      padding: 20px;
+    }
+    #profile-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    #profile-header h2 {
+      font-size: 24px;
+      color: #64ffda;
+      margin: 0;
+    }
+    #profile-header .profile-buttons button {
+      padding: 10px 16px;
+      margin-left: 10px;
+      font-size: 14px;
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #64ffda, #00c9ff);
+      transition: transform 0.3s;
+    }
+    #profile-header .profile-buttons button:hover {
+      transform: scale(1.03);
+    }
+
+    #profile-content {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    /* Arkadaş listesi ve istekler bölümü */
+    .friends-section,
+    .friend-requests-section,
+    .add-friend-section {
+      flex: 1;
+      min-width: 280px;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 15px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+    .friends-section h3,
+    .friend-requests-section h3,
+    .add-friend-section h3 {
+      color: #f7df1e;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      font-size: 16px;
+    }
+    .friend-list,
+    .friend-request-list {
+      max-height: 240px;
+      overflow-y: auto;
+    }
+    .friend-item,
+    .friend-request-item {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      margin-bottom: 10px;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 14px;
+    }
+    .friend-request-item button {
+      margin-left: 8px;
+      padding: 5px 10px;
+      font-size: 12px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .accept-friend-btn {
+      background: linear-gradient(135deg, #27ae60, #2ecc71);
+      color: #fff;
+    }
+    .reject-friend-btn {
+      background: linear-gradient(135deg, #c0392b, #e74c3c);
+      color: #fff;
+    }
+    .remove-friend-btn {
+      background: linear-gradient(135deg, #e74c3c, #c0392b);
+      color: #fff;
+      padding: 5px 8px;
+      font-size: 12px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+    }
+    /* Arkadaş ekleme formu */
+    .add-friend-section input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #444;
+      border-radius: 6px;
+      outline: none;
+      color: #333;
+      transition: box-shadow 0.3s, border-color 0.3s;
+    }
+    .add-friend-section input[type="text"]:focus {
+      border-color: #64ffda;
+      box-shadow: 0 0 8px #64ffda;
+    }
+    .add-friend-section button {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 5px;
+      background: linear-gradient(to right, #64ffda, #00c9ff);
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      transition: transform 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+    }
+    .add-friend-section button:hover {
+      transform: scale(1.03);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
+    }
+
+    /* Oyun davetleri bölümü */
+    .invite-friends-section {
+      flex: 1;
+      min-width: 280px;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 15px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+    .invite-friends-section h3 {
+      color: #f7df1e;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      font-size: 16px;
+    }
+    .invite-list {
+      max-height: 240px;
+      overflow-y: auto;
+    }
+    .invite-friends-section button {
+      margin-top: 10px;
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(to right, #ff9966, #ff5e62);
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      transition: transform 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+    }
+    .invite-friends-section button:hover {
+      transform: scale(1.03);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
+    }
+
+    /*******************************************************
+     * ANA LOBİ (ODA OLUŞTUR/KATIL)
+     *******************************************************/
+    #lobby-container {
+      background: linear-gradient(135deg, #150f2f 0%, #1b1638 45%, #222 100%);
+      background-size: cover;
+      display: none; /* ilk etapta kapalı, login sonrası aktif edilebilir */
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #lobby-wrapper {
+      width: 90%;
+      max-width: 540px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(6px);
+      animation: fadeInUp 0.8s ease forwards;
+    }
+    #lobby-wrapper h1 {
+      text-align: center;
+      color: #64ffda;
+      font-size: 34px;
+      margin-bottom: 10px;
+      text-shadow: 0 0 8px rgba(100, 255, 218, 0.4);
+    }
+    #lobby-wrapper h2 {
+      color: #f7df1e;
+      text-align: center;
+      font-weight: 500;
+      margin: 20px 0 10px;
+      text-shadow: 0 0 6px rgba(247, 223, 30, 0.4);
+    }
+    #lobby-wrapper hr {
+      border: none;
+      border-top: 1px solid #444;
+      margin: 20px 0;
+    }
+    #lobby-wrapper input[type="text"],
+    #lobby-wrapper input[type="number"] {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 1px solid #444;
+      border-radius: 6px;
+      font-size: 16px;
+      outline: none;
+      color: #333;
+      transition: box-shadow 0.3s, border-color 0.3s;
+    }
+    #lobby-wrapper input:focus {
+      border-color: #64ffda;
+      box-shadow: 0 0 8px #64ffda;
+    }
+    #lobby-wrapper button {
+      width: 100%;
+      padding: 14px;
+      margin-bottom: 15px;
+      background: linear-gradient(to right, #64ffda, #00c9ff);
+      border: 1px solid #00adb5;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: 600;
+      color: #000;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    #lobby-wrapper button:hover {
+      transform: scale(1.03);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
+    }
     .color-options {
       margin-bottom: 15px;
       text-align: center;
@@ -213,7 +473,6 @@
       animation: slideIn 0.5s forwards, fadeOut 0.5s 5.5s forwards;
       border: 1px solid rgba(255, 255, 255, 0.2);
     }
-
     @keyframes slideIn {
       to {
         opacity: 1;
@@ -237,8 +496,6 @@
       position: relative;
       overflow: hidden;
     }
-
-    /* Harita Alanı */
     #map-container {
       width: 100%;
       height: 100%;
@@ -249,8 +506,6 @@
       height: 100%;
       background-color: #0c2022;
     }
-
-    /* Bilgi Kartları Toggle Butonu */
     .toggle-info-cards {
       position: absolute;
       top: 10px;
@@ -295,7 +550,6 @@
       font-weight: 600;
       color: #64ffda;
     }
-
     #end-turn-btn {
       background: linear-gradient(135deg, #ff9966, #ff5e62);
       border: none;
@@ -313,8 +567,6 @@
       transform: scale(1.05);
       box-shadow: 0 0 10px rgba(255, 150, 120, 0.6);
     }
-
-    /* 60 saniyelik sayaç (estetik) */
     #turn-timer {
       font-size: 14px;
       color: #f39c12;
@@ -322,8 +574,6 @@
       padding: 3px 8px;
       border-radius: 4px;
     }
-
-    /* OYUNU BAŞLAT BUTONU + SAYIM GÖSTERGESİ */
     #start-game-btn {
       background: linear-gradient(135deg, #9be15d, #00e3ae);
       border: none;
@@ -392,8 +642,6 @@
       font-size: 12px;
       pointer-events: none;
     }
-
-    /* Odadan Çık Butonu (Sağ Alt) */
     #exit-room-btn {
       position: fixed;
       bottom: 20px;
@@ -798,8 +1046,7 @@
       font-size: 15px;
       background: rgba(0, 0, 0, 0.2);
     }
-
-    /* --- Oyuncu listesi öğesi (YENİ: animasyon KALDIRILDI) --- */
+    /* --- Oyuncu listesi öğesi --- */
     #players-popup .popup-content .player-info {
       background: rgba(0, 0, 0, 0.3);
       padding: 12px;
@@ -808,21 +1055,30 @@
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
       font-size: 15px;
       border: 1px solid rgba(255, 255, 255, 0.1);
-      /* Animasyon satırı kaldırıldı, böylece yanıp sönme olmuyor */
     }
 
     /*******************************************************
      * RESPONSIVE (Mobil)
      *******************************************************/
     @media screen and (max-width: 768px) {
-      /* Lobi */
-      #lobby-container {
+      /* Auth */
+      #auth-wrapper {
         width: 90%;
       }
-      #lobby-container h1 {
+
+      /* Profile */
+      #profile-content {
+        flex-direction: column;
+      }
+
+      /* Lobi */
+      #lobby-wrapper {
+        width: 90%;
+      }
+      #lobby-wrapper h1 {
         font-size: 28px;
       }
-      #lobby-container h2 {
+      #lobby-wrapper h2 {
         font-size: 18px;
       }
 
@@ -844,7 +1100,6 @@
         height: 44px;
         font-size: 16px;
       }
-
       /* Odadan Çık Butonu */
       #exit-room-btn {
         bottom: 85px;
@@ -852,7 +1107,6 @@
         font-size: 13px;
         padding: 8px 12px;
       }
-
       /* Popup'lar */
       .modern-popup,
       .chat-popup,
@@ -868,43 +1122,130 @@
   </style>
 </head>
 
-<body class="lobby">
-  <!-- =============== LOBBY ALANI (Oda Oluştur / Katıl) =============== -->
-  <div id="lobby-container" class="animate__animated animate__fadeIn">
-    <h1>GLOBAL CONQUEST</h1>
-    <!-- Oda Oluşturma -->
-    <div id="create-room-section">
-      <h2>Oda Oluştur</h2>
-      <input type="text" id="creator-player-name" placeholder="Adınız" />
-      <div class="color-options" id="creator-color-options"></div>
-      <input
-        type="number"
-        id="max-players"
-        placeholder="Oyuncu Sayısı (2-8)"
-        min="2"
-        max="8"
-      />
-      <button id="create-room-btn">Oda Oluştur</button>
+<body>
+  <!-- =============== 1. Giriş / Kayıt Ekranı =============== -->
+  <div id="auth-container" class="container-page">
+    <div id="auth-wrapper" class="animate__animated animate__fadeIn">
+      <h1>GLOBAL CONQUEST</h1>
+
+      <!-- Sekme başlıkları: Giriş - Kayıt -->
+      <div class="auth-tabs">
+        <div id="login-tab" class="auth-tab active">Giriş Yap</div>
+        <div id="register-tab" class="auth-tab">Kayıt Ol</div>
+      </div>
+
+      <!-- Giriş Formu -->
+      <div id="login-form" class="auth-form">
+        <input type="email" id="login-email" placeholder="E-Posta" />
+        <input type="password" id="login-password" placeholder="Şifre" />
+        <button id="login-btn">Giriş Yap</button>
+      </div>
+
+      <!-- Kayıt Formu -->
+      <div id="register-form" class="auth-form" style="display:none;">
+        <input type="email" id="register-email" placeholder="E-Posta" />
+        <input type="password" id="register-password" placeholder="Şifre" />
+        <input
+          type="password"
+          id="register-confirm-password"
+          placeholder="Şifre Tekrar"
+        />
+        <input
+          type="text"
+          id="register-display-name"
+          placeholder="Kullanıcı Adı (Profil Adı)"
+        />
+        <button id="register-btn">Kayıt Ol</button>
+      </div>
     </div>
-    <hr />
-    <!-- Odaya Katılma -->
-    <div id="join-room-section">
-      <h2>Odaya Katıl</h2>
-      <input type="text" id="join-player-name" placeholder="Adınız" />
-      <div class="color-options" id="join-color-options"></div>
-      <input
-        type="text"
-        id="room-code"
-        placeholder="Oda Kodu (Örn: AB12CD)"
-      />
-      <button id="join-room-btn">Odaya Katıl</button>
+  </div>
+
+  <!-- =============== 2. Profil Ekranı (Arkadaşlar, İstekler, Davet) =============== -->
+  <div id="profile-container" class="container-page">
+    <!-- Üst profil bar -->
+    <div id="profile-header">
+      <h2 id="profile-username">Kullanıcı Adınız</h2>
+      <div class="profile-buttons">
+        <button id="go-lobby-btn">Oyun Lobisine Geç</button>
+        <button id="profile-logout-btn" style="background: linear-gradient(135deg, #ff5d5d, #ff2d2d); color: #fff;">
+          Çıkış Yap
+        </button>
+      </div>
+    </div>
+
+    <div id="profile-content">
+      <!-- Arkadaşlar -->
+      <div class="friends-section">
+        <h3>Arkadaşlar</h3>
+        <div class="friend-list" id="friend-list"></div>
+      </div>
+
+      <!-- Arkadaş İstekleri -->
+      <div class="friend-requests-section">
+        <h3>Gelen İstekler</h3>
+        <div class="friend-request-list" id="friend-request-list"></div>
+      </div>
+
+      <!-- Arkadaş Ekleme -->
+      <div class="add-friend-section">
+        <h3>Arkadaş Ekle</h3>
+        <input type="text" id="add-friend-username" placeholder="Kullanıcı Adı" />
+        <button id="send-friend-request-btn">İstek Gönder</button>
+      </div>
+
+      <!-- Davet Gönder -->
+      <div class="invite-friends-section">
+        <h3>Arkadaşları Davet Et</h3>
+        <!-- Burada davet gönderebileceğimiz arkadaşların listesi vb. -->
+        <div class="invite-list" id="invite-friend-list"></div>
+        <button id="create-room-invite-btn">
+          Oda Oluştur & Davet Gönder
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============== 3. Lobi Ekranı (Oda Oluştur / Katıl) =============== -->
+  <div id="lobby-container" class="container-page">
+    <div id="lobby-wrapper" class="animate__animated animate__fadeIn">
+      <h1>GLOBAL CONQUEST</h1>
+
+      <!-- Oda Oluşturma -->
+      <div id="create-room-section">
+        <h2>Oda Oluştur</h2>
+        <input type="text" id="creator-player-name" placeholder="Oyun İçindeki Adınız" />
+        <div class="color-options" id="creator-color-options"></div>
+        <input
+          type="number"
+          id="max-players"
+          placeholder="Oyuncu Sayısı (2-8)"
+          min="2"
+          max="8"
+        />
+        <button id="create-room-btn">Oda Oluştur</button>
+      </div>
+
+      <hr />
+
+      <!-- Odaya Katılma -->
+      <div id="join-room-section">
+        <h2>Odaya Katıl</h2>
+        <input type="text" id="join-player-name" placeholder="Oyun İçindeki Adınız" />
+        <div class="color-options" id="join-color-options"></div>
+        <input
+          type="text"
+          id="room-code"
+          placeholder="Oda Kodu (Örn: AB12CD)"
+        />
+        <button id="join-room-btn">Odaya Katıl</button>
+      </div>
     </div>
   </div>
 
   <!-- =============== BİLDİRİM ALANI (Kısa Süreli) =============== -->
   <div id="notification-area"></div>
 
-  <!-- =============== OYUN EKRANI =============== -->
+  <!-- =============== 4. Oyun Ekranı =============== -->
   <div id="game-container">
     <!-- Üst Bilgi (Tur, Oda Kodu, Sıra, Başlat vb.) -->
     <div id="top-info">
@@ -937,7 +1278,11 @@
 
     <!-- Alt İkonlar (Chat, Market, vb.) -->
     <div id="bottom-icons">
-      <button id="open-players-btn" class="bottom-icon-btn" title="Oyuncular">
+      <button
+        id="open-players-btn"
+        class="bottom-icon-btn"
+        title="Oyuncular"
+      >
         <i class="fas fa-users"></i>
       </button>
       <button
@@ -1330,24 +1675,20 @@
     </div>
   </div>
 
-  <!-- ==================================================
-       ===============  İLGİLİ JS LİNKLERİ  ===============
-       ================================================== -->
-
   <!-- Leaflet JS (Harita) -->
   <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     crossorigin=""
   ></script>
 
-  <!-- Firebase (İkinci Kısımda Yapılandırılacak) -->
+  <!-- Firebase (v9) -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
-  <!--
-    BURADA "2. KISIM" (gameLogic.js veya benzeri JS dosyası) EKLENECEK.
-    Örnek:
-    <script src="gameLogic.js"></script>
+  <!-- 
+    BURADA "gameLogic.js" vb. ana JS dosyamız yer alacak.
+    Bir sonraki adımda tüm JS kodunu ekleyeceğiz.
   -->
   <script src="gameLogic.js"></script>
 </body>
