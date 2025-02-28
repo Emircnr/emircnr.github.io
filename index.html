@@ -190,10 +190,6 @@
       color: #64ffda;
       margin: 0;
     }
-    #profile-header .profile-buttons {
-      display: flex;
-      align-items: center;
-    }
     #profile-header .profile-buttons button {
       padding: 10px 16px;
       margin-left: 10px;
@@ -248,16 +244,6 @@
       align-items: center;
       justify-content: space-between;
       font-size: 14px;
-    }
-    .friend-item span.online-status {
-      font-weight: bold;
-      margin-left: 6px;
-      color: #41ff9e; /* Çevrimiçi için yeşilimsi */
-    }
-    .friend-item span.offline-status {
-      font-weight: bold;
-      margin-left: 6px;
-      color: #ff7171; /* Çevrimdışı için kırmızımsı */
     }
     .friend-request-item button {
       margin-left: 8px;
@@ -468,29 +454,30 @@
       transform: scale(1.03);
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
     }
-
-    /* Davet Linki Bölümü */
-    #invite-link-section {
-      display: none; /* JS ile oda oluşturulduğunda görünür */
-      background: rgba(255, 255, 255, 0.1);
-      padding: 15px;
-      border-radius: 10px;
-      margin: 20px 0;
+    .color-options {
+      margin-bottom: 15px;
       text-align: center;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
     }
-    #invite-link-section p {
-      margin: 0 0 10px;
+    .global-color-option {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      display: inline-block;
+      margin: 0 5px;
+      transition: transform 0.3s, border-color 0.3s;
     }
-    #invite-link {
-      background: #222;
-      color: #fff;
-      border: 1px solid #444;
-      padding: 8px;
-      border-radius: 6px;
-      width: 100%;
-      box-sizing: border-box;
-      text-align: center;
-      word-break: break-all;
+    .global-color-option:hover {
+      transform: scale(1.15);
+      border-color: #fff;
+    }
+    .global-color-option.selected {
+      border-color: #f7df1e;
     }
 
     /*******************************************************
@@ -1106,26 +1093,6 @@
     }
 
     /*******************************************************
-     * BAYRAK DÜZENLEYİCİ (Flag Editor) POPUP
-     *******************************************************/
-    #flag-editor-popup {
-      width: 480px;
-      max-height: 80vh;
-      display: none;
-      flex-direction: column;
-      z-index: 3003;
-      background: rgba(0, 0, 0, 0.45);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 14px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8);
-      animation: popupFadeIn 0.5s ease forwards;
-      right: 50%;
-      bottom: 50%;
-      transform: translate(50%, -50%);
-    }
-
-    /*******************************************************
      * RESPONSIVE (Mobil)
      *******************************************************/
     @media screen and (max-width: 768px) {
@@ -1180,13 +1147,11 @@
       .chat-popup,
       .market-popup,
       #pact-popup,
-      #players-popup,
-      #flag-editor-popup {
+      #players-popup {
         width: 90% !important;
         left: 5% !important;
         right: auto !important;
         bottom: 90px;
-        transform: none !important;
       }
     }
   </style>
@@ -1236,12 +1201,7 @@
     <div id="profile-header">
       <h2 id="profile-username">Kullanıcı Adınız</h2>
       <div class="profile-buttons">
-        <button id="edit-flag-btn" style="background: linear-gradient(135deg, #ffc107, #fdf7d8); color: #000;">
-          Bayrak Düzenle
-        </button>
-        <button id="go-lobby-btn">
-          Oyun Lobisine Geç
-        </button>
+        <button id="go-lobby-btn">Oyun Lobisine Geç</button>
         <button id="profile-logout-btn" style="background: linear-gradient(135deg, #ff5d5d, #ff2d2d); color: #fff;">
           Çıkış Yap
         </button>
@@ -1294,12 +1254,15 @@
       <div id="create-room-section">
         <h2>Oda Oluştur</h2>
         <input type="text" id="creator-player-name" placeholder="Oyun İçindeki Adınız" />
+        <div class="color-options" id="creator-color-options"></div>
+        <input
+          type="number"
+          id="max-players"
+          placeholder="Oyuncu Sayısı (2-8)"
+          min="2"
+          max="8"
+        />
         <button id="create-room-btn">Oda Oluştur</button>
-      </div>
-
-      <div id="invite-link-section">
-        <p>Bu linki paylaşarak diğer oyuncuları davet edebilirsiniz:</p>
-        <div id="invite-link"></div>
       </div>
 
       <hr />
@@ -1308,7 +1271,12 @@
       <div id="join-room-section">
         <h2>Odaya Katıl</h2>
         <input type="text" id="join-player-name" placeholder="Oyun İçindeki Adınız" />
-        <input type="text" id="room-code" placeholder="Oda Kodu (Örn: AB12CD)" />
+        <div class="color-options" id="join-color-options"></div>
+        <input
+          type="text"
+          id="room-code"
+          placeholder="Oda Kodu (Örn: AB12CD)"
+        />
         <button id="join-room-btn">Odaya Katıl</button>
       </div>
     </div>
@@ -1747,37 +1715,6 @@
     </div>
   </div>
 
-  <!-- =============== BAYRAK DÜZENLEYİCİ POPUP =============== -->
-  <div id="flag-editor-popup" class="modern-popup">
-    <div class="popup-header" id="flag-editor-popup-header">
-      <span>Bayrak Düzenleyici</span>
-      <button id="close-flag-editor-btn">&times;</button>
-    </div>
-    <div class="popup-content" style="position: relative;">
-      <canvas
-        id="flag-canvas"
-        width="400"
-        height="300"
-        style="border:1px solid #ccc; background:#fff; display:block; margin:0 auto;"
-      ></canvas>
-
-      <div style="text-align:center; margin-top:10px;">
-        <label>Renk:</label>
-        <input type="color" id="flag-color" value="#ff0000" />
-        
-        <label>Kalınlık:</label>
-        <input type="range" id="flag-brush-size" min="1" max="20" value="5" />
-
-        <button id="flag-erase-btn" style="margin-left:5px;">Silgi</button>
-        <button id="flag-clear-btn" style="margin-left:5px;">Temizle</button>
-      </div>
-
-      <button id="save-flag-btn" style="margin-top:10px;">
-        Kaydet
-      </button>
-    </div>
-  </div>
-
   <!-- Leaflet JS (Harita) -->
   <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
@@ -1789,7 +1726,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
-  <!-- JS Kodu (gameLogic.js) -->
+  <!-- JS Kodu (Bir sonraki mesajda verilecektir) -->
   <script src="gameLogic.js"></script>
 </body>
 </html>
