@@ -305,7 +305,7 @@
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
     }
 
-    /* Oyun davetleri bölümü */
+    /* Davet Gönder */
     .invite-friends-section {
       flex: 1;
       min-width: 280px;
@@ -325,6 +325,16 @@
       max-height: 240px;
       overflow-y: auto;
     }
+    .invite-friend-item {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      margin-bottom: 10px;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 14px;
+    }
     .invite-friends-section button {
       margin-top: 10px;
       width: 100%;
@@ -342,6 +352,31 @@
     .invite-friends-section button:hover {
       transform: scale(1.03);
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
+    }
+
+    /* Gelen Oda Davetleri */
+    .room-invites-section {
+      flex: 1;
+      min-width: 280px;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 15px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+    .room-invite-list {
+      max-height: 240px;
+      overflow-y: auto;
+    }
+    .room-invite-item {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      margin-bottom: 10px;
+      padding: 10px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
 
     /*******************************************************
@@ -1160,7 +1195,7 @@
     </div>
   </div>
 
-  <!-- =============== 2. Profil Ekranı (Arkadaşlar, İstekler, Davet) =============== -->
+  <!-- =============== 2. Profil Ekranı (Arkadaşlar, İstekler, Davetler) =============== -->
   <div id="profile-container" class="container-page">
     <!-- Üst profil bar -->
     <div id="profile-header">
@@ -1186,6 +1221,12 @@
         <div class="friend-request-list" id="friend-request-list"></div>
       </div>
 
+      <!-- Oda Davetleri -->
+      <div class="room-invites-section">
+        <h3>Gelen Oda Davetleri</h3>
+        <div class="room-invite-list" id="room-invite-list"></div>
+      </div>
+
       <!-- Arkadaş Ekleme -->
       <div class="add-friend-section">
         <h3>Arkadaş Ekle</h3>
@@ -1196,7 +1237,6 @@
       <!-- Davet Gönder -->
       <div class="invite-friends-section">
         <h3>Arkadaşları Davet Et</h3>
-        <!-- Burada davet gönderebileceğimiz arkadaşların listesi vb. -->
         <div class="invite-list" id="invite-friend-list"></div>
         <button id="create-room-invite-btn">
           Oda Oluştur & Davet Gönder
@@ -1686,10 +1726,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
-  <!-- 
-    BURADA "gameLogic.js" vb. ana JS dosyamız yer alacak.
-    Bir sonraki adımda tüm JS kodunu ekleyeceğiz.
-  -->
+  <!-- JS Kodu (Bir sonraki mesajda verilecektir) -->
   <script src="gameLogic.js"></script>
 </body>
 </html>
