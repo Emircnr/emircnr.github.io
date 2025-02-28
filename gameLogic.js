@@ -322,6 +322,7 @@ friendRequestList.addEventListener("click", async (e) => {
   if (e.target.classList.contains("accept-friend-btn")) {
     const fromUid = e.target.getAttribute("data-fid");
     await acceptFriendRequest(fromUid);
+    loadUserFriends();
   } else if (e.target.classList.contains("reject-friend-btn")) {
     const fromUid = e.target.getAttribute("data-fid");
     await rejectFriendRequest(fromUid);
@@ -334,7 +335,6 @@ async function acceptFriendRequest(fromUid) {
   await db.ref(`users/${fromUid}/friends/${currentUser.uid}`).set(true);
   await db.ref(`users/${currentUser.uid}/friendRequests/${fromUid}`).remove();
   showNotification("İstek kabul edildi!");
-  loadUserFriends();
 }
 
 async function rejectFriendRequest(fromUid) {
@@ -633,7 +633,6 @@ async function joinRoomByCode(roomCodeInput, customName) {
   const myName = customName || (currentUserData?.displayName) || "Oyuncu";
   const userFlag = currentUserData.flag || "";
 
-  const playerCount = (room.playerOrder || []).length;
   // Bu versiyonda maxPlayer yok, isteyen katılabilir.
   const updates = {};
   if (!room.playerOrder) room.playerOrder = [];
@@ -668,7 +667,7 @@ function autoReconnect() {
   const urlParams = new URLSearchParams(window.location.search);
   const paramRoomCode = urlParams.get("roomCode");
   if (paramRoomCode) {
-    // Parametre varsa localStorage üzerini ezebilir veya direkt katılabiliriz
+    // Parametre varsa localStorage üzerini ezebilir
     localStorage.setItem("roomCode", paramRoomCode);
   }
 
@@ -787,7 +786,7 @@ function updateGameUI() {
       const cData = roomData.countryData[cname];
       if (cData) {
         if (cData.owner && roomData.players[cData.owner]) {
-          // Renk desteği kaldırıldığı için default dolgu rengi verelim
+          // Renk seçimi yok => Tek tip
           layer.setStyle({
             fillColor: "#f39c12",
             fillOpacity: 0.7
@@ -2129,6 +2128,7 @@ function hasActivePact(a, b) {
         return true;
       }
     }
+  }
   return false;
 }
 
@@ -2733,8 +2733,3 @@ document.addEventListener("DOMContentLoaded", () => {
     attributeFilter: ["style"]
   });
 });
-        });
-    });
-  });
-});
-
