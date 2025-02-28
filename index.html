@@ -798,6 +798,7 @@
       font-size: 15px;
       background: rgba(0, 0, 0, 0.2);
     }
+    /* Oyuncu bilgileri animasyonunu iptal ettik (yanıp sönme engellendi) */
     #players-popup .popup-content .player-info {
       background: rgba(0, 0, 0, 0.3);
       padding: 12px;
@@ -806,17 +807,6 @@
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
       font-size: 15px;
       border: 1px solid rgba(255, 255, 255, 0.1);
-      animation: fadeInPop 0.6s ease forwards;
-    }
-    @keyframes fadeInPop {
-      from {
-        opacity: 0;
-        transform: scale(0.8);
-      }
-      to {
-        opacity: 1;
-        transform: scale(1);
-      }
     }
     #players-popup .popup-content .player-info p {
       margin: 4px 0;
@@ -1357,12 +1347,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
-  <!--
-    BURADA "2. KISIM" (gameLogic.js veya benzeri JS dosyası) EKLENECEK.
-    Aşağıdaki satırı 2. kısım kodunuzun olduğu dosya adıyla değiştirin.
-    Örnek:
-    <script src="gameLogic.js"></script>
-  -->
+  <!-- Burada 2. kısım (JS) eklenecek -->
   <script src="gameLogic.js"></script>
 </body>
 </html>
