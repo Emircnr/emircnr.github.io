@@ -19,6 +19,12 @@
     crossorigin=""
   />
 
+  <!-- Leaflet Pattern Plugin (Bayrak resmiyle pattern dolgusu) -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet-pattern/dist/leaflet.pattern.css"
+  />
+
   <!-- FontAwesome -->
   <link
     rel="stylesheet"
@@ -252,12 +258,12 @@
     .friend-item span.online-status {
       font-weight: bold;
       margin-left: 6px;
-      color: #41ff9e; /* Çevrimiçi için yeşilimsi */
+      color: #41ff9e; /* Çevrimiçi */
     }
     .friend-item span.offline-status {
       font-weight: bold;
       margin-left: 6px;
-      color: #ff7171; /* Çevrimdışı için kırmızımsı */
+      color: #ff7171; /* Çevrimdışı */
     }
     .friend-request-item button {
       margin-left: 8px;
@@ -399,7 +405,7 @@
     #lobby-container {
       background: linear-gradient(135deg, #150f2f 0%, #1b1638 45%, #222 100%);
       background-size: cover;
-      display: none; /* ilk etapta kapalı, login sonrası aktif edilebilir */
+      display: none; 
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -471,7 +477,7 @@
 
     /* Davet Linki Bölümü */
     #invite-link-section {
-      display: none; /* JS ile oda oluşturulduğunda görünür */
+      display: none; /* Oda oluşturulduktan sonra görünür */
       background: rgba(255, 255, 255, 0.1);
       padding: 15px;
       border-radius: 10px;
@@ -1783,6 +1789,9 @@
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     crossorigin=""
   ></script>
+  
+  <!-- Leaflet Pattern Plugin (Bayrak görselini polygon fill olarak kullanmak için) -->
+  <script src="https://unpkg.com/leaflet-pattern/dist/leaflet.pattern.js"></script>
 
   <!-- Firebase (v9) -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
