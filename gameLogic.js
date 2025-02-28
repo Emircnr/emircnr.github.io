@@ -8,7 +8,7 @@
  * 1. Firebase Başlatma
  *****************************************************************/
 const firebaseConfig = {
-  apiKey: "AIzaSy...",
+ apiKey: "AIzaSyCINihMNGs-qRYIIBLzXyeaLnM_Lhp-iwg",
   authDomain: "warmapg-77acb.firebaseapp.com",
   databaseURL: "https://warmapg-77acb-default-rtdb.firebaseio.com",
   projectId: "warmapg-77acb",
