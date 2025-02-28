@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <!-- Mobil cihazlarda uygun ölçeklendirme ve görünüm için -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Global Conquest - Online</title>
+  <title>Global Conquest - Bayrak, Davet ve Daha Fazlası</title>
 
   <!-- Google Fonts: Orbitron (başlıklar), Montserrat (metinler) -->
   <link
@@ -212,7 +212,8 @@
     /* Arkadaş listesi ve istekler bölümü */
     .friends-section,
     .friend-requests-section,
-    .add-friend-section {
+    .add-friend-section,
+    .room-invites-section {
       flex: 1;
       min-width: 280px;
       background: rgba(0, 0, 0, 0.25);
@@ -223,19 +224,22 @@
     }
     .friends-section h3,
     .friend-requests-section h3,
-    .add-friend-section h3 {
+    .add-friend-section h3,
+    .room-invites-section h3 {
       color: #f7df1e;
       margin-bottom: 10px;
       text-transform: uppercase;
       font-size: 16px;
     }
     .friend-list,
-    .friend-request-list {
+    .friend-request-list,
+    .room-invite-list {
       max-height: 240px;
       overflow-y: auto;
     }
     .friend-item,
-    .friend-request-item {
+    .friend-request-item,
+    .room-invite-item {
       background: rgba(255, 255, 255, 0.1);
       border-radius: 6px;
       margin-bottom: 10px;
@@ -271,7 +275,19 @@
       border: none;
       cursor: pointer;
     }
-    /* Arkadaş ekleme formu */
+
+    /* Çevrimiçi/Offline ibaresi */
+    .online-status {
+      margin-left: 8px;
+      font-size: 12px;
+      color: #64ffda; /* Yeşilimsi */
+    }
+    .offline-status {
+      margin-left: 8px;
+      font-size: 12px;
+      color: #ff7373; /* Kırmızımsı */
+    }
+
     .add-friend-section input[type="text"] {
       width: 100%;
       padding: 10px;
@@ -354,42 +370,73 @@
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
     }
 
-    /* Gelen Oda Davetleri */
-    .room-invites-section {
+    /* B A Y R A K  P A I N T E R */
+    #flag-painter-section {
       flex: 1;
-      min-width: 280px;
+      min-width: 320px;
       background: rgba(0, 0, 0, 0.25);
       padding: 15px;
       border-radius: 10px;
       border: 1px solid rgba(255, 255, 255, 0.1);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
     }
-    .room-invite-list {
-      max-height: 240px;
-      overflow-y: auto;
-    }
-    .room-invite-item {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 6px;
+    #flag-painter-section h3 {
+      color: #f7df1e;
       margin-bottom: 10px;
-      padding: 10px;
-      font-size: 14px;
+      text-transform: uppercase;
+      font-size: 16px;
+    }
+    #flag-canvas {
+      border: 2px solid #ccc;
+      background: #fff;
+      display: block;
+      margin-bottom: 10px;
+    }
+    .flag-painter-controls {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .flag-painter-controls input[type="color"] {
+      width: 50px;
+      height: 40px;
+      border: none;
+      cursor: pointer;
+    }
+    .flag-painter-controls button {
+      background: #64ffda;
+      color: #000;
+      font-weight: 600;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .flag-painter-controls button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+    #save-flag-btn {
+      width: 100%;
+      margin-top: 8px;
+      background: linear-gradient(to right, #64ffda, #00c9ff);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      font-size: 16px;
     }
 
     /*******************************************************
-     * ANA LOBİ (ODA OLUŞTUR/KATIL)
+     * LOBBY EKRANI
      *******************************************************/
     #lobby-container {
       background: linear-gradient(135deg, #150f2f 0%, #1b1638 45%, #222 100%);
       background-size: cover;
-      display: none; /* ilk etapta kapalı, login sonrası aktif edilebilir */
+      display: none;
       min-height: 100vh;
-      display: flex;
       align-items: center;
       justify-content: center;
+      padding: 20px;
     }
     #lobby-wrapper {
       width: 90%;
@@ -405,37 +452,10 @@
       text-align: center;
       color: #64ffda;
       font-size: 34px;
-      margin-bottom: 10px;
+      margin-bottom: 20px;
       text-shadow: 0 0 8px rgba(100, 255, 218, 0.4);
     }
-    #lobby-wrapper h2 {
-      color: #f7df1e;
-      text-align: center;
-      font-weight: 500;
-      margin: 20px 0 10px;
-      text-shadow: 0 0 6px rgba(247, 223, 30, 0.4);
-    }
-    #lobby-wrapper hr {
-      border: none;
-      border-top: 1px solid #444;
-      margin: 20px 0;
-    }
-    #lobby-wrapper input[type="text"],
-    #lobby-wrapper input[type="number"] {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 15px;
-      border: 1px solid #444;
-      border-radius: 6px;
-      font-size: 16px;
-      outline: none;
-      color: #333;
-      transition: box-shadow 0.3s, border-color 0.3s;
-    }
-    #lobby-wrapper input:focus {
-      border-color: #64ffda;
-      box-shadow: 0 0 8px #64ffda;
-    }
+    /* Tek buton: Oda Oluştur */
     #lobby-wrapper button {
       width: 100%;
       padding: 14px;
@@ -454,30 +474,37 @@
       transform: scale(1.03);
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
     }
-    .color-options {
-      margin-bottom: 15px;
-      text-align: center;
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 8px;
+
+    /* Davet Linki Gösterme */
+    #invite-link-container {
+      margin-top: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.2);
+      display: none;
     }
-    .global-color-option {
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      border: 2px solid transparent;
+    #invite-link-container p {
+      margin-bottom: 8px;
+    }
+    #invite-link {
+      width: 100%;
+      background: #222;
+      color: #64ffda;
+      padding: 6px;
+      font-size: 14px;
+      border: none;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+    #copy-invite-btn {
+      background: linear-gradient(135deg, #9be15d, #00e3ae);
+      color: #000;
+      font-weight: 600;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 12px;
       cursor: pointer;
-      display: inline-block;
-      margin: 0 5px;
-      transition: transform 0.3s, border-color 0.3s;
-    }
-    .global-color-option:hover {
-      transform: scale(1.15);
-      border-color: #fff;
-    }
-    .global-color-option.selected {
-      border-color: #f7df1e;
     }
 
     /*******************************************************
@@ -698,26 +725,7 @@
     }
 
     /*******************************************************
-     * LEAFLET TOOLTIP
-     *******************************************************/
-    .leaflet-tooltip {
-      background: transparent;
-      border: none;
-      font-family: "Montserrat", sans-serif;
-      font-size: 13px;
-    }
-    .country-popup-tooltip {
-      background: rgba(0, 0, 0, 0.75);
-      color: #fff;
-      border: 1px solid #333;
-      border-radius: 4px;
-      padding: 6px 10px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-      text-align: left;
-    }
-
-    /*******************************************************
-     * GENEL POPUP TASARIM (Modern Cam Görünümü)
+     * POPUP TASARIM & YERLEŞİMLER
      *******************************************************/
     .modern-popup {
       position: fixed;
@@ -809,9 +817,7 @@
       outline: none;
     }
 
-    /*******************************************************
-     * CHAT POPUP (Genel + Özel)
-     *******************************************************/
+    /* CHAT POPUP */
     .chat-popup {
       width: 460px;
       max-height: 70vh;
@@ -909,190 +915,6 @@
     }
 
     /*******************************************************
-     * PAKT POPUP
-     *******************************************************/
-    #pact-popup {
-      width: 460px;
-      max-height: 70vh;
-      display: none;
-      flex-direction: column;
-      z-index: 3002;
-    }
-    #pact-popup-header {
-      background: rgba(0, 0, 0, 0.6);
-      padding: 15px;
-      border-top-left-radius: 14px;
-      border-top-right-radius: 14px;
-      color: #64ffda;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 18px;
-      cursor: pointer;
-      text-transform: uppercase;
-    }
-    #pact-popup .popup-content h3 {
-      color: #f7df1e;
-      margin-bottom: 10px;
-      text-transform: uppercase;
-      font-size: 16px;
-    }
-    .pact-offer-item {
-      background: rgba(0, 0, 0, 0.35);
-      padding: 12px;
-      margin-bottom: 12px;
-      border-radius: 6px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    .pact-offer-item button {
-      padding: 8px 12px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-      transition: transform 0.3s;
-    }
-    .pact-offer-item button:hover {
-      transform: scale(1.05);
-    }
-    .pact-offer-item .accept-btn {
-      background: linear-gradient(135deg, #27ae60, #2ecc71);
-      color: #fff;
-    }
-    .pact-offer-item .reject-btn {
-      background: linear-gradient(135deg, #c0392b, #e74c3c);
-      color: #fff;
-    }
-    .active-pact-item {
-      background: rgba(0, 0, 0, 0.3);
-      padding: 10px;
-      border-radius: 5px;
-      margin-bottom: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    /*******************************************************
-     * MARKET POPUP (Ticaret Merkezi)
-     *******************************************************/
-    .market-popup {
-      width: 480px;
-      max-height: 70vh;
-      display: none;
-      flex-direction: column;
-      z-index: 3002;
-      background: rgba(0, 0, 0, 0.45);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 14px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8);
-      animation: popupFadeIn 0.5s ease forwards;
-    }
-    .market-header {
-      background: rgba(0, 0, 0, 0.6);
-      padding: 15px;
-      border-top-left-radius: 14px;
-      border-top-right-radius: 14px;
-      color: #64ffda;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 18px;
-      cursor: pointer;
-      text-transform: uppercase;
-    }
-    .market-header button {
-      background: transparent;
-      border: none;
-      color: #fff;
-      font-size: 24px;
-      cursor: pointer;
-    }
-    .market-content {
-      flex: 1;
-      padding: 20px;
-      overflow-y: auto;
-      color: #eee;
-    }
-    .market-section {
-      margin-bottom: 20px;
-      background: rgba(0, 0, 0, 0.25);
-      padding: 15px;
-      border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-    }
-    .market-section h3 {
-      font-size: 15px;
-      margin-bottom: 10px;
-      color: #f7df1e;
-      text-transform: uppercase;
-    }
-    .offer-item {
-      background: rgba(0, 0, 0, 0.3);
-      margin-bottom: 12px;
-      padding: 12px;
-      border-radius: 6px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    /*******************************************************
-     * OYUNCULAR POPUP (SOL TARAFTA)
-     *******************************************************/
-    #players-popup {
-      position: fixed;
-      bottom: 80px;
-      left: 20px;
-      width: 460px;
-      max-height: 70vh;
-      background: rgba(0, 0, 0, 0.45);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 14px;
-      display: none;
-      flex-direction: column;
-      z-index: 3002;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8);
-      animation: popupFadeIn 0.5s ease forwards;
-    }
-    #players-popup .popup-header {
-      background: rgba(0, 0, 0, 0.6);
-      padding: 15px;
-      border-top-left-radius: 14px;
-      border-top-right-radius: 14px;
-      color: #64ffda;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 18px;
-      cursor: pointer;
-      text-transform: uppercase;
-    }
-    #players-popup .popup-content {
-      flex: 1;
-      padding: 20px;
-      overflow-y: auto;
-      color: #eee;
-      font-size: 15px;
-      background: rgba(0, 0, 0, 0.2);
-    }
-    /* --- Oyuncu listesi öğesi --- */
-    #players-popup .popup-content .player-info {
-      background: rgba(0, 0, 0, 0.3);
-      padding: 12px;
-      margin-bottom: 12px;
-      border-radius: 6px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-      font-size: 15px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    /*******************************************************
      * RESPONSIVE (Mobil)
      *******************************************************/
     @media screen and (max-width: 768px) {
@@ -1112,9 +934,6 @@
       }
       #lobby-wrapper h1 {
         font-size: 28px;
-      }
-      #lobby-wrapper h2 {
-        font-size: 18px;
       }
 
       /* Üst Bilgi */
@@ -1144,10 +963,7 @@
       }
       /* Popup'lar */
       .modern-popup,
-      .chat-popup,
-      .market-popup,
-      #pact-popup,
-      #players-popup {
+      .chat-popup {
         width: 90% !important;
         left: 5% !important;
         right: auto !important;
@@ -1195,7 +1011,7 @@
     </div>
   </div>
 
-  <!-- =============== 2. Profil Ekranı (Arkadaşlar, İstekler, Davetler) =============== -->
+  <!-- =============== 2. Profil Ekranı (Arkadaşlar, İstekler, Bayrak) =============== -->
   <div id="profile-container" class="container-page">
     <!-- Üst profil bar -->
     <div id="profile-header">
@@ -1234,50 +1050,44 @@
         <button id="send-friend-request-btn">İstek Gönder</button>
       </div>
 
+      <!-- Bayrak Painter -->
+      <div id="flag-painter-section">
+        <h3>Bayrak Oluştur</h3>
+        <!-- Canvas -->
+        <canvas id="flag-canvas" width="300" height="200"></canvas>
+        <!-- Boyama Kontrolleri -->
+        <div class="flag-painter-controls">
+          <input type="color" id="flag-color-picker" value="#000000" />
+          <button id="flag-eraser-btn">Silgi</button>
+          <button id="flag-clear-btn">Temizle</button>
+        </div>
+        <button id="save-flag-btn">Bayrağı Kaydet</button>
+      </div>
+
       <!-- Davet Gönder -->
       <div class="invite-friends-section">
         <h3>Arkadaşları Davet Et</h3>
         <div class="invite-list" id="invite-friend-list"></div>
-        <button id="create-room-invite-btn">
-          Oda Oluştur & Davet Gönder
+        <button id="send-room-invite-btn">
+          Odaya Davet Gönder
         </button>
       </div>
     </div>
   </div>
 
-  <!-- =============== 3. Lobi Ekranı (Oda Oluştur / Katıl) =============== -->
+  <!-- =============== 3. Lobi Ekranı =============== -->
   <div id="lobby-container" class="container-page">
     <div id="lobby-wrapper" class="animate__animated animate__fadeIn">
       <h1>GLOBAL CONQUEST</h1>
 
-      <!-- Oda Oluşturma -->
-      <div id="create-room-section">
-        <h2>Oda Oluştur</h2>
-        <input type="text" id="creator-player-name" placeholder="Oyun İçindeki Adınız" />
-        <div class="color-options" id="creator-color-options"></div>
-        <input
-          type="number"
-          id="max-players"
-          placeholder="Oyuncu Sayısı (2-8)"
-          min="2"
-          max="8"
-        />
-        <button id="create-room-btn">Oda Oluştur</button>
-      </div>
+      <!-- Tek Buton: Oda Oluştur -->
+      <button id="create-room-btn">Oda Oluştur</button>
 
-      <hr />
-
-      <!-- Odaya Katılma -->
-      <div id="join-room-section">
-        <h2>Odaya Katıl</h2>
-        <input type="text" id="join-player-name" placeholder="Oyun İçindeki Adınız" />
-        <div class="color-options" id="join-color-options"></div>
-        <input
-          type="text"
-          id="room-code"
-          placeholder="Oda Kodu (Örn: AB12CD)"
-        />
-        <button id="join-room-btn">Odaya Katıl</button>
+      <!-- Davet Linki Gösterme -->
+      <div id="invite-link-container">
+        <p>Davetiye Linki (Paylaşabilirsiniz):</p>
+        <input type="text" id="invite-link" readonly />
+        <button id="copy-invite-btn">Kopyala</button>
       </div>
     </div>
   </div>
@@ -1585,13 +1395,13 @@
   </div>
 
   <!-- =============== OYUNCULAR POPUP (SOL) =============== -->
-  <div id="players-popup">
+  <div id="players-popup" class="modern-popup">
     <div class="popup-header" id="players-popup-header">
       <span>Oyuncu Bilgileri</span>
       <button id="close-players-btn">&times;</button>
     </div>
     <div class="popup-content" id="players-info">
-      <!-- Oyuncu listesi buraya dinamik gelecek -->
+      <!-- Oyuncu listesi dinamik gelecek -->
     </div>
   </div>
 
@@ -1624,40 +1434,13 @@
     </div>
   </div>
 
-  <!-- =============== SALDIRMAZLIK PAKTI POPUP =============== -->
-  <div id="pact-popup" class="modern-popup">
-    <div id="pact-popup-header" class="popup-header">
-      <span>Saldırmazlık Pakti</span>
-      <button id="close-pact-btn">&times;</button>
-    </div>
-    <div class="popup-content">
-      <h3>Yeni Pakt Teklifi Gönder</h3>
-      <select id="pact-offer-recipient"></select>
-      <input
-        type="number"
-        id="pact-duration"
-        placeholder="Tur sayısı (örn: 3)"
-      />
-      <input type="number" id="pact-cost" placeholder="Tek seferlik para ($)" />
-      <button id="send-pact-offer-btn" style="margin-bottom: 15px;">
-        Teklif Gönder
-      </button>
-
-      <h3>Gelen Teklifler</h3>
-      <div id="pact-pending-offers"></div>
-
-      <h3>Aktif Paktlarınız</h3>
-      <div id="active-pacts-container"></div>
-    </div>
-  </div>
-
-  <!-- =============== TİCARET POPUP (MARKET) =============== -->
+  <!-- =============== TİCARET (MARKET) POPUP =============== -->
   <div id="market-popup" class="market-popup modern-popup">
-    <div class="market-header" id="market-popup-header">
+    <div class="popup-header market-header" id="market-popup-header">
       <h2>Ticaret Merkezi</h2>
       <button id="close-market-btn">&times;</button>
     </div>
-    <div class="market-content">
+    <div class="popup-content market-content">
       <div class="market-section">
         <h3>Yeni Teklif Oluştur</h3>
         <label style="font-size:14px;color:#ccc;"
@@ -1726,7 +1509,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
-  <!-- JS Kodu (Bir sonraki mesajda verilecektir) -->
+  <!-- GÜNCELLENMİŞ gameLogic.js AYRI MESAJDA EKLENECEK -->
   <script src="gameLogic.js"></script>
 </body>
 </html>
