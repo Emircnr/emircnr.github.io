@@ -73,9 +73,7 @@
     }
 
     /*******************************************************
-     * SAYFA GÖRÜNÜMLERİ (Auth, Profile, Lobby, Game)
-     * Her biri başlangıçta "display: none" olabilir;
-     * JavaScript ile hangi ekran aktifse gösterilir.
+     * SAYFA GÖRÜNÜMLERİ (Auth, Profile, Game)
      *******************************************************/
     /* Ortak container stilleri */
     .container-page {
@@ -216,13 +214,16 @@
 
     #profile-content {
       display: flex;
-      gap: 20px;
       flex-wrap: wrap;
+      gap: 20px;
     }
-    /* Arkadaş listesi ve istekler bölümü */
+    /* Arkadaş listesi, istekler, davetler, vb. */
     .friends-section,
     .friend-requests-section,
-    .add-friend-section {
+    .add-friend-section,
+    .room-invites-section,
+    .active-rooms-section,
+    .create-room-section {
       flex: 1;
       min-width: 280px;
       background: rgba(0, 0, 0, 0.25);
@@ -233,19 +234,25 @@
     }
     .friends-section h3,
     .friend-requests-section h3,
-    .add-friend-section h3 {
+    .add-friend-section h3,
+    .room-invites-section h3,
+    .active-rooms-section h3,
+    .create-room-section h3 {
       color: #f7df1e;
       margin-bottom: 10px;
       text-transform: uppercase;
       font-size: 16px;
     }
     .friend-list,
-    .friend-request-list {
+    .friend-request-list,
+    .room-invite-list,
+    #active-rooms-list {
       max-height: 240px;
       overflow-y: auto;
     }
     .friend-item,
-    .friend-request-item {
+    .friend-request-item,
+    .room-invite-item {
       background: rgba(255, 255, 255, 0.1);
       border-radius: 6px;
       margin-bottom: 10px;
@@ -265,7 +272,8 @@
       margin-left: 6px;
       color: #ff7171; /* Çevrimdışı */
     }
-    .friend-request-item button {
+    .friend-request-item button,
+    .room-invite-item button {
       margin-left: 8px;
       padding: 5px 10px;
       font-size: 12px;
@@ -291,6 +299,7 @@
       border: none;
       cursor: pointer;
     }
+
     /* Arkadaş ekleme formu */
     .add-friend-section input[type="text"] {
       width: 100%;
@@ -325,178 +334,83 @@
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
     }
 
-    /* Davet Gönder */
-    .invite-friends-section {
-      flex: 1;
-      min-width: 280px;
-      background: rgba(0, 0, 0, 0.25);
-      padding: 15px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-    }
-    .invite-friends-section h3 {
-      color: #f7df1e;
-      margin-bottom: 10px;
-      text-transform: uppercase;
-      font-size: 16px;
-    }
-    .invite-list {
-      max-height: 240px;
-      overflow-y: auto;
-    }
-    .invite-friend-item {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 6px;
-      margin-bottom: 10px;
-      padding: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 14px;
-    }
-    .invite-friends-section button {
-      margin-top: 10px;
-      width: 100%;
-      padding: 12px;
-      background: linear-gradient(to right, #ff9966, #ff5e62);
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: 600;
-      color: #fff;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-      transition: transform 0.3s, box-shadow 0.3s;
-      cursor: pointer;
-    }
-    .invite-friends-section button:hover {
-      transform: scale(1.03);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
+    /* Oda Davetleri */
+    .room-invites-section .room-invite-item div button {
+      margin-left: 8px;
     }
 
-    /* Gelen Oda Davetleri */
-    .room-invites-section {
-      flex: 1;
-      min-width: 280px;
-      background: rgba(0, 0, 0, 0.25);
-      padding: 15px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-    }
-    .room-invite-list {
-      max-height: 240px;
-      overflow-y: auto;
-    }
-    .room-invite-item {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 6px;
-      margin-bottom: 10px;
-      padding: 10px;
-      font-size: 14px;
+    /* Oda Kurma Bölümü (yeni) */
+    .create-room-section {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
+      flex-direction: column;
+      gap: 10px;
     }
-
-    /*******************************************************
-     * ANA LOBİ (ODA OLUŞTUR/KATIL)
-     *******************************************************/
-    #lobby-container {
-      background: linear-gradient(135deg, #150f2f 0%, #1b1638 45%, #222 100%);
-      background-size: cover;
-      display: none; 
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    #lobby-wrapper {
-      width: 90%;
-      max-width: 540px;
-      background: rgba(0, 0, 0, 0.4);
-      border-radius: 20px;
-      padding: 30px;
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(6px);
-      animation: fadeInUp 0.8s ease forwards;
-    }
-    #lobby-wrapper h1 {
-      text-align: center;
-      color: #64ffda;
-      font-size: 34px;
-      margin-bottom: 10px;
-      text-shadow: 0 0 8px rgba(100, 255, 218, 0.4);
-    }
-    #lobby-wrapper h2 {
-      color: #f7df1e;
-      text-align: center;
-      font-weight: 500;
-      margin: 20px 0 10px;
-      text-shadow: 0 0 6px rgba(247, 223, 30, 0.4);
-    }
-    #lobby-wrapper hr {
-      border: none;
-      border-top: 1px solid #444;
-      margin: 20px 0;
-    }
-    #lobby-wrapper input[type="text"],
-    #lobby-wrapper input[type="number"] {
+    .create-room-section input[type="text"] {
       width: 100%;
-      padding: 12px;
-      margin-bottom: 15px;
+      padding: 10px;
       border: 1px solid #444;
       border-radius: 6px;
-      font-size: 16px;
       outline: none;
       color: #333;
       transition: box-shadow 0.3s, border-color 0.3s;
     }
-    #lobby-wrapper input:focus {
+    .create-room-section input:focus {
       border-color: #64ffda;
       box-shadow: 0 0 8px #64ffda;
     }
-    #lobby-wrapper button {
+    .create-room-section select {
       width: 100%;
-      padding: 14px;
-      margin-bottom: 15px;
-      background: linear-gradient(to right, #64ffda, #00c9ff);
-      border: 1px solid #00adb5;
+      min-height: 50px;
+      padding: 6px;
+      border: 1px solid #444;
+      border-radius: 6px;
+      outline: none;
+      color: #333;
+    }
+    .create-room-section button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(to right, #ffa72b, #ffc107);
+      border: none;
       border-radius: 8px;
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 600;
       color: #000;
-      cursor: pointer;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
       transition: transform 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+      margin-top: 5px;
     }
-    #lobby-wrapper button:hover {
+    .create-room-section button:hover {
       transform: scale(1.03);
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
     }
 
-    /* Davet Linki Bölümü */
-    #invite-link-section {
-      display: none; /* Oda oluşturulduktan sonra görünür */
+    /* Aktif Odalar */
+    .active-rooms-section .active-room-item {
       background: rgba(255, 255, 255, 0.1);
-      padding: 15px;
-      border-radius: 10px;
-      margin: 20px 0;
-      text-align: center;
-    }
-    #invite-link-section p {
-      margin: 0 0 10px;
-    }
-    #invite-link {
-      background: #222;
-      color: #fff;
-      border: 1px solid #444;
-      padding: 8px;
       border-radius: 6px;
-      width: 100%;
-      box-sizing: border-box;
-      text-align: center;
-      word-break: break-all;
+      margin-bottom: 10px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .active-rooms-section .active-room-item button {
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      margin-right: 5px;
+    }
+    .btn-join-room {
+      background: linear-gradient(135deg, #27ae60, #2ecc71);
+      color: #fff;
+    }
+    .btn-watch-room {
+      background: linear-gradient(135deg, #3498db, #5dade2);
+      color: #fff;
     }
 
     /*******************************************************
@@ -1145,17 +1059,6 @@
         flex-direction: column;
       }
 
-      /* Lobi */
-      #lobby-wrapper {
-        width: 90%;
-      }
-      #lobby-wrapper h1 {
-        font-size: 28px;
-      }
-      #lobby-wrapper h2 {
-        font-size: 18px;
-      }
-
       /* Üst Bilgi */
       #top-info {
         flex-direction: column;
@@ -1236,7 +1139,7 @@
     </div>
   </div>
 
-  <!-- =============== 2. Profil Ekranı (Arkadaşlar, İstekler, Davetler) =============== -->
+  <!-- =============== 2. Profil Ekranı (Arkadaşlar, İstekler, Davetler, Oda Kurma, Aktif Odalar) =============== -->
   <div id="profile-container" class="container-page">
     <!-- Üst profil bar -->
     <div id="profile-header">
@@ -1244,9 +1147,6 @@
       <div class="profile-buttons">
         <button id="edit-flag-btn" style="background: linear-gradient(135deg, #ffc107, #fdf7d8); color: #000;">
           Bayrak Düzenle
-        </button>
-        <button id="go-lobby-btn">
-          Oyun Lobisine Geç
         </button>
         <button id="profile-logout-btn" style="background: linear-gradient(135deg, #ff5d5d, #ff2d2d); color: #fff;">
           Çıkış Yap
@@ -1280,42 +1180,18 @@
         <button id="send-friend-request-btn">İstek Gönder</button>
       </div>
 
-      <!-- Davet Gönder -->
-      <div class="invite-friends-section">
-        <h3>Arkadaşları Davet Et</h3>
-        <div class="invite-list" id="invite-friend-list"></div>
-        <button id="create-room-invite-btn">
-          Oda Oluştur & Davet Gönder
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- =============== 3. Lobi Ekranı (Oda Oluştur / Katıl) =============== -->
-  <div id="lobby-container" class="container-page">
-    <div id="lobby-wrapper" class="animate__animated animate__fadeIn">
-      <h1>GLOBAL CONQUEST</h1>
-
-      <!-- Oda Oluşturma -->
-      <div id="create-room-section">
-        <h2>Oda Oluştur</h2>
-        <input type="text" id="creator-player-name" placeholder="Oyun İçindeki Adınız" />
-        <button id="create-room-btn">Oda Oluştur</button>
+      <!-- Oda Kurma (Yeni) -->
+      <div class="create-room-section">
+        <h3>Oda Kur</h3>
+        <input type="text" id="room-name-input" placeholder="Oda Adı" />
+        <select id="room-invite-friends" multiple></select>
+        <button id="create-room-btn">Odayı Kur</button>
       </div>
 
-      <div id="invite-link-section">
-        <p>Bu linki paylaşarak diğer oyuncuları davet edebilirsiniz:</p>
-        <div id="invite-link"></div>
-      </div>
-
-      <hr />
-
-      <!-- Odaya Katılma -->
-      <div id="join-room-section">
-        <h2>Odaya Katıl</h2>
-        <input type="text" id="join-player-name" placeholder="Oyun İçindeki Adınız" />
-        <input type="text" id="room-code" placeholder="Oda Kodu (Örn: AB12CD)" />
-        <button id="join-room-btn">Odaya Katıl</button>
+      <!-- Aktif Odalar Listesi -->
+      <div class="active-rooms-section">
+        <h3>Aktif Odalar</h3>
+        <div id="active-rooms-list"></div>
       </div>
     </div>
   </div>
@@ -1323,12 +1199,12 @@
   <!-- =============== BİLDİRİM ALANI (Kısa Süreli) =============== -->
   <div id="notification-area"></div>
 
-  <!-- =============== 4. Oyun Ekranı =============== -->
+  <!-- =============== 3. Oyun Ekranı =============== -->
   <div id="game-container">
     <!-- Üst Bilgi (Tur, Oda Kodu, Sıra, Başlat vb.) -->
     <div id="top-info">
       <p>
-        Oda Kodu: <span id="display-room-code">-</span> |
+        Oda: <span id="display-room-name">-</span> |
         Tur: <span id="current-round">1</span> |
         Sıra: <span id="current-player">?</span>
       </p>
@@ -1623,7 +1499,7 @@
   </div>
 
   <!-- =============== OYUNCULAR POPUP (SOL) =============== -->
-  <div id="players-popup">
+  <div id="players-popup" class="modern-popup">
     <div class="popup-header" id="players-popup-header">
       <span>Oyuncu Bilgileri</span>
       <button id="close-players-btn">&times;</button>
@@ -1798,7 +1674,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
-  <!-- JS Kodu (gameLogic.js) -->
+  <!-- Yeni Oyun Kodları (gameLogic.js) - GÜNCELLEME SONRASI -->
   <script src="gameLogic.js"></script>
 </body>
 </html>
