@@ -1011,4 +1011,188 @@ function attack(){
     ups[`rooms/${currentRoomId}/players/${currentUser.uid}/countries`] = Array.from(myList);
     resultTxt += `${selectedCountry} fethedildi!`;
   }else{
-    ups[`rooms/${currentRoomId}/countryData/${selectedCountry}]()
+    ups[`rooms/${currentRoomId}/countryData/${selectedCountry}/soldiers`] = (targ.soldiers||0) - effectiveAttackers;
+    resultTxt += `${selectedCountry} savunuldu!`;
+  }
+
+  db.ref().update(ups, ()=> immediateOilReward(currentUser.uid));
+  pushRoomNotification(`${att.name} → ${selectedCountry}. ${resultTxt}`);
+  notif(resultTxt);
+  nextTurn();
+}
+
+function immediateOilReward(pid){
+  const p = roomData.players?.[pid]; if(!p) return;
+  let total = 0;
+  (p.countries||[]).forEach(cn=>{
+    const c = roomData.countryData[cn];
+    if(c?.oilProduction){
+      total += Math.floor(c.oilProduction*(1+0.15*(c.refineries||0)));
+    }
+  });
+  if(total>0){
+    db.ref(`rooms/${currentRoomId}/players/${pid}/petrol`).set((p.petrol||0)+total);
+    pushRoomNotification(`${p.name}, saldırı sonrası +${total} petrol kazandı!`);
+    notif(`Saldırı sonrası petrol: +${total}`);
+  }
+}
+
+function buySoldiers(){
+  if(isSpectator) return notif("Seyirci modundasınız.");
+  const c = parseInt(inpBuySoldiers.value);
+  if(isNaN(c)||c<=0) return notif("Geçerli sayı girin!");
+  const p = roomData.players[currentUser.uid];
+  const costM=10*c, costW=25*c;
+  if(p.money<costM) return notif("Yeterli paranız yok!");
+  if(p.wheat<costW) return notif("Yeterli buğdayınız yok!");
+  const ups={};
+  ups[`rooms/${currentRoomId}/players/${currentUser.uid}/money`] = p.money - costM;
+  ups[`rooms/${currentRoomId}/players/${currentUser.uid}/wheat`] = p.wheat - costW;
+  ups[`rooms/${currentRoomId}/players/${currentUser.uid}/soldiers`] = (p.soldiers||0) + c;
+  db.ref().update(ups);
+  pushRoomNotification(`${p.name} ${c} asker satın aldı.`);
+  notif(`${c} asker satın alındı.`);
+}
+
+function pullSoldiers(){
+  if(isSpectator) return notif("Seyirci modundasınız.");
+  if(!selectedCountry) return notif("Bir ülke seçin!");
+  const num = parseInt(inpPullSoldiers.value);
+  if(isNaN(num)||num<=0) return notif("Geçerli asker sayısı girin!");
+  const p  = roomData.players[currentUser.uid];
+  const cd = roomData.countryData[selectedCountry];
+  if(!cd) return;
+
+  const ups={};
+  if(cd.owner===currentUser.uid){
+    let sup=0; Object.values(cd.supporters||{}).forEach(v=> sup+=v);
+    const occupant = (cd.soldiers||0)-sup;
+    if(occupant<num) return notif("Destek askerleri hariç bu kadar çekemezsiniz!");
+    ups[`rooms/${currentRoomId}/countryData/${selectedCountry}/soldiers`] = (cd.soldiers||0)-num;
+    ups[`rooms/${currentRoomId}/players/${currentUser.uid}/soldiers`] = (p.soldiers||0)+num;
+    pushRoomNotification(`${p.name}, ${selectedCountry} ülkesinden ${num} asker çekti.`);
+  }else{
+    const mySup = cd.supporters?.[currentUser.uid]||0;
+    if(mySup<num) return notif("Bu ülkede o kadar destek askeriniz yok!");
+    if((cd.soldiers||0)<num) return notif("Ülkede yeterli asker yok!");
+    ups[`rooms/${currentRoomId}/countryData/${selectedCountry}/soldiers`] = (cd.soldiers||0)-num;
+    const left = mySup - num;
+    ups[`rooms/${currentRoomId}/countryData/${selectedCountry}/supporters/${currentUser.uid}`] = left>0? left : null;
+    ups[`rooms/${currentRoomId}/players/${currentUser.uid}/soldiers`] = (p.soldiers||0)+num;
+    pushRoomNotification(`${p.name}, ${selectedCountry} ülkesinden ${num} destek asker çekti.`);
+  }
+  db.ref().update(ups); notif("Asker çekildi.");
+}
+
+function updateSupportRecipientSelect(){
+  selSupportRecipient.innerHTML = "<option value=''>--Oyuncu Seç--</option>";
+  (roomData.playerOrder||[]).forEach(pid=>{
+    if(pid!==currentUser?.uid && roomData.players?.[pid]){
+      const o=document.createElement("option");
+      o.value=pid; o.textContent=roomData.players[pid].name;
+      selSupportRecipient.appendChild(o);
+    }
+  });
+}
+selSupportRecipient.onchange = ()=>{
+  selSupportCountry.innerHTML = "<option value=''>--Ülke Seç--</option>";
+  const rec = selSupportRecipient.value;
+  if(!rec || !roomData.players?.[rec]) return;
+  (roomData.players[rec].countries||[]).forEach(cn=>{
+    const opt = document.createElement("option");
+    opt.value = cn; opt.textContent = cn;
+    selSupportCountry.appendChild(opt);
+  });
+};
+function sendSupport(){
+  if(isSpectator) return notif("Seyirci modundasınız.");
+  const rec = selSupportRecipient.value;
+  const cn  = selSupportCountry.value;
+  const num = parseInt(inpSupportSoldiers.value);
+  if(!rec||!cn||isNaN(num)||num<=0) return notif("Oyuncu, ülke ve asker sayısı geçerli olmalı!");
+  const p = roomData.players[currentUser.uid];
+  if((p.soldiers||0) < num) return notif("Yeterli askeriniz yok!");
+  const tc = roomData.countryData[cn];
+  if(!tc || tc.owner!==rec) return notif("Bu ülke o oyuncuya ait değil!");
+  const ups={};
+  ups[`rooms/${currentRoomId}/players/${currentUser.uid}/soldiers`] = (p.soldiers||0)-num;
+  ups[`rooms/${currentRoomId}/countryData/${cn}/soldiers`] = (tc.soldiers||0)+num;
+  const oldSup = tc.supporters?.[currentUser.uid]||0;
+  ups[`rooms/${currentRoomId}/countryData/${cn}/supporters/${currentUser.uid}`] = oldSup+num;
+  db.ref().update(ups);
+  pushRoomNotification(`${p.name}, ${roomData.players[rec].name} (${cn}) ülkesine ${num} asker destek verdi.`);
+  notif("Askeri destek gönderildi!");
+}
+
+/* =============================================================
+ * 14) Kaynak Gönderme
+ * ===========================================================*/
+btnSendMoney.onclick = ()=>{
+  sendResource("money", parseInt(inpMoneyToSend.value), selMoneyRecipient.value);
+};
+btnSendPetrol.onclick = ()=>{
+  sendResource("petrol", parseInt(inpPetrolToSend.value), selPetrolRecipient.value);
+};
+btnSendWheat.onclick = ()=>{
+  sendResource("wheat", parseInt(inpWheatToSend.value), selWheatRecipient.value);
+};
+
+function updateRecipientSelects(){
+  selMoneyRecipient.innerHTML = "";
+  selPetrolRecipient.innerHTML= "";
+  selWheatRecipient.innerHTML = "";
+  (roomData.playerOrder||[]).forEach(pid=>{
+    if(pid!==currentUser?.uid && roomData.players?.[pid]){
+      const n = roomData.players[pid].name;
+      ["money","petrol","wheat"].forEach(type=>{
+        const opt = document.createElement("option");
+        opt.value = pid; opt.textContent = n;
+        if(type==="money") selMoneyRecipient.appendChild(opt.cloneNode(true));
+        if(type==="petrol") selPetrolRecipient.appendChild(opt.cloneNode(true));
+        if(type==="wheat") selWheatRecipient.appendChild(opt.cloneNode(true));
+      });
+    }
+  });
+}
+
+function sendResource(type, amt, recId){
+  if(isSpectator) return notif("Seyirci modundasınız.");
+  if(isNaN(amt)||amt<=0) return notif("Geçerli miktar girin!");
+  if(!recId) return notif("Alıcı seçin!");
+  const me = roomData.players[currentUser.uid];
+  if(me[type] < amt) return notif(`Yeterli ${type==="money"?"para":type} yok!`);
+  const ups={};
+  ups[`rooms/${currentRoomId}/players/${currentUser.uid}/${type}`] = me[type]-amt;
+  ups[`rooms/${currentRoomId}/players/${recId}/${type}`] = (roomData.players[recId][type]||0)+amt;
+  db.ref().update(ups);
+  pushRoomNotification(`${me.name} → ${roomData.players[recId].name}: ${amt} ${type==="money"?"$":type}`);
+  notif(`${amt} ${type==="money"?"$":type} gönderildi.`);
+}
+
+/* =============================================================
+ * 15) Bina Kurma & Kale
+ * ===========================================================*/
+btnBarracks.onclick    = ()=> buildStructure("barracks", parseInt(inpBarracks.value));
+btnFactory.onclick     = ()=> buildStructure("factory",  parseInt(inpFactory.value));
+btnRefinery.onclick    = ()=> buildStructure("refinery", parseInt(inpRefinery.value));
+btnGrainMill.onclick   = ()=> buildStructure("grainmill",parseInt(inpGrainMill.value));
+btnBuildCastle.onclick = buildCastle;
+btnUpgradeCastle.onclick = upgradeCastle;
+
+function buildStructure(type, q){
+  if(!selectedCountry) return notif("Bir ülke seçin!");
+  if(isNaN(q)||q<=0) return notif("Geçerli adet girin!");
+  const cd = roomData.countryData[selectedCountry];
+  if(!cd || cd.owner!==currentUser.uid) return notif("Bu ülke size ait değil!");
+  const p = roomData.players[currentUser.uid];
+
+  let costM=0,costP=0,costW=0, field="";
+  if(type==="barracks"){ costM=300*q; costP=50*q; costW=120*q; field="barracksCount"; }
+  if(type==="factory"){  costM=500*q; costP=130*q; field="factories"; }
+  if(type==="refinery"){ costM=800*q; costP=250*q; field="refineries"; }
+  if(type==="grainmill"){costM=200*q; costP=100*q; field="grainMills"; }
+
+  if(p.money<costM || p.petrol<costP || p.wheat<costW) return notif("Yeterli kaynağınız yok!");
+  const ups={};
+  ups[`rooms/${currentRoomId}/players/${currentUser.uid}/money`] = p.money - costM;
+  ups[`rooms/${currentRoomId}/players/${currentUser
