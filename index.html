@@ -1,14 +1,33 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta http-equiv="Content-Security-Policy" content="
-default-src 'self';
-script-src 'self' https://www.gstatic.com https://www.googleapis.com https://unpkg.com https://cdnjs.cloudflare.com 'unsafe-eval';
-style-src  'self' 'unsafe-inline' https://unpkg.com https://fonts.googleapis.com https://cdnjs.cloudflare.com;
-img-src    'self' data: blob: https://*;
-font-src   'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:;
-connect-src 'self' https://*.firebaseio.com wss://*.firebaseio.com https://www.googleapis.com https://securetoken.googleapis.com https://identitytoolkit.googleapis.com;
-frame-src  https://accounts.google.com https://*.firebaseapp.com;">
+  <!-- Bu iki meta en başta olmalı -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- CSP: geliştirme için 'unsafe-eval' açık (compat Firebase kullanıyorsan gerekli).
+       Prod'a geçince modüler Firebase'e dönüp 'unsafe-eval'i kaldırabilirsin. -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' 'unsafe-eval'
+      https://www.gstatic.com
+      https://www.googleapis.com
+      https://unpkg.com
+      https://cdnjs.cloudflare.com;
+    style-src  'self' 'unsafe-inline'
+      https://unpkg.com
+      https://fonts.googleapis.com
+      https://cdnjs.cloudflare.com;
+    img-src    'self' data: blob: https://*;
+    font-src   'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:;
+    connect-src 'self'
+      https://*.firebaseio.com
+      wss://*.firebaseio.com
+      https://www.googleapis.com
+      https://securetoken.googleapis.com
+      https://identitytoolkit.googleapis.com;
+    frame-src  https://accounts.google.com https://*.firebaseapp.com;
+  ">
 
   <title>Global Conquest - Online</title>
 
@@ -16,7 +35,7 @@ frame-src  https://accounts.google.com https://*.firebaseapp.com;">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet" />
 
   <!-- Leaflet -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin />
 
   <!-- Icons & Animations -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -55,7 +74,9 @@ frame-src  https://accounts.google.com https://*.firebaseapp.com;">
       border-radius:var(--radius);
       padding:28px;
       box-shadow: var(--shadow);
-      animation:fadeInUp .6s ease both;
+      animation: fadeInUp .6s ease both;
+    }
+
     }
     .auth-box h1{color:var(--brand); margin-bottom:14px; text-align:center}
     .auth-box .hint{color:var(--muted); font-size:13px; text-align:center; margin-bottom:14px}
@@ -610,5 +631,6 @@ frame-src  https://accounts.google.com https://*.firebaseapp.com;">
   <!-- <script src="gameLogic.js"></script> -->
 </body>
 </html>
+
 
 
