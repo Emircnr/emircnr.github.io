@@ -3,627 +3,599 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Global Conquest - Online</title>
+  <title>Global Conquest – Online (Modüler)</title>
+
+  <!-- Güvenli CSP: eval YOK, inline script serbest (nonce gerektirmeden) -->
   <meta http-equiv="Content-Security-Policy"
-      content="default-src 'self' https: data: blob:;
-               script-src 'self' https://www.gstatic.com https://www.googleapis.com https://unpkg.com https://cdnjs.cloudflare.com 'unsafe-eval';
-               style-src  'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com https://cdnjs.cloudflare.com;
-               img-src    'self' data: blob: https:;
-               font-src   'self' https://fonts.gstatic.com data:;
-               connect-src 'self' https://warmapg-77acb-default-rtdb.firebaseio.com https://www.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com;">
+        content="
+          default-src 'self' https: data: blob:;
+          script-src  'self' https://www.gstatic.com https://cdnjs.cloudflare.com https://unpkg.com 'unsafe-inline';
+          style-src   'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://unpkg.com;
+          img-src     'self' data: blob: https:;
+          font-src    'self' https://fonts.gstatic.com data:;
+          connect-src 'self' https://warmapg-77acb-default-rtdb.firebaseio.com https://www.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com;
+        ">
 
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet">
 
-  <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet"/>
-
-  <!-- Leaflet Core -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-  <!-- Leaflet Pattern (bayrak dokusu için) -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.pattern/leaflet.pattern.css" />
-
-  <!-- FontAwesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer"/>
-
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
   <!-- Animate.css -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
 
   <style>
-    :root{
-      --bg1:#0f1114;
-      --bg2:#161a1d;
-      --panel: rgba(0,0,0,.45);
-      --glass: rgba(255,255,255,.06);
-      --accent:#64ffda;
-      --accent-2:#00c9ff;
-      --warn:#f39c12;
-      --danger:#ff4b4b;
-      --text:#eeeeee;
-      --muted:#b6b8bb;
-      --border: rgba(255,255,255,.12);
-      --shadow: 0 12px 28px rgba(0,0,0,.6);
-      --radius:14px;
-    }
+    /* ==== Reset & Typography ==== */
     *{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --neo: #64ffda;
+      --y: #f7df1e;
+      --bg1:#191c1e; --bg2:#131516;
+      --panel: rgba(0,0,0,.45);
+      --panel-2: rgba(0,0,0,.6);
+      --b:#444; --t:#eee
+    }
     body{
       font-family:"Montserrat",sans-serif;
-      color:var(--text);
-      background:
-        radial-gradient(1200px 800px at 15% -10%, #1c2030 0%, transparent 60%),
-        radial-gradient(1000px 700px at 110% 10%, #102125 0%, transparent 55%),
-        linear-gradient(135deg, #121418, #0a0b0d 70%);
-      min-height:100vh;
-      overflow-x:hidden;
+      color:var(--t);
+      background: radial-gradient(circle at top left,var(--bg1) 0%,var(--bg2) 100%);
+      overflow-x:hidden
     }
     h1,h2,h3,h4{font-family:"Orbitron",sans-serif;letter-spacing:.5px;text-transform:uppercase}
+    a{color:inherit;text-decoration:none}
 
-    /* ====== Auth ====== */
+    /* ==== Helpers ==== */
+    .btn{cursor:pointer;border:none;border-radius:10px;padding:12px 16px;font-weight:700}
+    .btn-primary{background:linear-gradient(135deg,#64ffda,#00c9ff);color:#000}
+    .btn-danger{background:linear-gradient(135deg,#ff5d5d,#ff2d2d);color:#fff}
+    .btn-soft{background:rgba(255,255,255,.1);color:#fff;border:1px solid #444}
+    .chip{display:inline-block;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.08);font-size:12px}
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+    /* ==== AUTH ==== */
     #auth-container{
-      position:fixed; inset:0;
-      display:flex; align-items:center; justify-content:center;
-      background: linear-gradient(135deg, #150f2f 0%, #1b1638 50%, #0a0b0d 100%);
-      z-index:9999;
+      position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(135deg,#180b2c 0%,#1b1638 50%,#222 100%);
+      z-index:10000
     }
     .auth-card{
-      width:95%; max-width:880px;
-      background:var(--panel);
-      backdrop-filter: blur(10px);
-      border:1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      display:grid; grid-template-columns: 1.2fr 1fr;
-      overflow:hidden;
+      width:min(92vw,840px);background:var(--panel);backdrop-filter:blur(8px);
+      border:1px solid rgba(255,255,255,.08);border-radius:20px;display:grid;grid-template-columns:1.2fr 1fr;gap:0;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.6)
     }
     .auth-left{
-      padding:28px;
-      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
-      border-right:1px solid var(--border);
-    }
-    .auth-title{color:var(--accent); font-size:28px; margin-bottom:6px}
-    .auth-sub{color:var(--muted); font-size:14px; margin-bottom:16px}
-    .tabbar{display:flex; gap:8px; margin: 8px 0 16px}
-    .tabbar button{
-      flex:1; padding:10px 12px; border:1px solid var(--border);
-      background: rgba(0,0,0,.35); color:#fff; cursor:pointer; border-radius:8px;
-    }
-    .tabbar button.active{outline:2px solid var(--accent); background:linear-gradient(135deg, var(--accent), var(--accent-2)); color:#000; font-weight:700}
-    .auth-form{display:none; gap:10px; margin-top:6px}
-    .auth-form.active{display:grid}
-    .form-row{display:flex; gap:10px}
-    .auth-form input{
-      width:100%; padding:12px; border-radius:10px; border:1px solid var(--border);
-      outline:none; background:#fafafa; color:#111; font-size:15px;
-    }
-    .auth-form .btn{
-      padding:12px; border:none; border-radius:10px; cursor:pointer; font-weight:700;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2)); color:#000;
-      box-shadow: 0 8px 18px rgba(0,0,0,.4);
+      padding:28px
     }
     .auth-right{
-      padding:28px;
-      display:flex; flex-direction:column; gap:14px; align-items:flex-start; justify-content:center;
-      background:
-        radial-gradient(700px 500px at -10% -20%, #22313b80 0%, transparent 60%),
-        linear-gradient(160deg, #07090c, #0e1014);
+      background:radial-gradient(1200px 500px at -10% -30%,rgba(100,255,218,.2),transparent),var(--panel-2);
+      padding:28px;display:flex;flex-direction:column;gap:10px;justify-content:center;align-items:center
     }
-    .hero{font-size:32px; line-height:1.2}
-    .hero strong{color:var(--accent)}
-    .mini{color:var(--muted); font-size:13px}
+    .tabs{display:flex;gap:10px;margin:10px 0 18px}
+    .tab{padding:8px 12px;border-radius:999px;border:1px solid #333;cursor:pointer}
+    .tab.active{background:linear-gradient(135deg,#9be15d,#00e3ae);color:#000;border-color:transparent}
+    .f{display:flex;flex-direction:column;gap:10px}
+    .f label{font-size:13px;color:#ccc}
+    .f input{padding:12px;border:1px solid #444;border-radius:10px;outline:0;background:#fafafa;color:#000}
+    .auth-actions{display:flex;gap:10px;align-items:center}
+    .brand{display:flex;align-items:center;gap:10px}
+    .brand i{color:var(--neo)}
+    .tips{font-size:13px;color:#bbb}
 
-    /* ====== Profile (Lobbyless Hub) ====== */
-    #profile-container{
-      display:none;
-      padding:24px;
-      min-height:100vh;
-    }
-    .topbar{
-      display:flex; align-items:center; justify-content:space-between; gap:16px;
-      margin-bottom:18px;
-    }
-    .brand{display:flex; align-items:center; gap:12px}
-    .brand i{font-size:22px; color:var(--accent)}
-    .brand h1{font-size:22px; letter-spacing:1px}
-    .userbox{
-      display:flex; align-items:center; gap:12px; background:var(--panel); border:1px solid var(--border);
-      padding:10px 14px; border-radius:12px;
-    }
-    #profile-username{font-weight:700}
-    .userbox .btn-ghost{
-      border:1px solid var(--border); background: transparent; color:#fff; padding:8px 12px; cursor:pointer; border-radius:10px;
-    }
-    .grid{
-      display:grid; gap:16px;
-      grid-template-columns: 1.1fr 1fr 1fr;
-    }
-    .card{
-      background:var(--panel); border:1px solid var(--border); border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow:hidden; display:flex; flex-direction:column;
-    }
-    .card .card-h{
-      padding:14px 16px; background: rgba(255,255,255,.04); border-bottom:1px solid var(--border);
-      display:flex; align-items:center; justify-content:space-between;
-    }
-    .card .card-h h2{font-size:14px; color:var(--accent); letter-spacing:1px}
-    .card .card-b{padding:14px 16px; display:flex; flex-direction:column; gap:10px}
-    .list{
-      display:flex; flex-direction:column; gap:10px; max-height:300px; overflow:auto;
-    }
-    .row{
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      padding:10px; border:1px solid var(--border); border-radius:10px; background: rgba(255,255,255,.03);
-    }
-    .row .actions{display:flex; gap:8px}
-    .btn{
-      padding:10px 12px; border:none; border-radius:10px; cursor:pointer; font-weight:700;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2)); color:#000;
-    }
-    .btn-red{
-      background: linear-gradient(135deg, #ff7a7a, #ff3b3b); color:#fff; border:none; border-radius:10px; padding:8px 12px; cursor:pointer;
-    }
-    .btn-ghost{border:1px solid var(--border); background: transparent; color:#fff; padding:8px 12px; cursor:pointer; border-radius:10px}
-    .muted{color:var(--muted); font-size:13px}
-    .inputs{display:flex; gap:8px; flex-wrap:wrap}
-    .inputs input, .inputs select{
-      flex:1; min-width:160px; padding:10px; border-radius:10px; border:1px solid var(--border); outline:none; background:#fafafa; color:#111;
-    }
-    .inline{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+    /* ==== PROFILE (LOBBY EKRANI) ==== */
+    #profile-container{display:none;min-height:100vh;padding:30px;gap:20px}
+    .grid{display:grid;grid-template-columns:2fr 1.2fr;gap:20px;width:min(1200px,95vw);margin:40px auto}
+    .card{background:var(--panel);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+    .card h2{color:var(--neo);margin-bottom:8px}
+    .list{display:flex;flex-direction:column;gap:10px;max-height:360px;overflow:auto}
+    .item{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);padding:10px;border-radius:12px}
+    .sec{margin-top:14px}
+    .header-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+    .small{font-size:12px;color:#aaa}
 
-    /* ====== Game Screen ====== */
-    #game-container{display:none; height:100vh; position:relative}
-    #map{position:absolute; inset:0; background:#0c2022}
-    #toggle-info-cards{
-      position:absolute; top:10px; right:10px; z-index:1100;
-      background:rgba(0,0,0,.6); border:1px solid var(--border); color:#fff; border-radius:10px; padding:8px 12px; cursor:pointer;
-    }
+    /* ==== GAME ==== */
+    #game-container{display:none;height:100vh;position:relative;background:radial-gradient(circle at center,#0f0f0f 0%,#000 80%)}
+    #map{position:absolute;inset:0;background:#0c2022}
     #top-info{
-      position:fixed; top:10px; left:50%; transform:translateX(-50%); z-index:1200;
-      background:var(--panel); border:1px solid var(--border); border-radius:12px; display:flex; gap:12px; align-items:center;
-      padding:8px 14px; box-shadow: var(--shadow);
+      position:fixed;top:10px;left:50%;transform:translateX(-50%);
+      display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.65);
+      border-radius:10px;padding:8px 12px;z-index:3000
     }
-    #top-info p{font-size:14px}
-    #top-info p span{color:var(--accent); font-weight:700}
-    #end-turn-btn, #start-game-btn{
-      border:none; border-radius:10px; padding:8px 12px; cursor:pointer; font-weight:700;
-    }
-    #end-turn-btn{background: linear-gradient(135deg,#ff9966,#ff5e62); color:#fff}
-    #start-game-btn{background: linear-gradient(135deg,#9be15d,#00e3ae); color:#000; display:none}
-    #turn-timer{font-size:14px; color:var(--warn); background: rgba(0,0,0,.5); padding:3px 8px; border-radius:6px}
-    #start-countdown{color:var(--warn); display:none}
+    #top-info .pill{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);padding:6px 10px;border-radius:999px;font-size:14px}
+    #bottom-icons{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;display:flex;gap:16px;z-index:3000}
+    .fab{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;border:none;background:linear-gradient(135deg,#64ffda,#00c9ff);color:#000;box-shadow:0 12px 24px rgba(0,0,0,.6);cursor:pointer}
+    .fab[data-badge]:after{content:attr(data-badge);position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;border-radius:999px;display:grid;place-items:center;background:#ff4b4b;color:#fff;font-size:12px}
+    #exit-room-btn{position:fixed;right:20px;bottom:20px}
 
-    #bottom-icons{
-      position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:1200;
-      display:flex; gap:16px;
-    }
-    .bottom-icon-btn{
-      width:50px; height:50px; border-radius:50%; border:none; cursor:pointer;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2)); color:#000; font-size:20px;
-      box-shadow:0 10px 20px rgba(0,0,0,.5); position:relative;
-    }
-    .bottom-icon-btn[data-badge]::after{
-      content: attr(data-badge); position:absolute; top:-6px; right:-6px; min-width:20px; min-height:20px; font-size:12px;
-      display:grid; place-items:center; border-radius:999px; background:var(--danger); color:#fff; padding:2px 6px;
-    }
-    #exit-room-btn{
-      position:fixed; bottom:20px; right:20px; z-index:1200; padding:10px 14px; border-radius:10px; border:none; cursor:pointer;
-      background: linear-gradient(135deg, #ff5d5d, #ff2d2d); color:#fff;
-      box-shadow:0 10px 20px rgba(0,0,0,.5);
-    }
+    /* ==== Popups ==== */
+    .popup{position:fixed;right:20px;bottom:80px;width:480px;max-height:72vh;display:none;flex-direction:column;background:var(--panel);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.08);border-radius:16px;z-index:3002}
+    .popup .ph{display:flex;align-items:center;justify-content:space-between;background:var(--panel-2);padding:12px 14px;border-top-left-radius:16px;border-top-right-radius:16px}
+    .popup .ph h3{color:var(--neo);font-size:18px}
+    .popup .pc{padding:14px;overflow:auto;display:flex;flex-direction:column;gap:12px}
+    .popup .pc h4{color:var(--y);font-size:15px}
+    .row{display:flex;gap:8px}
+    .row input,.row select{flex:1;padding:10px;border:1px solid #333;border-radius:10px;background:#fafafa;color:#000}
+    #players-popup{left:20px;right:auto}
 
-    /* ====== Popups (glass) ====== */
-    .modern-popup{
-      position:fixed; bottom:84px; right:20px; width:460px; max-height:70vh; z-index:1300;
-      display:none; flex-direction:column; background:var(--panel); border:1px solid var(--border); border-radius:var(--radius);
-      box-shadow: var(--shadow); backdrop-filter: blur(10px);
-    }
-    .modern-popup .popup-header{
-      padding:14px; background: rgba(255,255,255,.04); border-bottom:1px solid var(--border);
-      display:flex; align-items:center; justify-content:space-between; color:var(--accent);
-    }
-    .modern-popup .popup-header button{border:none;background:transparent;color:#fff;font-size:22px;cursor:pointer}
-    .modern-popup .popup-content{
-      padding:16px; overflow:auto; display:flex; flex-direction:column; gap:10px; font-size:15px;
-    }
-    .modern-popup .popup-content input, .modern-popup .popup-content select{
-      width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); background:#fafafa; color:#111;
-    }
-    .modern-popup .popup-content button{
-      border:none; border-radius:10px; padding:10px 12px; cursor:pointer; font-weight:700;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2)); color:#000;
-    }
+    /* ==== Notifications ==== */
+    #notification-area{position:fixed;top:20px;right:20px;display:flex;flex-direction:column;gap:10px;z-index:3500}
+    .toast{min-width:200px;max-width:380px;padding:12px 16px;background:linear-gradient(135deg,rgba(255,255,255,.1),rgba(0,0,0,.5));border:1px solid rgba(255,255,255,.2);border-radius:10px;transform:translateX(120%);opacity:0;animation:toastIn .45s forwards, toastOut .5s 5.5s forwards}
+    @keyframes toastIn{to{transform:translateX(0);opacity:1}}
+    @keyframes toastOut{to{transform:translateX(120%);opacity:0}}
 
-    /* Players Left Popup */
-    #players-popup{left:20px; right:auto}
-
-    /* Chat */
-    .chat-popup{display:none}
-    .chat-header{padding:14px; background: rgba(255,255,255,.04); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; color:var(--accent)}
-    .chat-messages{flex:1; padding:14px; overflow:auto; background:rgba(0,0,0,.2)}
-    .chat-input-container{display:flex; border-top:1px solid var(--border)}
-    .chat-input-container input{flex:1; padding:12px; border:none; outline:none; background:#1e1e1e; color:#eee}
-    .chat-input-container button{padding:12px; border:none; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color:#000; cursor:pointer}
-    .chat-private-container{border-top:1px solid var(--border); padding:12px; background:rgba(0,0,0,.25); display:flex; flex-direction:column; gap:8px}
-
-    /* Profile flyout (friends/invites) — we integrate inside profile-container as cards */
-
-    /* Notifications */
-    #notification-area{position:fixed; top:18px; right:20px; z-index:2000; display:flex; flex-direction:column; gap:10px}
-    .notification-item{
-      min-width:220px; max-width:380px; padding:12px 16px; border-radius:10px;
-      background: linear-gradient(135deg, rgba(255,255,255,.1), rgba(0,0,0,.5));
-      border:1px solid var(--border); box-shadow: var(--shadow); opacity:0; transform: translateX(100%);
-      animation: slideIn .45s forwards, fadeOut .5s 5.5s forwards;
-    }
-    @keyframes slideIn{to{opacity:1; transform:none}}
-    @keyframes fadeOut{to{opacity:0; transform: translateX(100%)}}
-
-    /* Responsive */
-    @media (max-width: 1024px){
-      .grid{grid-template-columns: 1fr 1fr}
-      .auth-card{grid-template-columns: 1fr}
-      .auth-right{display:none}
-    }
-    @media (max-width: 720px){
-      .grid{grid-template-columns:1fr}
-      .modern-popup{width:92%; left:4%; right:auto}
-      #top-info{flex-direction:column; gap:6px}
-      #bottom-icons{gap:10px}
-      .bottom-icon-btn{width:44px;height:44px;font-size:18px}
+    /* ==== Responsive ==== */
+    @media (max-width: 900px){
+      .auth-card{grid-template-columns:1fr}
+      #profile-container .grid{grid-template-columns:1fr}
+      .popup{width:92vw;left:4vw;right:auto}
+      #exit-room-btn{bottom:86px}
     }
   </style>
 </head>
 <body>
 
   <!-- ============ AUTH ============ -->
-  <div id="auth-container">
+  <section id="auth-container">
     <div class="auth-card animate__animated animate__fadeInUp">
       <div class="auth-left">
-        <div class="auth-title">Global Conquest</div>
-        <div class="auth-sub">Hesabınla giriş yap ya da yeni bir komutan oluştur.</div>
+        <div class="brand">
+          <i class="fa-solid fa-globe fa-xl"></i>
+          <h1>Global Conquest</h1>
+        </div>
+        <p class="tips">Hesabınla giriş yap veya yeni hesap oluştur. Sonra arkadaşlarını davet ederek oda kur.</p>
 
-        <div class="tabbar">
-          <button id="login-tab" class="active">Giriş</button>
-          <button id="register-tab">Kayıt</button>
+        <div class="tabs">
+          <button id="login-tab" class="tab active">Giriş</button>
+          <button id="register-tab" class="tab">Kayıt</button>
         </div>
 
-        <!-- Login -->
-        <div id="login-form" class="auth-form active">
-          <input id="login-email" type="email" placeholder="Email" />
-          <input id="login-password" type="password" placeholder="Şifre" />
-          <button id="login-btn" class="btn">Giriş Yap</button>
-        </div>
-
-        <!-- Register -->
-        <div id="register-form" class="auth-form">
-          <div class="form-row">
-            <input id="register-display-name" type="text" placeholder="Kullanıcı Adı" />
+        <!-- Giriş -->
+        <form id="login-form" class="f" autocomplete="on">
+          <label for="login-email">E-posta</label>
+          <input id="login-email" type="email" placeholder="ornek@mail.com" required>
+          <label for="login-password">Şifre</label>
+          <input id="login-password" type="password" placeholder="********" required>
+          <div class="auth-actions">
+            <button id="login-btn" type="button" class="btn btn-primary">Giriş Yap</button>
+            <span class="small">Şifreni mi unuttun? (yakında)</span>
           </div>
-          <input id="register-email" type="email" placeholder="Email" />
-          <div class="form-row">
-            <input id="register-password" type="password" placeholder="Şifre" />
-            <input id="register-confirm-password" type="password" placeholder="Şifre Tekrar" />
-          </div>
-          <button id="register-btn" class="btn">Kayıt Ol</button>
-        </div>
+        </form>
+
+        <!-- Kayıt -->
+        <form id="register-form" class="f" style="display:none" autocomplete="on">
+          <label for="register-display-name">Kullanıcı Adı</label>
+          <input id="register-display-name" type="text" placeholder="Komutan Adın" required>
+          <label for="register-email">E-posta</label>
+          <input id="register-email" type="email" placeholder="ornek@mail.com" required>
+          <label for="register-password">Şifre</label>
+          <input id="register-password" type="password" placeholder="********" required>
+          <label for="register-confirm-password">Şifre (tekrar)</label>
+          <input id="register-confirm-password" type="password" placeholder="********" required>
+          <button id="register-btn" type="button" class="btn btn-primary">Kayıt Ol</button>
+        </form>
       </div>
 
-      <div class="auth-right">
-        <div class="hero">Dünyayı <strong>fethet</strong>, <br/>stratejiyle <strong>yönet</strong>.</div>
-        <div class="mini">Gerçek zamanlı lobiler, harita üzerinde ülkeler, üretim & ticaret, paktlar, sohbet ve daha fazlası.</div>
-      </div>
+      <aside class="auth-right">
+        <img alt="Harita" src="https://images.unsplash.com/photo-1502920917128-1aa500764b8a?q=80&w=1200&auto=format&fit=crop" style="width:100%;height:240px;object-fit:cover;border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,.5)">
+        <p class="small">Gerçek zamanlı oda sistemi, dünya haritası (Leaflet), pakt & ticaret, özel sohbet, bayrak düzenleyici… Hepsi burada.</p>
+      </aside>
     </div>
-  </div>
+  </section>
 
-  <!-- ============ PROFILE / HUB ============ -->
-  <div id="profile-container">
-    <div class="topbar">
-      <div class="brand">
-        <i class="fas fa-globe"></i>
-        <h1>Global Conquest</h1>
-      </div>
-      <div class="userbox">
-        <span id="profile-username">-</span>
-        <button id="edit-flag-btn" class="btn-ghost"><i class="fas fa-flag"></i> Bayrağı Düzenle</button>
-        <button id="profile-logout-btn" class="btn-ghost"><i class="fas fa-right-from-bracket"></i> Çıkış</button>
-      </div>
-    </div>
-
+  <!-- ============ PROFILE / LOBBY ============ -->
+  <section id="profile-container">
     <div class="grid">
-      <!-- Friends -->
       <div class="card">
-        <div class="card-h"><h2>Arkadaşlar</h2></div>
-        <div class="card-b">
-          <div class="inputs">
-            <input id="add-friend-username" type="text" placeholder="Kullanıcı adı ile ekle" />
-            <button id="send-friend-request-btn" class="btn"><i class="fas fa-user-plus"></i> İstek Gönder</button>
+        <div class="header-row">
+          <h2>Profil</h2>
+          <div class="row" style="flex:none">
+            <button id="edit-flag-btn" class="btn btn-soft"><i class="fa-solid fa-flag"></i> Bayrak</button>
+            <button id="profile-logout-btn" class="btn btn-danger"><i class="fa-solid fa-right-from-bracket"></i> Çıkış</button>
           </div>
-          <div class="muted">Listem</div>
+        </div>
+        <p>Komutan: <strong id="profile-username">-</strong></p>
+
+        <div class="sec">
+          <h3 style="color:var(--y);margin:8px 0">Arkadaşlar</h3>
           <div id="friend-list" class="list"></div>
-          <div class="muted">Gelen istekler</div>
+          <div class="row">
+            <label for="add-friend-username" class="sr-only">Kullanıcı Adı</label>
+            <input id="add-friend-username" type="text" placeholder="Kullanıcı adı yaz">
+            <button id="send-friend-request-btn" class="btn btn-primary">İstek Gönder</button>
+          </div>
+          <h4 class="sec">Gelen İstekler</h4>
           <div id="friend-request-list" class="list"></div>
         </div>
       </div>
 
-      <!-- Room Invites & Join Requests -->
       <div class="card">
-        <div class="card-h"><h2>Oda Davetleri / Katılma İstekleri</h2></div>
-        <div class="card-b">
-          <div id="room-invite-list" class="list"></div>
-          <div class="muted">Host olduğun odalara gelen katılma istekleri burada görünür.</div>
-        </div>
-      </div>
-
-      <!-- Create Room -->
-      <div class="card">
-        <div class="card-h"><h2>Oda Kur</h2></div>
-        <div class="card-b">
-          <div class="inputs">
-            <input id="room-name-input" type="text" placeholder="Oda adı" />
+        <h2>Oda & Davet</h2>
+        <div class="sec">
+          <h4>Oda Oluştur</h4>
+          <div class="row">
+            <label for="room-name-input" class="sr-only">Oda Adı</label>
+            <input id="room-name-input" type="text" placeholder="Oda adı (örn: Aslanlar)">
           </div>
-          <div class="muted">Arkadaşlarını davet et (çoklu seçim):</div>
-          <select id="room-invite-friends" multiple style="min-height:120px; background:#fafafa; color:#111; border:1px solid var(--border); border-radius:10px;"></select>
-          <button id="create-room-btn" class="btn"><i class="fas fa-plus"></i> Oda Oluştur</button>
-          <div class="muted">Veya aşağıdan aktif odalara katıl / izle.</div>
+          <div class="row">
+            <label class="sr-only" for="room-invite-friends">Arkadaş Daveti</label>
+            <select id="room-invite-friends" multiple style="height:90px;border-radius:12px"></select>
+          </div>
+          <button id="create-room-btn" class="btn btn-primary">Odayı Kur & Davet Et</button>
         </div>
-      </div>
 
-      <!-- Active Rooms -->
-      <div class="card" style="grid-column: 1 / -1;">
-        <div class="card-h"><h2>Aktif Odalar</h2></div>
-        <div class="card-b">
+        <div class="sec">
+          <h4>Oda Davetleri</h4>
+          <div id="room-invite-list" class="list"></div>
+        </div>
+
+        <div class="sec">
+          <h4>Aktif Odalar</h4>
           <div id="active-rooms-list" class="list"></div>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 
   <!-- ============ GAME ============ -->
-  <div id="game-container">
+  <section id="game-container">
     <div id="map"></div>
-    <button id="toggle-info-cards"><i class="fas fa-eye-slash"></i></button>
 
-    <div id="top-info">
-      <p>Oda: <span id="display-room-name">-</span> | Tur: <span id="current-round">1</span> | Sıra: <span id="current-player">-</span></p>
-      <button id="end-turn-btn"><i class="fas fa-forward"></i> Tur Sonu <span id="turn-timer">60s</span></button>
-      <button id="start-game-btn">Oyunu Başlat</button>
-      <span id="start-countdown">30</span>
+    <div id="top-info" class="animate__animated animate__fadeInDown">
+      <span class="pill">Oda: <strong id="display-room-name">-</strong></span>
+      <span class="pill">Tur: <strong id="current-round">1</strong></span>
+      <span class="pill">Sıra: <strong id="current-player">?</strong></span>
+      <button id="end-turn-btn" class="btn btn-primary"><i class="fa-solid fa-forward"></i> Tur Sonu <span id="turn-timer" class="chip">60s</span></button>
+      <button id="start-game-btn" class="btn btn-primary" style="display:none">Oyunu Başlat</button>
+      <span id="start-countdown" class="pill" style="display:none">30</span>
+      <button id="toggle-info-cards" class="btn btn-soft"><i class="fa-solid fa-eye-slash"></i></button>
     </div>
 
     <div id="bottom-icons">
-      <button id="open-players-btn" class="bottom-icon-btn" title="Oyuncular"><i class="fas fa-users"></i></button>
-      <button id="open-military-btn" class="bottom-icon-btn" title="Asker İşlemleri"><i class="fas fa-shield-alt"></i></button>
-      <button id="open-building-btn" class="bottom-icon-btn" title="Bina Kurma"><i class="fas fa-building"></i></button>
-      <button id="open-resource-btn" class="bottom-icon-btn" title="Kaynak Gönderme"><i class="fas fa-hand-holding-usd"></i></button>
-      <button id="open-market-btn" class="bottom-icon-btn" title="Ticaret Merkezi"><i class="fas fa-store"></i></button>
-      <button id="open-pact-btn" class="bottom-icon-btn" title="Saldırmazlık Pakti"><i class="fas fa-handshake"></i></button>
-      <button id="open-chat-btn" class="bottom-icon-btn" title="Sohbet"><i class="fas fa-comments"></i></button>
-      <button id="open-profile-btn" class="bottom-icon-btn" title="Profil"><i class="fas fa-user"></i></button>
-      <button id="open-notifications-btn" class="bottom-icon-btn" title="Bildirimler"><i class="fas fa-bell"></i></button>
+      <button id="open-players-btn" class="fab" title="Oyuncular"><i class="fa-solid fa-users"></i></button>
+      <button id="open-military-btn" class="fab" title="Asker İşlemleri"><i class="fa-solid fa-shield-halved"></i></button>
+      <button id="open-building-btn" class="fab" title="Bina Kurma"><i class="fa-solid fa-building"></i></button>
+      <button id="open-resource-btn" class="fab" title="Kaynak Gönderme"><i class="fa-solid fa-hand-holding-dollar"></i></button>
+      <button id="open-market-btn" class="fab" data-badge="" title="Ticaret Merkezi"><i class="fa-solid fa-store"></i></button>
+      <button id="open-pact-btn" class="fab" title="Saldırmazlık Pakti"><i class="fa-solid fa-handshake"></i></button>
+      <button id="open-chat-btn" class="fab" data-badge="" title="Sohbet"><i class="fa-solid fa-comments"></i></button>
+      <button id="open-profile-btn" class="fab" title="Profil"><i class="fa-solid fa-user"></i></button>
+      <button id="open-notifications-btn" class="fab" title="Bildirimler"><i class="fa-solid fa-bell"></i></button>
     </div>
 
-    <button id="exit-room-btn">Odadan Çık</button>
+    <button id="exit-room-btn" class="btn btn-danger">Odadan Çık</button>
+  </section>
+
+  <!-- ============ POPUPS ============ -->
+
+  <!-- Oyuncular -->
+  <div id="players-popup" class="popup">
+    <div class="ph"><h3>Oyuncu Bilgileri</h3><button id="close-players-btn" class="btn btn-soft">×</button></div>
+    <div id="players-info" class="pc"></div>
   </div>
 
-  <!-- ====== Notifications ====== -->
+  <!-- Asker -->
+  <div id="military-popup" class="popup">
+    <div class="ph"><h3>Asker İşlemleri</h3><button id="close-military-btn" class="btn btn-soft">×</button></div>
+    <div class="pc">
+      <h4>Saldırı</h4>
+      <p class="small">Hedef ülkeyi haritadan seçin. 1 asker = 1 varil petrol.</p>
+      <div class="row">
+        <label class="sr-only" for="attack-soldiers">Asker</label>
+        <input id="attack-soldiers" type="number" min="1" placeholder="Asker sayısı">
+      </div>
+      <button id="attack-btn" class="btn btn-primary"><i class="fa-solid fa-crosshairs"></i> Saldırı Yap</button>
+
+      <h4>Asker Satın Al</h4>
+      <p class="small">(1 Asker = 10$ + 25 Buğday)</p>
+      <div class="row">
+        <label class="sr-only" for="soldiers-to-buy">Adet</label>
+        <input id="soldiers-to-buy" type="number" min="1" placeholder="Adet">
+      </div>
+      <button id="buy-soldiers-btn" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> Satın Al</button>
+
+      <h4>Asker Çek</h4>
+      <div class="row">
+        <label class="sr-only" for="pull-soldiers-count">Asker</label>
+        <input id="pull-soldiers-count" type="number" min="1" placeholder="Asker sayısı">
+      </div>
+      <button id="pull-soldiers-btn" class="btn btn-primary"><i class="fa-solid fa-person-walking-arrow-loop-left"></i> Asker Çek</button>
+
+      <h4>Askeri Destek Gönder</h4>
+      <div class="row">
+        <label class="sr-only" for="support-recipient">Oyuncu</label>
+        <select id="support-recipient"></select>
+        <label class="sr-only" for="support-recipient-country">Ülke</label>
+        <select id="support-recipient-country"></select>
+      </div>
+      <div class="row">
+        <label class="sr-only" for="support-soldiers">Asker</label>
+        <input id="support-soldiers" type="number" min="1" placeholder="Asker sayısı">
+      </div>
+      <button id="send-support-btn" class="btn btn-primary"><i class="fa-solid fa-hands-holding"></i> Destek Gönder</button>
+    </div>
+  </div>
+
+  <!-- Bina -->
+  <div id="building-popup" class="popup">
+    <div class="ph"><h3>Bina Kurma</h3><button id="close-building-btn" class="btn btn-soft">×</button></div>
+    <div class="pc">
+      <h4>Kışla</h4><p class="small">(1 Kışla = 300$ + 50 Varil + 120 Buğday)</p>
+      <div class="row"><label class="sr-only" for="barracks-quantity">Adet</label><input id="barracks-quantity" type="number" min="1" placeholder="Adet"></div>
+      <button id="buy-barracks-btn" class="btn btn-primary"><i class="fa-solid fa-fort-awesome"></i> Kışla Kur</button>
+
+      <h4>Fabrika</h4><p class="small">(1 Fabrika = 500$ + 130 Varil)</p>
+      <div class="row"><label class="sr-only" for="factory-quantity">Adet</label><input id="factory-quantity" type="number" min="1" placeholder="Adet"></div>
+      <button id="build-factory-btn" class="btn btn-primary"><i class="fa-solid fa-industry"></i> Fabrika Kur</button>
+
+      <h4>Rafine</h4><p class="small">(1 Rafine = 800$ + 250 Varil)</p>
+      <div class="row"><label class="sr-only" for="refinery-quantity">Adet</label><input id="refinery-quantity" type="number" min="1" placeholder="Adet"></div>
+      <button id="build-refinery-btn" class="btn btn-primary"><i class="fa-solid fa-oil-can"></i> Rafine Kur</button>
+
+      <h4>Değirmen</h4><p class="small">(1 Değirmen = 200$ + 100 Varil)</p>
+      <div class="row"><label class="sr-only" for="grainmill-quantity">Adet</label><input id="grainmill-quantity" type="number" min="1" placeholder="Adet"></div>
+      <button id="build-grainmill-btn" class="btn btn-primary"><i class="fa-solid fa-wheat-awn"></i> Değirmen Kur</button>
+
+      <h4>Kale</h4>
+      <p class="small">1 Kale = 1000$ + 1000 Varil + 1000 Buğday. Ülkede tek kale olabilir. Saldıranın %5’i düşer.</p>
+      <button id="build-castle-btn" class="btn btn-primary"><i class="fa-solid fa-chess-rook"></i> Kale Kur</button>
+
+      <h4>Kale Güçlendirme</h4>
+      <p class="small">Her güçlendirme +%5 (maks %30). İlk güçlendirme 1300$ + 1300 Varil + 1300 Buğday, her seferinde +%30 artar.</p>
+      <p class="small">Mevcut/Sonraki Fiyat: <strong id="castle-upgrade-cost-text">-</strong></p>
+      <button id="upgrade-castle-btn" class="btn btn-primary"><i class="fa-solid fa-arrow-up"></i> Kale Güçlendir</button>
+    </div>
+  </div>
+
+  <!-- Kaynak Gönder -->
+  <div id="resource-popup" class="popup">
+    <div class="ph"><h3>Kaynak Gönder</h3><button id="close-resource-btn" class="btn btn-soft">×</button></div>
+    <div class="pc">
+      <h4>Para</h4>
+      <div class="row">
+        <label class="sr-only" for="money-to-send">Miktar</label>
+        <input id="money-to-send" type="number" min="1" placeholder="Miktar ($)">
+        <label class="sr-only" for="recipient-player">Alıcı</label>
+        <select id="recipient-player"></select>
+      </div>
+      <button id="send-money-btn" class="btn btn-primary"><i class="fa-solid fa-hand-holding-dollar"></i> Gönder</button>
+
+      <h4>Petrol</h4>
+      <div class="row">
+        <label class="sr-only" for="petrol-to-send">Varil</label>
+        <input id="petrol-to-send" type="number" min="1" placeholder="Varil">
+        <label class="sr-only" for="recipient-player-petrol">Alıcı</label>
+        <select id="recipient-player-petrol"></select>
+      </div>
+      <button id="send-petrol-btn" class="btn btn-primary"><i class="fa-solid fa-gas-pump"></i> Gönder</button>
+
+      <h4>Buğday</h4>
+      <div class="row">
+        <label class="sr-only" for="wheat-to-send">Buğday</label>
+        <input id="wheat-to-send" type="number" min="1" placeholder="Buğday">
+        <label class="sr-only" for="recipient-player-wheat">Alıcı</label>
+        <select id="recipient-player-wheat"></select>
+      </div>
+      <button id="send-wheat-btn" class="btn btn-primary"><i class="fa-solid fa-wheat-awn"></i> Gönder</button>
+    </div>
+  </div>
+
+  <!-- Chat -->
+  <div id="chat-popup" class="popup">
+    <div class="ph"><h3>Sohbet</h3><button id="close-chat-btn" class="btn btn-soft">×</button></div>
+    <div id="chat-messages" class="pc" style="min-height:180px"></div>
+    <div class="row" style="padding:12px;border-top:1px solid rgba(255,255,255,.08)">
+      <label class="sr-only" for="chat-input">Mesaj</label>
+      <input id="chat-input" type="text" placeholder="Mesajınızı yazın…">
+      <button id="send-chat-btn" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+    <div class="pc" style="border-top:1px solid rgba(255,255,255,.08)">
+      <h4>Özel Mesaj</h4>
+      <div class="row">
+        <label class="sr-only" for="private-message-recipient">Alıcı</label>
+        <select id="private-message-recipient"></select>
+      </div>
+      <div class="row">
+        <label class="sr-only" for="private-message-input">Mesaj</label>
+        <input id="private-message-input" type="text" placeholder="Özel mesajınız…">
+        <button id="send-private-message-btn" class="btn btn-primary"><i class="fa-solid fa-user-secret"></i> Gönder</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pakt -->
+  <div id="pact-popup" class="popup">
+    <div class="ph"><h3>Saldırmazlık Pakti</h3><button id="close-pact-btn" class="btn btn-soft">×</button></div>
+    <div class="pc">
+      <h4>Yeni Pakt Teklifi</h4>
+      <div class="row">
+        <label class="sr-only" for="pact-offer-recipient">Oyuncu</label>
+        <select id="pact-offer-recipient"></select>
+      </div>
+      <div class="row">
+        <label class="sr-only" for="pact-duration">Tur</label>
+        <input id="pact-duration" type="number" min="1" placeholder="Tur sayısı">
+        <label class="sr-only" for="pact-cost">Para</label>
+        <input id="pact-cost" type="number" min="0" placeholder="Tek seferlik ($)">
+      </div>
+      <button id="send-pact-offer-btn" class="btn btn-primary">Teklif Gönder</button>
+
+      <h4>Gelen Teklifler</h4>
+      <div id="pact-pending-offers" class="list"></div>
+
+      <h4>Aktif Paktlar</h4>
+      <div id="active-pacts-container" class="list"></div>
+    </div>
+  </div>
+
+  <!-- Market -->
+  <div id="market-popup" class="popup">
+    <div class="ph"><h3>Ticaret Merkezi</h3><button id="close-market-btn" class="btn btn-soft">×</button></div>
+    <div class="pc">
+      <h4>Yeni Teklif</h4>
+      <div class="row">
+        <label class="sr-only" for="trade-item-type">Ürün</label>
+        <select id="trade-item-type"><option value="petrol">Petrol</option><option value="wheat">Buğday</option></select>
+      </div>
+      <div class="row">
+        <label class="sr-only" for="trade-quantity">Miktar</label>
+        <input id="trade-quantity" type="number" min="1" placeholder="Miktar">
+        <label class="sr-only" for="trade-price">Birim Fiyat</label>
+        <input id="trade-price" type="number" min="1" placeholder="Birim Fiyat ($)">
+      </div>
+      <div class="row">
+        <label class="sr-only" for="embargo-players">Ambargo (Ctrl/⌘ ile çoklu)</label>
+        <select id="embargo-players" multiple style="height:80px"></select>
+      </div>
+      <button id="create-trade-offer-btn" class="btn btn-primary">Teklifi Oluştur</button>
+
+      <h4>Mevcut Teklifler</h4>
+      <div id="trade-offers-list" class="list"></div>
+    </div>
+  </div>
+
+  <!-- Profil (Arkadaşlar vb.) Sağ Alt açılır – opsiyonel -->
+  <div id="profile-popup" class="popup" style="display:none">
+    <div class="ph"><h3>Profil & Arkadaşlar</h3><button id="close-profile-btn" class="btn btn-soft">×</button></div>
+    <div class="pc">
+      <div id="friend-list-popup" class="list"></div>
+    </div>
+  </div>
+
+  <!-- Bildirim Alanı -->
   <div id="notification-area"></div>
 
-  <!-- ====== Players Popup (Left) ====== -->
-  <div id="players-popup" class="modern-popup">
-    <div class="popup-header" id="players-popup-header">
-      <span>Oyuncu Bilgileri</span>
-      <button id="close-players-btn">&times;</button>
-    </div>
-    <div class="popup-content" id="players-info"></div>
-  </div>
-
-  <!-- ====== Military Popup ====== -->
-  <div id="military-popup" class="modern-popup">
-    <div class="popup-header" id="military-popup-header">
-      <span>Asker İşlemleri</span>
-      <button id="close-military-btn">&times;</button>
-    </div>
-    <div class="popup-content">
-      <h3>Saldırı</h3>
-      <p class="muted">Hedef ülkeyi haritadan seçin. (1 asker = 1 varil petrol)</p>
-      <input type="number" id="attack-soldiers" placeholder="Asker sayısı" min="1" />
-      <button id="attack-btn"><i class="fas fa-crosshairs"></i> Saldırı Yap</button>
-
-      <h3>Asker Satın Al</h3>
-      <p class="muted">(1 Asker = 10$ + 25 Buğday)</p>
-      <input type="number" id="soldiers-to-buy" placeholder="Adet" min="1" />
-      <button id="buy-soldiers-btn"><i class="fas fa-user-plus"></i> Satın Al</button>
-
-      <h3>Asker Çek</h3>
-      <input type="number" id="pull-soldiers-count" placeholder="Asker sayısı" min="1" />
-      <button id="pull-soldiers-btn"><i class="fas fa-person-running"></i> Asker Çek</button>
-
-      <h3>Askeri Destek Gönder</h3>
-      <label class="muted">Oyuncu</label>
-      <select id="support-recipient"></select>
-      <label class="muted">Ülke</label>
-      <select id="support-recipient-country"></select>
-      <input type="number" id="support-soldiers" placeholder="Asker sayısı" min="1" />
-      <button id="send-support-btn"><i class="fas fa-hands-holding"></i> Destek Gönder</button>
-    </div>
-  </div>
-
-  <!-- ====== Building Popup ====== -->
-  <div id="building-popup" class="modern-popup">
-    <div class="popup-header" id="building-popup-header">
-      <span>Bina Kurma</span>
-      <button id="close-building-btn">&times;</button>
-    </div>
-    <div class="popup-content">
-      <h3>Kışla</h3>
-      <p class="muted">(1 Kışla = 300$ + 50 Varil + 120 Buğday)</p>
-      <input type="number" id="barracks-quantity" placeholder="Adet" min="1" />
-      <button id="buy-barracks-btn"><i class="fas fa-fort-awesome"></i> Kışla Kur</button>
-
-      <h3>Fabrika</h3>
-      <p class="muted">(1 Fabrika = 500$ + 130 Varil)</p>
-      <input type="number" id="factory-quantity" placeholder="Adet" min="1" />
-      <button id="build-factory-btn"><i class="fas fa-industry"></i> Fabrika Kur</button>
-
-      <h3>Rafine</h3>
-      <p class="muted">(1 Rafine = 800$ + 250 Varil)</p>
-      <input type="number" id="refinery-quantity" placeholder="Adet" min="1" />
-      <button id="build-refinery-btn"><i class="fas fa-oil-can"></i> Rafine Kur</button>
-
-      <h3>Değirmen</h3>
-      <p class="muted">(1 Değirmen = 200$ + 100 Varil)</p>
-      <input type="number" id="grainmill-quantity" placeholder="Adet" min="1" />
-      <button id="build-grainmill-btn"><i class="fas fa-wheat-awn"></i> Değirmen Kur</button>
-
-      <h3>Kale</h3>
-      <p class="muted">1 Kale = 1000$ + 1000 Varil + 1000 Buğday (Ülkede yalnızca 1 kale; saldıran askerlerin %5'i yok edilir)</p>
-      <button id="build-castle-btn"><i class="fas fa-chess-rook"></i> Kale Kur</button>
-
-      <h3>Kale Güçlendirme</h3>
-      <p class="muted">Her güçlendirme +%5 (Maks %30). İlk güçlendirme: 1300$ + 1300 Varil + 1300 Buğday; her seferinde %30 artar.</p>
-      <p class="muted">Mevcut/Sonraki Maliyet: <span id="castle-upgrade-cost-text">-</span></p>
-      <button id="upgrade-castle-btn"><i class="fas fa-arrow-up"></i> Kale Güçlendir</button>
-    </div>
-  </div>
-
-  <!-- ====== Resource Popup ====== -->
-  <div id="resource-popup" class="modern-popup">
-    <div class="popup-header" id="resource-popup-header">
-      <span>Kaynak Gönder</span>
-      <button id="close-resource-btn">&times;</button>
-    </div>
-    <div class="popup-content">
-      <h3>Para</h3>
-      <input type="number" id="money-to-send" placeholder="Miktar ($)" min="1"/>
-      <select id="recipient-player"></select>
-      <button id="send-money-btn"><i class="fas fa-hand-holding-dollar"></i> Gönder</button>
-
-      <h3>Petrol</h3>
-      <input type="number" id="petrol-to-send" placeholder="Varil" min="1"/>
-      <select id="recipient-player-petrol"></select>
-      <button id="send-petrol-btn"><i class="fas fa-gas-pump"></i> Gönder</button>
-
-      <h3>Buğday</h3>
-      <input type="number" id="wheat-to-send" placeholder="Buğday" min="1"/>
-      <select id="recipient-player-wheat"></select>
-      <button id="send-wheat-btn"><i class="fas fa-wheat-awn"></i> Gönder</button>
-    </div>
-  </div>
-
-  <!-- ====== Pact Popup ====== -->
-  <div id="pact-popup" class="modern-popup">
-    <div id="pact-popup-header" class="popup-header">
-      <span>Saldırmazlık Pakti</span>
-      <button id="close-pact-btn">&times;</button>
-    </div>
-    <div class="popup-content">
-      <h3>Yeni Pakt Teklifi</h3>
-      <select id="pact-offer-recipient"></select>
-      <input type="number" id="pact-duration" placeholder="Tur sayısı" min="1"/>
-      <input type="number" id="pact-cost" placeholder="Tek seferlik para ($)" min="0"/>
-      <button id="send-pact-offer-btn">Teklif Gönder</button>
-
-      <h3>Gelen Teklifler</h3>
-      <div id="pact-pending-offers"></div>
-
-      <h3>Aktif Paktlar</h3>
-      <div id="active-pacts-container"></div>
-    </div>
-  </div>
-
-  <!-- ====== Market Popup ====== -->
-  <div id="market-popup" class="modern-popup">
-    <div class="popup-header" id="market-popup-header">
-      <span>Ticaret Merkezi</span>
-      <button id="close-market-btn">&times;</button>
-    </div>
-    <div class="popup-content">
-      <h3>Yeni Teklif</h3>
-      <label class="muted">Satılacak Ürün</label>
-      <select id="trade-item-type">
-        <option value="petrol">Petrol</option>
-        <option value="wheat">Buğday</option>
-      </select>
-      <label class="muted">Miktar</label>
-      <input type="number" id="trade-quantity" placeholder="Miktar" min="1"/>
-      <label class="muted">Birim Fiyat ($)</label>
-      <input type="number" id="trade-price" placeholder="Birim Fiyat" min="1"/>
-      <label class="muted">Ambargo (Çoklu Seçim)</label>
-      <select id="embargo-players" multiple style="min-height:70px; background:#fafafa; color:#111; border:1px solid var(--border); border-radius:10px;"></select>
-      <button id="create-trade-offer-btn">Teklif Oluştur</button>
-
-      <h3>Mevcut Teklifler</h3>
-      <div id="trade-offers-list"></div>
-    </div>
-  </div>
-
-  <!-- ====== Chat Popup ====== -->
-  <div id="chat-popup" class="modern-popup chat-popup">
-    <div class="chat-header" id="chat-popup-header">
-      <span>Sohbet</span>
-      <button id="close-chat-btn">&times;</button>
-    </div>
-    <div id="chat-messages" class="chat-messages"></div>
-    <div class="chat-input-container">
-      <input id="chat-input" type="text" placeholder="Mesajınızı yazın..." />
-      <button id="send-chat-btn"><i class="fas fa-paper-plane"></i></button>
-    </div>
-    <div class="chat-private-container">
-      <h4>Özel Mesaj</h4>
-      <select id="private-message-recipient"></select>
-      <input id="private-message-input" type="text" placeholder="Özel mesajınız..." />
-      <button id="send-private-message-btn"><i class="fas fa-user-secret"></i> Gönder</button>
-    </div>
-  </div>
-
-  <!-- ====== Flag Editor Popup ====== -->
-  <div id="flag-editor-popup" class="modern-popup" style="right: 20px;">
-    <div class="popup-header">
-      <span>Bayrak Düzenleyici</span>
-      <button id="close-flag-editor-btn">&times;</button>
-    </div>
-    <div class="popup-content">
-      <canvas id="flag-canvas" width="440" height="260" style="border-radius:10px; background:#fff; border:1px solid var(--border)"></canvas>
-      <div class="inline">
-        <label class="muted">Renk</label>
-        <input id="flag-color" type="color" value="#ff0000" style="width:48px; height:36px; padding:0; border:none"/>
-        <label class="muted">Kalem</label>
-        <input id="flag-brush-size" type="range" min="1" max="30" value="5" />
-        <button id="flag-erase-btn" class="btn-ghost">Silgi</button>
-        <button id="flag-clear-btn" class="btn-ghost">Temizle</button>
-        <button id="save-flag-btn" class="btn"><i class="fas fa-save"></i> Kaydet</button>
+  <!-- Bayrak Editörü -->
+  <div id="flag-editor-popup" class="popup" style="display:none">
+    <div class="ph"><h3>Bayrak Düzenle</h3><button id="close-flag-editor-btn" class="btn btn-soft">×</button></div>
+    <div class="pc">
+      <canvas id="flag-canvas" width="480" height="280" style="width:100%;height:auto;background:#fff;border-radius:8px;border:1px solid #ddd"></canvas>
+      <div class="row">
+        <label class="sr-only" for="flag-color">Renk</label>
+        <input id="flag-color" type="color" value="#ff0000">
+        <label class="sr-only" for="flag-brush-size">Kalınlık</label>
+        <input id="flag-brush-size" type="range" min="1" max="40" value="5">
       </div>
-      <div class="muted">Kaydettiğin bayrak, fethettiğin ülkelerin dolgu deseni olarak haritada görünecek.</div>
+      <div class="row" style="justify-content:flex-end">
+        <button id="flag-erase-btn" class="btn btn-soft">Silgi</button>
+        <button id="flag-clear-btn" class="btn btn-soft">Temizle</button>
+        <button id="save-flag-btn" class="btn btn-primary">Kaydet</button>
+      </div>
     </div>
   </div>
 
-  <!-- ====== Firebase (compat) ====== -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <!-- ============ SCRIPTS ============ -->
 
-  <!-- Leaflet Core -->
+  <!-- Leaflet & pattern plugin -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <!-- Leaflet Pattern (bayrak dolgusu) -->
-  <script src="https://unpkg.com/leaflet.pattern/leaflet.pattern.js"></script>
+  <script src="https://unpkg.com/leaflet.pattern/leaflet.pattern.min.js"></script>
 
-  <!-- Oyun Mantığı (senin JS dosyan) -->
-  <!-- gameLogic.js içeriğini bir sonraki adımda düzeltilmiş haliyle ekleyeceğiz -->
-  <script src="gameLogic.js"></script>
-  <style>
-  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
-</style>
-<script>
-  (function(){
-    var els = document.querySelectorAll('input, select, textarea');
-    els.forEach(function(el){
-      var hasFor = el.id && document.querySelector('label[for="'+el.id+'"]');
-      if(!hasFor && !el.getAttribute('aria-label')){
-        var txt = el.getAttribute('placeholder') || el.name || el.id || 'Form alanı';
-        el.setAttribute('aria-label', txt);
+  <!-- Firebase v10 (MODÜLER) -->
+  <script type="module">
+    /*************** Firebase (MODÜLER) – sadece başlatma ***************/
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+    import {
+      getAuth, onAuthStateChanged, signInWithEmailAndPassword,
+      createUserWithEmailAndPassword, signOut
+    } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+    import {
+      getDatabase, ref, onValue, get, set, update, push, serverTimestamp, remove, child
+    } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCINihMNGs-qRYIIBLzXyeaLnM_Lhp-iwg",
+      authDomain: "warmapg-77acb.firebaseapp.com",
+      databaseURL: "https://warmapg-77acb-default-rtdb.firebaseio.com",
+      projectId: "warmapg-77acb",
+      storageBucket: "warmapg-77acb.appspot.com",
+      messagingSenderId: "895613631339",
+      appId: "1:895613631339:web:a7ecc0cfd8ab3ae7e02a2e",
+      measurementId: "G-6SJVLLVDCF"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getDatabase(app);
+
+    // Tüm modülleri gameLogic'e aktarmak için global bir kök objesi:
+    window.gc = { app, auth, db,
+      fba:{ onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut },
+      fdb:{ ref, onValue, get, set, update, push, serverTimestamp, remove, child }
+    };
+
+    /*************** Basit UI geçişleri (JS dosyan gelene kadar çalışır) ***************/
+    const $ = (s)=>document.querySelector(s);
+    const show = (el,disp='block')=>{el.style.display=disp};
+    const hide = (el)=>{el.style.display='none'};
+    const toast = (t,d=3000)=>{const a=$("#notification-area");const n=document.createElement('div');n.className='toast';n.textContent=t;a.appendChild(n);setTimeout(()=>a.removeChild(n),d+800)};
+
+    // Tabs
+    $("#login-tab").addEventListener("click",()=>{ $("#login-tab").classList.add("active"); $("#register-tab").classList.remove("active"); show($("#login-form")); hide($("#register-form")); });
+    $("#register-tab").addEventListener("click",()=>{ $("#register-tab").classList.add("active"); $("#login-tab").classList.remove("active"); show($("#register-form")); hide($("#login-form")); });
+
+    // Auth actions
+    $("#login-btn").addEventListener("click", async () => {
+      const email = $("#login-email").value.trim();
+      const pass  = $("#login-password").value.trim();
+      if(!email||!pass) return toast("Lütfen tüm alanları doldurun");
+      try { await window.gc.fba.signInWithEmailAndPassword(window.gc.auth, email, pass); toast("Giriş başarılı"); }
+      catch(e){ toast("Giriş hata: "+e.message); }
+    });
+
+    $("#register-btn").addEventListener("click", async () => {
+      const dn = $("#register-display-name").value.trim();
+      const em = $("#register-email").value.trim();
+      const pw = $("#register-password").value.trim();
+      const cp = $("#register-confirm-password").value.trim();
+      if(!dn||!em||!pw||!cp) return toast("Lütfen tüm alanları doldurun");
+      if(pw!==cp) return toast("Şifreler eşleşmiyor");
+      try{
+        const cred = await window.gc.fba.createUserWithEmailAndPassword(window.gc.auth, em, pw);
+        await window.gc.fdb.set(window.gc.fdb.ref(window.gc.db, "users/"+cred.user.uid), {
+          email: em, displayName: dn, online: true, friends:{}, friendRequests:{}, roomInvites:{}
+        });
+        toast("Kayıt başarılı, giriş yapıldı");
+      }catch(e){ toast("Kayıt hata: "+e.message); }
+    });
+
+    $("#profile-logout-btn").addEventListener("click", async ()=>{
+      try{ await window.gc.fba.signOut(window.gc.auth); toast("Çıkış yapıldı"); }
+      catch(e){ toast("Hata: "+e.message); }
+    });
+
+    // Auth state -> sayfa geçişleri
+    const authSec = $("#auth-container");
+    const profSec = $("#profile-container");
+    const gameSec = $("#game-container");
+
+    window.gc.showProfile = ()=>{ hide(authSec); show(profSec,'block'); hide(gameSec) };
+    window.gc.showGame    = ()=>{ hide(authSec); hide(profSec); show(gameSec,'block') };
+    window.gc.showAuth    = ()=>{ show(authSec,'flex'); hide(profSec); hide(gameSec)  };
+
+    onAuthStateChanged(auth, async (user)=>{
+      if(user){
+        // Profil adı
+        const snap = await get(window.gc.fdb.ref(db,"users/"+user.uid));
+        const u = snap.exists() ? snap.val() : { displayName: user.email.split("@")[0] };
+        $("#profile-username").textContent = u.displayName || "-";
+        window.gc.showProfile();
+        // NOT: Asıl oyun mantığı ayrı gameLogic modülünde yüklenecek
+      }else{
+        window.gc.showAuth();
       }
     });
-  })();
-</script>
 
+    // Bildirim düğmesi (sessize alma burada değil, gameLogic'te yönetilecek)
+    $("#open-notifications-btn").addEventListener("click", ()=> toast("Bildirim örneği"));
+
+    // Harita temel kurulum (oyun mantığı gelene kadar boş katman)
+    const map = L.map("map",{center:[20,0],zoom:2,worldCopyJump:false,noWrap:true,maxBounds:[[-85,-180],[85,180]],maxBoundsViscosity:1});
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}",{maxZoom:7,minZoom:2,attribution:'Tiles © Esri'}).addTo(map);
+    window.gc.leafletMap = map;
+
+    // İpucu: Bundan sonraki Tüm gelişmiş oyun mantığı için modüler gameLogic dosyasını ekleyeceğiz.
+  </script>
+
+  <!-- İleri seviye oyun kodu (modüler). Bir sonraki adımda bunu sağlayacağım. -->
+  <!-- <script type="module" src="./gameLogic.mod.js"></script> -->
 </body>
 </html>
-
