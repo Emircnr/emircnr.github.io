@@ -1,1162 +1,2598 @@
-/* gameLogic.js (module)
- * Global Conquest — Offline (AI Bots)
- * - No external deps, CSP-safe, type="module"
- * - Hex grid (axial coords), seeded RNG, simple AI, buildings, pacts, market
- */
+/***************************************************************
+ *  gameLogic.js
+ *  Tüm oyun, profil, arkadaşlık, kayıt/giriş + Oda Daveti işlevlerini içerir
+ ***************************************************************/
 
-///////////////////////////////
-// 0) DOM helpers & globals  //
-///////////////////////////////
-const $ = (id) => document.getElementById(id);
-const on = (el, ev, fn) => el.addEventListener(ev, fn);
-
-// UI roots
-const startScreen = $("start-screen");
-const gameRoot    = $("game");
-const mapCanvas   = $("mapCanvas");
-const ctx         = mapCanvas.getContext("2d", { alpha: false });
-
-// Modals
-const modals = {
-  attack: $("modal-attack"),
-  build: $("modal-build"),
-  market: $("modal-market"),
-  diplomacy: $("modal-diplomacy"),
-  army: $("modal-army"),
-  log: $("modal-log"),
-  settings: $("modal-settings"),
+/*****************************************************************
+ * 1. Firebase Başlatma
+ *****************************************************************/
+const firebaseConfig = {
+  apiKey: "AIzaSyCINihMNGs-qRYIIBLzXyeaLnM_Lhp-iwg",
+  authDomain: "warmapg-77acb.firebaseapp.com",
+  databaseURL: "https://warmapg-77acb-default-rtdb.firebaseio.com",
+  projectId: "warmapg-77acb",
+  storageBucket: "warmapg-77acb.appspot.com",
+  messagingSenderId: "895613631339",
+  appId: "1:895613631339:web:a7ecc0cfd8ab3ae7e02a2e",
+  measurementId: "G-6SJVLLVDCF"
 };
+firebase.initializeApp(firebaseConfig);
 
-// HUD elements
-const hud = {
-  round: $("hud-round"),
-  current: $("hud-current"),
-  bots: $("hud-bots"),
-  oil: $("hud-oil"),
-  wheat: $("hud-wheat"),
-  money: $("hud-money"),
-  timer: $("turn-timer"),
-};
+const auth = firebase.auth();
+const db = firebase.database();
 
-// Panels / lists
-const playersPanel = $("players-panel");
-const playersList  = $("players-list");
-const toastsBox    = $("toasts");
-const tooltipBox   = $("tooltip");
+/*****************************************************************
+ * 2. GENEL DEĞİŞKENLER (Auth, Profil, Oda vb.)
+ *****************************************************************/
+let currentUser = null;            // Firebase Auth kullanıcısı (uid)
+let currentUserData = null;        // DB'deki kullanıcı verisi
+let localPlayerId = null;          // Oyun içi benzersiz ID
+let currentRoomCode = null;
+let roomRef = null;
+let roomData = null;
 
-// Start controls
-const btnStart = $("btn-start");
-const btnHowto = $("btn-howto");
+let selectedCountry = null;
+let map, geoJsonLayer = null;
+let infoCardsPermanent = false;
+let turnTimeRemaining = 60;
+let turnTimerInterval = null;
+let startInterval = null;
+let notificationsMuted = false;
+let unreadMessages = 0;
+let chatOpen = false;
 
-// Dock & header buttons
-const btnEnd       = $("btn-end");
-const btnPlayers   = $("btn-players");
-const btnSettings  = $("btn-settings");
-const btnAttack    = $("btn-attack");
-const btnBuild     = $("btn-build");
-const btnMarket    = $("btn-market");
-const btnDip       = $("btn-diplomacy");
-const btnArmy      = $("btn-army");
-const btnLog       = $("btn-log");
-const btnClosePlayers = $("btn-close-players");
-
-// Attack modal controls
-const attackTargetLabel = $("attack-target");
-const attackUnits = $("attack-units");
-const attackPlan  = $("attack-plan");
-const doAttackBtn = $("do-attack");
-
-// Build modal
-const buildSelected = $("build-selected");
-const btnBuildBarracks = $("btn-build-barracks");
-const btnBuildFactory  = $("btn-build-factory");
-const btnBuildRefinery = $("btn-build-refinery");
-const btnBuildMill     = $("btn-build-mill");
-const btnBuildCastle   = $("btn-build-castle");
-const btnUpgradeCastle = $("btn-upgrade-castle");
-const castleUpgradeCostEl = $("castle-upgrade-cost");
-
-// Market
-const marketItem   = $("market-item");
-const marketAmount = $("market-amount");
-const marketSide   = $("market-side");
-const marketPrice  = $("market-price");
-const marketPlace  = $("btn-market-place");
-const ordersList   = $("orders-list");
-
-// Diplomacy
-const dipTarget   = $("dip-target");
-const dipDuration = $("dip-duration");
-const dipCost     = $("dip-cost");
-const btnSendPact = $("btn-send-pact");
-const pactsList   = $("pacts-list");
-
-// Army
-const buySoldiersInput = $("buy-soldiers");
-const btnBuySoldiers   = $("btn-buy-soldiers");
-const pullCount        = $("pull-count");
-const btnPull          = $("btn-pull");
-const armyList         = $("army-list");
-
-// Log
-const logList = $("log-list");
-
-// Settings
-const optTooltips  = $("opt-tooltips");
-const optAnims     = $("opt-animations");
-const btnReset     = $("btn-reset");
-
-// Start form controls
-const botCountInput  = $("bot-count");
-const difficultySel  = $("difficulty");
-const mapSizeSel     = $("map-size");
-const playerColorInp = $("player-color");
-const turnSecondsSel = $("turn-seconds");
-const seedInput      = $("seed");
-
-// State containers
-let RNG = makeRNG("");            // seeded rng
-let world = null;                 // {cells[], size, layout}
-let state = null;                 // gameplay state (players, round, turn, market, pacts, log)
-let selectedId = null;            // selected cell id (number)
-let hoverId = null;               // hover cell id (for tooltip)
-let scale = 1;                    // canvas scale (auto fits)
-let offset = {x:0,y:0};           // canvas offset (centered)
-let turnTimer = null;             // interval
-let remaining = 60;               // seconds
-let animsOn = true;
-let tooltipsMode = "hover";       // hover | locked | hidden
-
-/////////////////////////
-// 1) Game Constants   //
-/////////////////////////
-const MAP_PRESETS = {
-  small:  { w: 10, h: 6  },  // ~60
-  medium: { w: 12, h: 8  },  // ~96
-  large:  { w: 14, h: 10 },  // ~140
-};
-const HEX_SIZE_BASE = 28; // base pixel radius (auto scales with canvas)
-
-const COST = {
-  soldierMoney: 10, soldierWheat: 25,
-  barracks: { money: 300, oil: 50, wheat: 120 },
-  factory:  { money: 500, oil:130 },
-  refinery: { money: 800, oil:250 },
-  mill:     { money: 200, oil:100 },
-  castle:   { money:1000, oil:1000, wheat:1000 },
-  castleUpgradeMul: 1.3, // next cost multiplier
-};
-const EFFECT = {
-  barracksSoldiers: 5,                 // per turn, per barracks
-  factoryIncome: 0.2,                  // +% income per factory
-  refineryOil: 0.15,                   // +% oil per refinery
-  millWheat: 0.2,                      // +% wheat per mill
-  castleStep: 5,                       // % per level, max 30
-};
-const START = {
-  human: { money: 1000, soldiers: 10, oil: 120, wheat: 350 },
-  bot:   { money: 900,  soldiers: 8,  oil: 110, wheat: 300 },
-};
-
-const COLORS = {
-  neutral: "#2a3345",
-  stroke:  "#1b2232",
-  text:    "#e9eef5",
-  weak:    "#ffb757",
-  strong:  "#3cf3c4",
-};
-
-// Axial neighbor directions (pointy top)
-const DIRS = [
-  {q:+1,r: 0}, {q:+1,r:-1}, {q: 0,r:-1},
-  {q:-1,r: 0}, {q:-1,r:+1}, {q: 0,r:+1},
+const availableColors = [
+  "red",
+  "blue",
+  "green",
+  "yellow",
+  "purple",
+  "orange",
+  "brown",
+  "pink"
 ];
+let localPlayerColor = null;
+let chatListenerAdded = false;
 
-///////////////////////////////////////
-// 2) Lightweight utilities & UI     //
-///////////////////////////////////////
-function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
-function choice(arr){ return arr[(RNG() * arr.length) | 0]; }
-function shuffle(arr){
-  for(let i=arr.length-1;i>0;i--){
-    const j = (RNG()* (i+1)) | 0;
-    [arr[i],arr[j]]=[arr[j],arr[i]];
+/*****************************************************************
+ * 3. SAYFA YÖNETİMİ (Single Page Uygulama Mantığı)
+ *****************************************************************/
+const authContainer = document.getElementById("auth-container");
+const profileContainer = document.getElementById("profile-container");
+const lobbyContainer = document.getElementById("lobby-container");
+const gameContainer = document.getElementById("game-container");
+
+/** Ekran gösterme/kapatma yardımcı fonksiyonları */
+function showAuthPage() {
+  authContainer.style.display = "flex";
+  profileContainer.style.display = "none";
+  lobbyContainer.style.display = "none";
+  gameContainer.style.display = "none";
+}
+function showProfilePage() {
+  authContainer.style.display = "none";
+  profileContainer.style.display = "flex";
+  lobbyContainer.style.display = "none";
+  gameContainer.style.display = "none";
+}
+function showLobbyPage() {
+  authContainer.style.display = "none";
+  profileContainer.style.display = "none";
+  lobbyContainer.style.display = "flex";
+  gameContainer.style.display = "none";
+}
+function showGamePage() {
+  authContainer.style.display = "none";
+  profileContainer.style.display = "none";
+  lobbyContainer.style.display = "none";
+  gameContainer.style.display = "block";
+}
+
+/*****************************************************************
+ * 4. Firebase Authentication (Giriş & Kayıt)
+ *****************************************************************/
+auth.onAuthStateChanged(async (user) => {
+  if (user) {
+    currentUser = user;
+    const snapshot = await db.ref("users/" + user.uid).once("value");
+    currentUserData = snapshot.val();
+
+    if (!currentUserData) {
+      // Teorik olarak yeni kayıt anında set edilmesi gerekir
+      // Burada set etme opsiyonel
+      showNotification("Kullanıcı veriniz oluşturulmamış görünüyor.");
+    } else {
+      // Profil ekranına
+      document.getElementById("profile-username").textContent =
+        currentUserData.displayName || "Kullanıcı Adınız";
+      loadUserFriends();
+      loadFriendRequests();
+      loadFriendInviteList();
+      loadRoomInvites(); // Gelen oda davetleri
+      showProfilePage();
+    }
+  } else {
+    currentUser = null;
+    currentUserData = null;
+    showAuthPage();
   }
-  return arr;
-}
-function uid(prefix="p"){ return prefix + Math.random().toString(36).slice(2,8); }
-function lerp(a,b,t){ return a + (b-a)*t; }
-
-// Seeded RNG (xmur3 + sfc32)
-function makeRNG(seed){
-  const xmur3 = (str)=>{ let h=1779033703^str.length; for(let i=0;i<str.length;i++){ h=Math.imul(h^str.charCodeAt(i),3432918353); h=h<<13|h>>>19; } return ()=>{ h=Math.imul(h^h>>>16,2246822507); h=Math.imul(h^h>>>13,3266489909); return (h^h>>>16)>>>0; }; };
-  const s = xmur3(seed||"gc-offline"); return sfc32(s(), s(), s(), s());
-  function sfc32(a,b,c,d){ return function(){ a|=0; b|=0; c|=0; d|=0; var t=(a+b|0)+d|0; d=d+1|0; a=b^b>>>9; b=c+(c<<3)|0; c=(c<<21|c>>>11); c=c+t|0; return (t>>>0)/4294967296; } }
-}
-
-function toast(text, ms=3000){
-  const div = document.createElement("div");
-  div.className = "toast";
-  div.textContent = text;
-  toastsBox.appendChild(div);
-  setTimeout(()=> div.remove(), ms);
-}
-
-function logEvent(text){
-  const item = document.createElement("div");
-  item.textContent = text;
-  logList.prepend(item);
-}
-
-function openModal(id){
-  modals[id].classList.add("open");
-}
-function closeModal(id){
-  modals[id].classList.remove("open");
-}
-document.querySelectorAll("[data-close]").forEach(btn=>{
-  on(btn, "click", ()=> closeModal(btn.getAttribute("data-close").replace("modal-","")));
 });
 
-on(btnPlayers,"click", ()=>{
-  const open = !playersPanel.classList.contains("open");
-  playersPanel.classList.toggle("open", open);
-  btnPlayers.setAttribute("aria-expanded", String(open));
+/** LOGIN VE REGISTER FORM ELEMENTLERİ */
+const loginTab = document.getElementById("login-tab");
+const registerTab = document.getElementById("register-tab");
+const loginForm = document.getElementById("login-form");
+const registerForm = document.getElementById("register-form");
+
+loginTab.addEventListener("click", () => {
+  loginTab.classList.add("active");
+  registerTab.classList.remove("active");
+  loginForm.style.display = "block";
+  registerForm.style.display = "none";
 });
-on(btnClosePlayers,"click", ()=> playersPanel.classList.remove("open"));
+registerTab.addEventListener("click", () => {
+  registerTab.classList.add("active");
+  loginTab.classList.remove("active");
+  registerForm.style.display = "block";
+  loginForm.style.display = "none";
+});
 
-on(btnAttack, ()=> openModal("attack"));
-on(btnBuild,  ()=> openModal("build"));
-on(btnMarket, ()=> openModal("market"));
-on(btnDip,    ()=> openModal("diplomacy"));
-on(btnArmy,   ()=> openModal("army"));
-on(btnLog,    ()=> openModal("log"));
-on(btnSettings,()=> openModal("settings"));
-
-/////////////////////////////
-// 3) Hex map & rendering  //
-/////////////////////////////
-function axialToPixel(q, r, size){
-  // pointy-top layout
-  const x = size * (Math.sqrt(3)*q + Math.sqrt(3)/2 * r);
-  const y = size * (3/2 * r);
-  return {x, y};
-}
-function hexPath(x, y, size){
-  const pts = [];
-  for(let i=0;i<6;i++){
-    const ang = Math.PI/180 * (60*i - 30);
-    pts.push({ x: x + size * Math.cos(ang), y: y + size * Math.sin(ang) });
+/** Giriş Yap */
+document.getElementById("login-btn").addEventListener("click", async () => {
+  const email = document.getElementById("login-email").value.trim();
+  const password = document.getElementById("login-password").value.trim();
+  if (!email || !password) {
+    showNotification("Lütfen tüm alanları doldurun!");
+    return;
   }
-  return pts;
+  try {
+    await auth.signInWithEmailAndPassword(email, password);
+    showNotification("Giriş başarılı!");
+  } catch (err) {
+    showNotification("Giriş hata: " + err.message);
+  }
+});
+
+/** Kayıt Ol */
+document.getElementById("register-btn").addEventListener("click", async () => {
+  const email = document.getElementById("register-email").value.trim();
+  const password = document.getElementById("register-password").value.trim();
+  const confirmPassword = document
+    .getElementById("register-confirm-password")
+    .value.trim();
+  const displayName = document
+    .getElementById("register-display-name")
+    .value.trim();
+
+  if (!email || !password || !confirmPassword || !displayName) {
+    showNotification("Lütfen tüm alanları doldurun!");
+    return;
+  }
+  if (password !== confirmPassword) {
+    showNotification("Şifreler eşleşmiyor!");
+    return;
+  }
+  try {
+    const cred = await auth.createUserWithEmailAndPassword(email, password);
+    const uid = cred.user.uid;
+    await db.ref("users/" + uid).set({
+      email: email,
+      displayName: displayName,
+      friends: {},
+      friendRequests: {},
+      roomInvites: {}
+    });
+    showNotification("Kayıt başarılı, giriş yapıldı!");
+  } catch (err) {
+    showNotification("Kayıt hata: " + err.message);
+  }
+});
+
+/** Çıkış Yap */
+document
+  .getElementById("profile-logout-btn")
+  .addEventListener("click", async () => {
+    await auth.signOut();
+    showNotification("Çıkış yapıldı.");
+  });
+
+/*****************************************************************
+ * 5. Profil Ekranı (Arkadaşlar, İstekler, Oda Davetleri)
+ *****************************************************************/
+document.getElementById("go-lobby-btn").addEventListener("click", () => {
+  showLobbyPage();
+});
+
+/** Arkadaşları Yükle */
+async function loadUserFriends() {
+  const friendListDiv = document.getElementById("friend-list");
+  friendListDiv.innerHTML = "";
+  if (!currentUser || !currentUserData || !currentUserData.friends) return;
+
+  const friendIds = Object.keys(currentUserData.friends);
+  for (const fId of friendIds) {
+    const snap = await db.ref("users/" + fId).once("value");
+    const friendData = snap.val();
+    if (!friendData) continue;
+
+    const friendItem = document.createElement("div");
+    friendItem.className = "friend-item";
+    friendItem.innerHTML = `
+      <span>${friendData.displayName}</span>
+      <button class="remove-friend-btn" data-fid="${fId}">
+        Sil
+      </button>
+    `;
+    friendListDiv.appendChild(friendItem);
+  }
 }
-function pathPolygon(pts){
-  ctx.beginPath();
-  ctx.moveTo(pts[0].x, pts[0].y);
-  for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i].x, pts[i].y);
-  ctx.closePath();
+
+/** Arkadaş İsteklerini Yükle */
+async function loadFriendRequests() {
+  const requestListDiv = document.getElementById("friend-request-list");
+  requestListDiv.innerHTML = "";
+  if (!currentUser || !currentUserData || !currentUserData.friendRequests)
+    return;
+
+  const requestIds = Object.keys(currentUserData.friendRequests);
+  for (const rId of requestIds) {
+    const snap = await db.ref("users/" + rId).once("value");
+    const requestUserData = snap.val();
+    if (!requestUserData) continue;
+
+    const reqItem = document.createElement("div");
+    reqItem.className = "friend-request-item";
+    reqItem.innerHTML = `
+      <span>${requestUserData.displayName}</span>
+      <div>
+        <button class="accept-friend-btn" data-fid="${rId}">Kabul</button>
+        <button class="reject-friend-btn" data-fid="${rId}">Reddet</button>
+      </div>
+    `;
+    requestListDiv.appendChild(reqItem);
+  }
 }
 
-function sizeCanvas(){
-  const wrap = $("map-wrap");
-  const dpr = window.devicePixelRatio || 1;
-  const w = wrap.clientWidth;
-  const h = Math.max(360, window.innerHeight - wrap.offsetTop - 140);
-  mapCanvas.width  = Math.floor(w * dpr);
-  mapCanvas.height = Math.floor(h * dpr);
-  mapCanvas.style.width  = w + "px";
-  mapCanvas.style.height = h + "px";
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-  fitWorld();
-  draw();
-}
+/** Arkadaş Ekleme İsteği Gönder */
+document
+  .getElementById("send-friend-request-btn")
+  .addEventListener("click", async () => {
+    const targetUsername = document
+      .getElementById("add-friend-username")
+      .value.trim();
+    if (!targetUsername) {
+      showNotification("Kullanıcı adı girin!");
+      return;
+    }
+    const allUsersSnap = await db.ref("users").once("value");
+    const allUsersData = allUsersSnap.val();
+    let targetUserId = null;
 
-function fitWorld(){
-  if(!world) return;
-  const bounds = world.bounds; // {minX,maxX,minY,maxY}
-  const pad = 24;
-  const availW = mapCanvas.clientWidth - pad*2;
-  const availH = mapCanvas.clientHeight - pad*2;
-  const scaleX = availW / (bounds.maxX - bounds.minX);
-  const scaleY = availH / (bounds.maxY - bounds.minY);
-  scale = Math.min(scaleX, scaleY);
-  const cx = (bounds.maxX + bounds.minX)/2;
-  const cy = (bounds.maxY + bounds.minY)/2;
-  offset.x = mapCanvas.clientWidth/2 - cx*scale;
-  offset.y = mapCanvas.clientHeight/2 - cy*scale;
-}
-
-function worldToScreen(x,y){
-  return { x: x*scale + offset.x, y: y*scale + offset.y };
-}
-
-function draw(){
-  if(!world) return;
-  ctx.fillStyle = "#0b121d";
-  ctx.fillRect(0,0,mapCanvas.clientWidth,mapCanvas.clientHeight);
-
-  // cells
-  for(const c of world.cells){
-    const P = worldToScreen(c.pos.x, c.pos.y);
-    const pts = hexPath(P.x, P.y, world.size*scale - 0.7);
-
-    // fill
-    const color = c.owner ? state.players[c.owner].color : COLORS.neutral;
-    ctx.fillStyle = color;
-    ctx.globalAlpha = 0.92;
-    pathPolygon(pts); ctx.fill();
-    ctx.globalAlpha = 1;
-
-    // border
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = COLORS.stroke;
-    pathPolygon(pts); ctx.stroke();
-
-    // selection glow
-    if(c.id === selectedId){
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = "#ffb757";
-      pathPolygon(pts); ctx.stroke();
+    for (const uid in allUsersData) {
+      const dName = allUsersData[uid].displayName || "";
+      if (dName.toLowerCase() === targetUsername.toLowerCase()) {
+        targetUserId = uid;
+        break;
+      }
+    }
+    if (!targetUserId) {
+      showNotification("Bu kullanıcı adı bulunamadı!");
+      return;
+    }
+    if (targetUserId === currentUser.uid) {
+      showNotification("Kendinize istek gönderemezsiniz!");
+      return;
     }
 
-    // label (soldiers)
-    ctx.fillStyle = "#0b121d";
-    ctx.globalAlpha = 0.25;
-    pathPolygon(pts); ctx.fill();
-    ctx.globalAlpha = 1;
+    await db
+      .ref("users/" + targetUserId + "/friendRequests/" + currentUser.uid)
+      .set(true);
 
-    ctx.fillStyle = COLORS.text;
-    ctx.font = `${Math.max(10, world.size*0.5)}px ui-sans-serif`;
-    ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillText(String(c.soldiers|0), P.x, P.y);
+    showNotification("Arkadaşlık isteği gönderildi!");
+  });
 
-    // tiny flags for buildings
-    const icons = [];
-    if(c.barracks>0) icons.push("🛡️");
-    if(c.factories>0) icons.push("🏭");
-    if(c.refineries>0) icons.push("🛢️");
-    if(c.mills>0) icons.push("🌾");
-    if(c.castle>0) icons.push("🏰");
-    if(icons.length){
-      ctx.font = `${Math.max(9, world.size*0.38)}px ui-sans-serif`;
-      ctx.fillText(icons.join(""), P.x, P.y + world.size*0.9);
+/** Gelen İstekleri Kabul/Reddet */
+const friendRequestList = document.getElementById("friend-request-list");
+friendRequestList.addEventListener("click", async (e) => {
+  if (e.target.classList.contains("accept-friend-btn")) {
+    const fromUid = e.target.getAttribute("data-fid");
+    await acceptFriendRequest(fromUid);
+  } else if (e.target.classList.contains("reject-friend-btn")) {
+    const fromUid = e.target.getAttribute("data-fid");
+    await rejectFriendRequest(fromUid);
+  }
+});
+
+async function acceptFriendRequest(fromUid) {
+  if (!currentUser) return;
+  await db.ref(`users/${currentUser.uid}/friends/${fromUid}`).set(true);
+  await db.ref(`users/${fromUid}/friends/${currentUser.uid}`).set(true);
+  await db.ref(`users/${currentUser.uid}/friendRequests/${fromUid}`).remove();
+  showNotification("İstek kabul edildi!");
+}
+
+async function rejectFriendRequest(fromUid) {
+  if (!currentUser) return;
+  await db.ref(`users/${currentUser.uid}/friendRequests/${fromUid}`).remove();
+  showNotification("İstek reddedildi.");
+}
+
+/** Arkadaş Silme */
+const friendListDiv = document.getElementById("friend-list");
+friendListDiv.addEventListener("click", async (e) => {
+  if (e.target.classList.contains("remove-friend-btn")) {
+    const fId = e.target.getAttribute("data-fid");
+    await removeFriend(fId);
+  }
+});
+async function removeFriend(fId) {
+  if (!currentUser) return;
+  await db.ref(`users/${currentUser.uid}/friends/${fId}`).remove();
+  await db.ref(`users/${fId}/friends/${currentUser.uid}`).remove();
+  showNotification("Arkadaş silindi.");
+}
+
+/*****************************************************************
+ * 6. Oda Davetleri (roomInvites)
+ *****************************************************************/
+async function loadRoomInvites() {
+  // "Gelen Oda Davetleri" listele
+  const inviteListDiv = document.getElementById("room-invite-list");
+  inviteListDiv.innerHTML = "";
+  if (!currentUserData || !currentUserData.roomInvites) return;
+
+  const invites = currentUserData.roomInvites; // {inviteId: {fromUid, fromName, roomCode, status}}
+  for (let inviteId in invites) {
+    const inv = invites[inviteId];
+    if (!inv) continue;
+
+    const div = document.createElement("div");
+    div.className = "room-invite-item";
+    div.innerHTML = `
+      <span>${inv.fromName} | Oda Kodu: ${inv.roomCode}</span>
+      <div>
+        <button class="accept-room-invite-btn" data-iid="${inviteId}">Kabul</button>
+        <button class="reject-room-invite-btn" data-iid="${inviteId}">Reddet</button>
+      </div>
+    `;
+    inviteListDiv.appendChild(div);
+  }
+}
+
+/** Davet Kabul/Reddet */
+const roomInviteList = document.getElementById("room-invite-list");
+roomInviteList.addEventListener("click", async (e) => {
+  if (e.target.classList.contains("accept-room-invite-btn")) {
+    const inviteId = e.target.getAttribute("data-iid");
+    await acceptRoomInvite(inviteId);
+  } else if (e.target.classList.contains("reject-room-invite-btn")) {
+    const inviteId = e.target.getAttribute("data-iid");
+    await rejectRoomInvite(inviteId);
+  }
+});
+
+async function acceptRoomInvite(inviteId) {
+  if (!currentUserData || !currentUserData.roomInvites) return;
+  const invite = currentUserData.roomInvites[inviteId];
+  if (!invite) return;
+
+  // Davet odasına katılma
+  const code = invite.roomCode;
+  await joinRoomByCode(code);
+
+  // Daveti sil
+  await db
+    .ref(`users/${currentUser.uid}/roomInvites/${inviteId}`)
+    .remove();
+  showNotification(`Oda daveti kabul edildi. Odaya katılıyorsunuz (${code}).`);
+}
+
+async function rejectRoomInvite(inviteId) {
+  await db
+    .ref(`users/${currentUser.uid}/roomInvites/${inviteId}`)
+    .remove();
+  showNotification("Oda daveti reddedildi.");
+}
+
+/*****************************************************************
+ * 7. Arkadaş Listesi: Oda Daveti Gönder
+ *****************************************************************/
+function loadFriendInviteList() {
+  const inviteListDiv = document.getElementById("invite-friend-list");
+  inviteListDiv.innerHTML = "";
+  if (!currentUserData || !currentUserData.friends) return;
+
+  const friendIds = Object.keys(currentUserData.friends);
+  friendIds.forEach(async (fId) => {
+    const snap = await db.ref("users/" + fId).once("value");
+    const friendData = snap.val();
+    if (friendData) {
+      const div = document.createElement("div");
+      div.className = "invite-friend-item";
+      div.innerHTML = `
+        <span>${friendData.displayName}</span>
+        <!-- Basit gösterim, eğer kullanıcı seçmek isterse ek input/checkbox kullanılabilir. -->
+      `;
+      inviteListDiv.appendChild(div);
+    }
+  });
+}
+
+/** Oda Oluştur & Davet Gönder */
+document
+  .getElementById("create-room-invite-btn")
+  .addEventListener("click", async () => {
+    // Aslında normal bir oda oluşturma yapacağız
+    // Sonra "friends" listemizdeki herkese (veya seçilenlere) davet kaydı yazacağız
+    // Bu örnekte "herkese" davet gönderiyoruz (arkadaş listemizdeki).
+
+    showNotification("Oda oluşturuluyor...");
+
+    if (!localPlayerId) {
+      if (!localStorage.getItem("playerId")) {
+        localStorage.setItem(
+          "playerId",
+          Math.random().toString(36).substr(2, 9)
+        );
+      }
+      localPlayerId = localStorage.getItem("playerId");
+    }
+
+    // Oda kodu
+    const newRoomCode = generateRoomCode();
+    const newRoomRef = db.ref("rooms/" + newRoomCode);
+    const maxPlayers = 8; // Sabit veya isterseniz sorabilirsiniz
+    const playerName = currentUserData.displayName || "Oyuncu";
+
+    const roomDataToSet = {
+      roomCode: newRoomCode,
+      maxPlayers: maxPlayers,
+      gameState: "waiting",
+      currentTurnIndex: 0,
+      round: 1,
+      playerOrder: [localPlayerId],
+      players: {},
+      countryData: {},
+      createdAt: firebase.database.ServerValue.TIMESTAMP
+    };
+    roomDataToSet.players[localPlayerId] = {
+      name: playerName,
+      color: "blue", // sabit veya istenirse random
+      money: 1000,
+      soldiers: 0,
+      countries: [],
+      petrol: 100,
+      wheat: 400,
+      joinedAt: firebase.database.ServerValue.TIMESTAMP,
+      isHost: true
+    };
+
+    await newRoomRef.set(roomDataToSet);
+    showNotification("Oda oluşturuldu: " + newRoomCode);
+    localStorage.setItem("roomCode", newRoomCode);
+
+    // Ülke data (geojson) ekleyelim
+    loadAndInitializeGeoJson(newRoomRef);
+
+    // Tüm arkadaşlara davet yolla
+    if (currentUserData.friends) {
+      const friendIds = Object.keys(currentUserData.friends);
+      for (const fId of friendIds) {
+        const inviteKey = db.ref(`users/${fId}/roomInvites`).push().key;
+        const inviteData = {
+          fromUid: currentUser.uid,
+          fromName: playerName,
+          roomCode: newRoomCode,
+          status: "pending",
+        };
+        await db.ref(`users/${fId}/roomInvites/${inviteKey}`).set(inviteData);
+      }
+    }
+
+    // Odaya gidelim
+    roomRef = newRoomRef;
+    currentRoomCode = newRoomCode;
+    showGamePage();
+    document.getElementById("display-room-code").textContent = newRoomCode;
+    joinRoomAndListen();
+  });
+
+/*****************************************************************
+ * 8. Lobi Ekranı (Oda Oluştur / Katıl)
+ *****************************************************************/
+// Renk seçimi
+const creatorColorDiv = document.getElementById("creator-color-options");
+const joinColorDiv = document.getElementById("join-color-options");
+availableColors.forEach((color) => {
+  // Oda Kurucu Renk
+  const btn1 = document.createElement("button");
+  btn1.className = "global-color-option";
+  btn1.style.background = color;
+  btn1.dataset.color = color;
+  btn1.addEventListener("click", () => {
+    creatorColorDiv
+      .querySelectorAll(".global-color-option")
+      .forEach((s) => s.classList.remove("selected"));
+    btn1.classList.add("selected");
+    localPlayerColor = color;
+  });
+  creatorColorDiv.appendChild(btn1);
+
+  // Katılan Renk
+  const btn2 = document.createElement("button");
+  btn2.className = "global-color-option";
+  btn2.style.background = color;
+  btn2.dataset.color = color;
+  btn2.addEventListener("click", () => {
+    joinColorDiv
+      .querySelectorAll(".global-color-option")
+      .forEach((s) => s.classList.remove("selected"));
+    btn2.classList.add("selected");
+    localPlayerColor = color;
+  });
+  joinColorDiv.appendChild(btn2);
+});
+
+document
+  .getElementById("create-room-btn")
+  .addEventListener("click", async () => {
+    const playerName = document
+      .getElementById("creator-player-name")
+      .value.trim();
+    const maxPlayers = parseInt(document.getElementById("max-players").value);
+    if (!playerName) {
+      showNotification("Lütfen oyun içi adınızı girin!");
+      return;
+    }
+    if (!localPlayerColor) {
+      showNotification("Lütfen bir renk seçin!");
+      return;
+    }
+    if (isNaN(maxPlayers) || maxPlayers < 2 || maxPlayers > 8) {
+      showNotification("Oyuncu sayısı 2 ile 8 arasında olmalı!");
+      return;
+    }
+    if (!localStorage.getItem("playerId")) {
+      localStorage.setItem("playerId", Math.random().toString(36).substr(2, 9));
+    }
+    localPlayerId = localStorage.getItem("playerId");
+
+    const roomCode = generateRoomCode();
+    currentRoomCode = roomCode;
+    roomRef = db.ref("rooms/" + roomCode);
+
+    const newRoomData = {
+      roomCode: roomCode,
+      maxPlayers: maxPlayers,
+      gameState: "waiting",
+      currentTurnIndex: 0,
+      round: 1,
+      playerOrder: [localPlayerId],
+      players: {},
+      countryData: {},
+      createdAt: firebase.database.ServerValue.TIMESTAMP
+    };
+    newRoomData.players[localPlayerId] = {
+      name: playerName,
+      color: localPlayerColor,
+      money: 1000,
+      soldiers: 0,
+      countries: [],
+      petrol: 100,
+      wheat: 400,
+      joinedAt: firebase.database.ServerValue.TIMESTAMP,
+      isHost: true
+    };
+
+    await roomRef.set(newRoomData);
+    showNotification("Oda oluşturuldu. Kod: " + roomCode);
+    localStorage.setItem("roomCode", roomCode);
+
+    // GeoJSON yükleyip countryData oluştur
+    loadAndInitializeGeoJson(roomRef);
+
+    joinRoomAndListen();
+    showGamePage();
+    document.getElementById("display-room-code").textContent = roomCode;
+  });
+
+document
+  .getElementById("join-room-btn")
+  .addEventListener("click", async () => {
+    const playerName = document.getElementById("join-player-name").value.trim();
+    const roomCodeInput = document
+      .getElementById("room-code")
+      .value.trim()
+      .toUpperCase();
+
+    if (!playerName) {
+      showNotification("Lütfen oyun içi adınızı girin!");
+      return;
+    }
+    if (!localPlayerColor) {
+      showNotification("Lütfen bir renk seçin!");
+      return;
+    }
+    if (!roomCodeInput) {
+      showNotification("Lütfen oda kodu girin!");
+      return;
+    }
+    if (!localStorage.getItem("playerId")) {
+      localStorage.setItem("playerId", Math.random().toString(36).substr(2, 9));
+    }
+    localPlayerId = localStorage.getItem("playerId");
+
+    await joinRoomByCode(roomCodeInput, playerName, localPlayerColor);
+  });
+
+async function joinRoomByCode(roomCodeInput, customName, color) {
+  const refCheck = db.ref("rooms/" + roomCodeInput);
+  const snapshot = await refCheck.once("value");
+  if (!snapshot.exists()) {
+    showNotification("Böyle bir oda bulunamadı!");
+    return;
+  }
+  const room = snapshot.val();
+  if (room.gameState !== "waiting") {
+    showNotification("Oyun zaten başladı veya başlamak üzere!");
+    return;
+  }
+  const playerCount = Object.keys(room.players || {}).length;
+  if (playerCount >= room.maxPlayers) {
+    showNotification("Oda dolu!");
+    return;
+  }
+
+  const myName = customName || (currentUserData?.displayName) || "Oyuncu";
+  const myColor = color || "green";
+
+  const updates = {};
+  updates["players/" + localPlayerId] = {
+    name: myName,
+    color: myColor,
+    money: 1000,
+    soldiers: 0,
+    countries: [],
+    petrol: 100,
+    wheat: 400,
+    joinedAt: firebase.database.ServerValue.TIMESTAMP,
+    isHost: false
+  };
+  if (!room.playerOrder) room.playerOrder = [];
+  room.playerOrder.push(localPlayerId);
+  updates["playerOrder"] = room.playerOrder;
+
+  await refCheck.update(updates);
+  showNotification("Odaya katıldınız!");
+  localStorage.setItem("roomCode", roomCodeInput);
+
+  currentRoomCode = roomCodeInput;
+  roomRef = refCheck;
+  joinRoomAndListen();
+  showGamePage();
+  document.getElementById("display-room-code").textContent = roomCodeInput;
+}
+
+/** Otomatik Bağlanma */
+function autoReconnect() {
+  const savedRoomCode = localStorage.getItem("roomCode");
+  if (savedRoomCode) {
+    const refCheck = db.ref("rooms/" + savedRoomCode);
+    refCheck.once("value", (snapshot) => {
+      if (!snapshot.exists()) return;
+      const savedRoomData = snapshot.val();
+      if (!savedRoomData.players || !savedRoomData.players[localPlayerId]) return;
+      currentRoomCode = savedRoomCode;
+      roomRef = refCheck;
+      joinRoomAndListen();
+      showGamePage();
+      document.getElementById("display-room-code").textContent = savedRoomCode;
+    });
+  }
+}
+
+/** Rastgele Oda Kodu */
+function generateRoomCode() {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let code = "";
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+/*****************************************************************
+ * 9. Oyun Ekranı ve Harita Kurulumu
+ *****************************************************************/
+function joinRoomAndListen() {
+  if (!roomRef) return;
+  roomRef.on("value", (snapshot) => {
+    roomData = snapshot.val();
+    updateGameUI();
+    displayPendingPactOffers();
+    displayActivePacts();
+    displayTradeOffers();
+  });
+
+  // Chat & Notification listener
+  if (!chatListenerAdded) {
+    roomRef.child("chat").on("child_added", (snap) => {
+      const msg = snap.val();
+      appendChatMessage(msg);
+    });
+    roomRef.child("notifications").on("child_added", (snap) => {
+      const data = snap.val();
+      if (data && data.text) {
+        displayGlobalNotification(data.text);
+      }
+    });
+    chatListenerAdded = true;
+  }
+}
+
+function updateGameUI() {
+  if (!roomData) return;
+  // Tur
+  document.getElementById("current-round").textContent = roomData.round || 1;
+  // Sıra
+  if (roomData.playerOrder && roomData.players) {
+    const idx = roomData.currentTurnIndex || 0;
+    const currentPlayerId = roomData.playerOrder[idx];
+    const pl = roomData.players[currentPlayerId];
+    if (pl) {
+      document.getElementById("current-player").textContent = pl.name;
     }
   }
+  // Oyun durumu
+  handleGameState(roomData.gameState);
+
+  // Oyuncu listesi
+  const playersInfoDiv = document.getElementById("players-info");
+  if (playersInfoDiv) {
+    playersInfoDiv.innerHTML = "";
+    if (roomData.playerOrder) {
+      roomData.playerOrder.forEach((pid) => {
+        const pData = roomData.players[pid];
+        if (pData) {
+          const pDiv = document.createElement("div");
+          pDiv.className = "player-info";
+          pDiv.id = "player-info-" + pid;
+          pDiv.innerHTML = `
+            <p><strong>${pData.name}</strong></p>
+            <p>Para: <span>${pData.money}</span>$</p>
+            <p>Asker: <span>${pData.soldiers}</span></p>
+            <p>Ülkeler: <span>${(pData.countries && pData.countries.length) || 0}</span></p>
+            <p>Petrol: <span>${pData.petrol}</span> varil</p>
+            <p>Buğday: <span>${pData.wheat}</span></p>
+          `;
+          playersInfoDiv.appendChild(pDiv);
+        }
+      });
+    }
+  }
+
+  // Harita güncelle
+  if (map && roomData.countryData && geoJsonLayer) {
+    geoJsonLayer.eachLayer((layer) => {
+      const cname = layer.feature.properties.name;
+      const cData = roomData.countryData[cname];
+      if (cData) {
+        if (cData.owner && roomData.players[cData.owner]) {
+          layer.setStyle({
+            fillColor: roomData.players[cData.owner].color,
+            fillOpacity: 0.7
+          });
+        } else {
+          layer.setStyle({ fillColor: "#ccc", fillOpacity: 0.7 });
+        }
+        layer.setTooltipContent(getCountryPopupContent(cname, cData));
+      }
+    });
+  }
+
+  // Select listelerini güncelle
+  updateRecipientSelects();
+  updatePactRecipientSelect();
+  updatePrivateMessageRecipientSelect();
+  updateEmbargoPlayersSelect();
+  updateSupportRecipientSelect();
+
+  // Tur sayacı
+  if (roomData.gameState === "started") {
+    if (isMyTurn()) {
+      startTurnTimer();
+    } else {
+      stopTurnTimer();
+    }
+  } else {
+    stopTurnTimer();
+  }
 }
 
-function hitTest(px, py){
-  // loop brute-force (cells ~140 max)
-  for(const c of world.cells){
-    const P = worldToScreen(c.pos.x, c.pos.y);
-    const pts = hexPath(P.x, P.y, world.size*scale - 0.7);
-    pathPolygon(pts);
-    if(ctx.isPointInPath(px, py)) return c.id;
+function handleGameState(state) {
+  const startBtn = document.getElementById("start-game-btn");
+  const countdownSpan = document.getElementById("start-countdown");
+  if (!state) return;
+
+  if (state === "waiting") {
+    if (roomData.players[localPlayerId]?.isHost) {
+      startBtn.style.display = "block";
+    } else {
+      startBtn.style.display = "none";
+    }
+    countdownSpan.style.display = "none";
+  } else if (state === "starting") {
+    startBtn.style.display = "none";
+    countdownSpan.style.display = "inline";
+    startCountdownListener();
+  } else if (state === "started") {
+    startBtn.style.display = "none";
+    countdownSpan.style.display = "none";
+    clearInterval(startInterval);
+    startInterval = null;
   }
-  return null;
 }
 
-on(mapCanvas, "mousemove", (e)=>{
-  const rect = mapCanvas.getBoundingClientRect();
-  const id = hitTest(e.clientX - rect.left, e.clientY - rect.top);
-  hoverId = id;
-  if(tooltipsMode === "hover" && id!=null){
-    const c = world.cells[id];
-    const info = formatCellInfo(c);
-    tooltipBox.style.display = "block";
-    tooltipBox.style.left = e.clientX + "px";
-    tooltipBox.style.top  = e.clientY + "px";
-    tooltipBox.innerHTML = info;
-  }else{
-    tooltipBox.style.display = "none";
-  }
+/** Oyunu Başlat */
+document.getElementById("start-game-btn").addEventListener("click", () => {
+  if (!roomData || !roomData.players[localPlayerId].isHost) return;
+  if (roomData.gameState !== "waiting") return;
+  const now = Date.now();
+  const startTime = now + 30000; // 30 sn
+  roomRef.update({
+    gameState: "starting",
+    startTime: startTime
+  });
 });
 
-on(mapCanvas, "click", (e)=>{
-  const rect = mapCanvas.getBoundingClientRect();
-  const id = hitTest(e.clientX - rect.left, e.clientY - rect.top);
-  if(id==null) return;
-  selectedId = id;
-  syncSelectedUI();
-  draw();
-});
+function startCountdownListener() {
+  if (!roomData || !roomData.startTime) return;
+  const countdownSpan = document.getElementById("start-countdown");
+  if (startInterval) clearInterval(startInterval);
 
-function syncSelectedUI(){
-  const c = world.cells[selectedId];
-  if(!c){ buildSelected.textContent = "Seçili Bölge: —"; attackTargetLabel.textContent = "— haritadan seç —"; return; }
-  buildSelected.textContent = "Seçili Bölge: " + c.name;
-  attackTargetLabel.textContent = c.name;
-  updateCastleCostUI(c);
+  startInterval = setInterval(() => {
+    if (!roomData) return;
+    const now = Date.now();
+    const diff = roomData.startTime - now;
+    if (diff <= 0) {
+      clearInterval(startInterval);
+      startInterval = null;
+      roomRef.update({ gameState: "started" });
+      return;
+    }
+    const secondsLeft = Math.floor(diff / 1000);
+    countdownSpan.textContent = secondsLeft;
+  }, 1000);
 }
 
-function formatCellInfo(c){
-  const ownerName = c.owner!=null ? state.players[c.owner].name : "Boş";
-  const effIncome = Math.floor(c.income * (1 + c.factories*EFFECT.factoryIncome));
-  const effOil    = Math.floor(c.oil * (1 + c.refineries*EFFECT.refineryOil));
-  const effWheat  = Math.floor(c.wheat * (1 + c.mills*EFFECT.millWheat));
-  const castlePct = c.castle * EFFECT.castleStep;
+/** Haritayı Başlatma */
+function initializeMap() {
+  if (map) return;
+  map = L.map("map", {
+    center: [20, 0],
+    zoom: 2,
+    // Harita kaydırma sınırı
+    maxBounds: [
+      [-85, -180],
+      [85, 180]
+    ],
+    maxBoundsViscosity: 1.0,
+    worldCopyJump: false,
+    noWrap: true
+  });
+
+  // Okyanus tabanlı tileLayer
+  L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}",
+    {
+      maxZoom: 7,
+      minZoom: 2,
+      attribution:
+        'Tiles &copy; Esri &mdash; Source: Esri, GEBCO, NOAA, National Geographic, DeLorme, HERE'
+    }
+  ).addTo(map);
+
+  fetch(
+    "https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json"
+  )
+    .then((r) => r.json())
+    .then((geoJsonData) => {
+      geoJsonLayer = L.geoJson(geoJsonData, {
+        style: () => ({
+          color: "#555",
+          weight: 1,
+          fillColor: "#ccc",
+          fillOpacity: 0.7
+        }),
+        onEachFeature: (feature, layer) => {
+          const cname = feature.properties.name;
+          layer.bindTooltip(
+            getCountryPopupContent(
+              cname,
+              roomData && roomData.countryData
+                ? roomData.countryData[cname]
+                : {}
+            ),
+            {
+              permanent: infoCardsPermanent,
+              direction: "center",
+              className: "country-popup-tooltip"
+            }
+          );
+          layer.on("click", () => selectCountryOnMap(cname, layer));
+        }
+      }).addTo(map);
+    });
+}
+
+/** Ülke Verilerini (geojson) DB'ye ilk defa yaz */
+function loadAndInitializeGeoJson(ref) {
+  fetch(
+    "https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json"
+  )
+    .then((r) => r.json())
+    .then((geoJsonData) => {
+      const features = geoJsonData.features;
+      let oilIndexes = [];
+      while (oilIndexes.length < 43 && oilIndexes.length < features.length) {
+        const rand = Math.floor(Math.random() * features.length);
+        if (!oilIndexes.includes(rand)) oilIndexes.push(rand);
+      }
+      let wheatIndexes = [];
+      while (wheatIndexes.length < 60 && wheatIndexes.length < features.length) {
+        const rand = Math.floor(Math.random() * features.length);
+        if (!wheatIndexes.includes(rand)) wheatIndexes.push(rand);
+      }
+      const countryDataInit = {};
+      features.forEach((f, idx) => {
+        const cname = f.properties.name;
+        let oilProduction = 0;
+        if (oilIndexes.includes(idx)) {
+          oilProduction =
+            Math.floor(Math.random() * (500 - 150 + 1)) + 150;
+        }
+        let wheatProduction = 0;
+        if (wheatIndexes.includes(idx)) {
+          wheatProduction =
+            Math.floor(Math.random() * (700 - 200 + 1)) + 200;
+        }
+        countryDataInit[cname] = {
+          income: Math.floor(Math.random() * 500) + 100,
+          soldiers: 0,
+          owner: null,
+          barracksCount: 0,
+          factories: 0,
+          refineries: 0,
+          oilProduction: oilProduction,
+          wheatProduction: wheatProduction,
+          grainMills: 0,
+          supporters: {},
+          castleDefenseLevel: 0,
+          castleNextUpgradeCost: null
+        };
+      });
+      ref.child("countryData").set(countryDataInit);
+    });
+}
+
+function selectCountryOnMap(countryName, layer) {
+  selectedCountry = countryName;
+  showNotification("Seçilen ülke: " + countryName, 1500);
+
+  layer.setStyle({ weight: 4, color: "#FF4500" });
+  setTimeout(() => {
+    const cData = roomData.countryData[countryName];
+    if (cData && cData.owner && roomData.players[cData.owner]) {
+      layer.setStyle({
+        fillColor: roomData.players[cData.owner].color,
+        fillOpacity: 0.7,
+        weight: 1,
+        color: "#555"
+      });
+    } else {
+      layer.setStyle({
+        fillColor: "#ccc",
+        fillOpacity: 0.7,
+        weight: 1,
+        color: "#555"
+      });
+    }
+  }, 800);
+
+  updateCastleUpgradeCostUI();
+}
+
+function getCountryPopupContent(countryName, country) {
+  if (!country) country = {};
+  const ownerText =
+    country.owner && roomData.players[country.owner]
+      ? roomData.players[country.owner].name
+      : "Yok";
+
+  let effectiveIncome = country.income || 0;
+  if (country.factories) {
+    effectiveIncome = Math.floor(effectiveIncome * (1 + 0.20 * country.factories));
+  }
+  const effectiveOil = country.oilProduction
+    ? Math.floor(country.oilProduction * (1 + 0.15 * (country.refineries || 0)))
+    : 0;
+  const effectiveWheat = country.wheatProduction
+    ? Math.floor(country.wheatProduction * (1 + 0.20 * (country.grainMills || 0)))
+    : 0;
+
+  let castleDefensePercent = 0;
+  if (country.castleDefenseLevel > 0) {
+    castleDefensePercent = 5 * country.castleDefenseLevel;
+  }
+
   return `
-    <div><strong>${c.name}</strong></div>
-    <div>👑 Sahip: ${ownerName}</div>
-    <div>💵 Gelir: ${effIncome}</div>
-    <div>🪖 Asker: ${c.soldiers}</div>
-    <div>🏛️ Kışla: ${c.barracks} · 🏭: ${c.factories} · 🛢️: ${c.refineries} · 🌾: ${c.mills}</div>
-    <div>⛽ Petrol Ür.: ${effOil} · 🌾 Buğday Ür.: ${effWheat}</div>
-    <div>🏰 Kale Gücü: ${c.castle? "%"+castlePct : "-"}</div>
+    <div>
+      <p><i class="fas fa-money-bill-wave"></i> Gelir: ${effectiveIncome}$</p>
+      <p><i class="fas fa-users"></i> Asker: ${country.soldiers || 0}</p>
+      <p><i class="fas fa-fort-awesome"></i> Kışla: ${country.barracksCount || 0}</p>
+      <p><i class="fas fa-industry"></i> Fabrika: ${country.factories || 0}</p>
+      <p><i class="fas fa-oil-can"></i> Rafine: ${country.refineries || 0}</p>
+      <p><i class="fas fa-oil-can"></i> Petrol Üretimi: ${effectiveOil}</p>
+      <p><i class="fas fa-wheat-awn"></i> Değirmen: ${country.grainMills || 0}</p>
+      <p><i class="fas fa-wheat-awn"></i> Buğday Üretimi: ${effectiveWheat}</p>
+      <p><i class="fas fa-chess-rook"></i> Kale Gücü: ${
+        castleDefensePercent > 0 ? "%" + castleDefensePercent : "-"
+      }</p>
+      <p><i class="fas fa-crown"></i> Sahip: ${ownerText}</p>
+    </div>
   `;
 }
 
-/////////////////////////////////////
-// 4) World generation (seeded)    //
-/////////////////////////////////////
-function makeWorld(seed, sizeKey){
-  RNG = makeRNG(seed || "");
-  const {w,h} = MAP_PRESETS[sizeKey];
-  const size = HEX_SIZE_BASE; // logical; scaled later
+/** Bilgi Kartları */
+document
+  .getElementById("toggle-info-cards")
+  .addEventListener("click", () => {
+    infoCardsPermanent = !infoCardsPermanent;
+    updateTooltipsPermanent();
+    const icon = document
+      .getElementById("toggle-info-cards")
+      .querySelector("i");
+    icon.className = infoCardsPermanent ? "fas fa-eye" : "fas fa-eye-slash";
+  });
 
-  // Build axial grid
-  const cells = [];
-  let id = 0;
-  const names = makeNames(w*h, RNG);
-  const minX= {v: Infinity}, maxX={v:-Infinity}, minY={v:Infinity}, maxY={v:-Infinity};
+function updateTooltipsPermanent() {
+  if (!geoJsonLayer) return;
+  geoJsonLayer.eachLayer((layer) => {
+    layer.unbindTooltip();
+    const cname = layer.feature.properties.name;
+    const cData =
+      roomData && roomData.countryData ? roomData.countryData[cname] : {};
+    layer.bindTooltip(getCountryPopupContent(cname, cData), {
+      permanent: infoCardsPermanent,
+      direction: "center",
+      className: "country-popup-tooltip"
+    });
+  });
+}
 
-  for(let r=0; r<h; r++){
-    for(let q=0; q<w; q++){
-      // jitter for variety
-      const P = axialToPixel(q, r, size);
-      const jx = (RNG()-0.5)*size*0.15;
-      const jy = (RNG()-0.5)*size*0.15;
-      const x = P.x + jx, y = P.y + jy;
+/*****************************************************************
+ * 10. Bildirim Sistemi
+ *****************************************************************/
+function showNotification(message, duration = 3000) {
+  if (notificationsMuted) return;
+  const existingArea = document.getElementById("notification-area");
+  if (!existingArea) return;
 
-      const c = {
-        id: id++,
-        name: names[id-1],
-        q, r,
-        pos: {x, y},
-        owner: null,
-        soldiers: 0,
-        income:   100 + (RNG()*500|0),       // 100–600
-        oil:      RNG()<0.35 ? (150 + (RNG()*350|0)) : 0,
-        wheat:    RNG()<0.45 ? (200 + (RNG()*500|0)) : 0,
-        barracks: 0, factories: 0, refineries:0, mills:0,
-        castle: 0, // 0..6 (=>0..30%)
-        castleNext: null, // cost
-        neighbors: [],
-      };
-      cells.push(c);
+  const item = document.createElement("div");
+  item.className = "notification-item";
+  item.textContent = message;
+  existingArea.appendChild(item);
 
-      // bounds
-      if(x<minX.v)minX.v=x; if(x>maxX.v)maxX.v=x;
-      if(y<minY.v)minY.v=y; if(y>maxY.v)maxY.v=y;
+  setTimeout(() => {
+    if (existingArea.contains(item)) {
+      existingArea.removeChild(item);
+    }
+  }, duration + 800);
+}
+
+function broadcastNotification(text) {
+  if (!roomRef) return;
+  roomRef.child("notifications").push({
+    text: text,
+    timestamp: firebase.database.ServerValue.TIMESTAMP
+  });
+}
+
+function displayGlobalNotification(text) {
+  if (notificationsMuted) return;
+  const nArea = document.getElementById("notification-area");
+  if (!nArea) return;
+
+  const item = document.createElement("div");
+  item.className = "notification-item";
+  item.textContent = text;
+  nArea.appendChild(item);
+
+  setTimeout(() => {
+    if (nArea.contains(item)) {
+      nArea.removeChild(item);
+    }
+  }, 6500);
+}
+
+/** Bildirimleri Kap/Aç */
+document
+  .getElementById("open-notifications-btn")
+  .addEventListener("click", () => {
+    notificationsMuted = !notificationsMuted;
+    if (!notificationsMuted) {
+      showNotification("Bildirimler açıldı.");
+    } else {
+      showNotification("Bildirimler kapatıldı.");
+    }
+  });
+
+/*****************************************************************
+ * 11. 60 Saniye Tur Sayacı
+ *****************************************************************/
+function isMyTurn() {
+  if (!roomData || !roomData.playerOrder) return false;
+  if (roomData.gameState !== "started") return false;
+  const currentTurnIndex = roomData.currentTurnIndex || 0;
+  return roomData.playerOrder[currentTurnIndex] === localPlayerId;
+}
+
+function startTurnTimer() {
+  const timerEl = document.getElementById("turn-timer");
+  turnTimeRemaining = 60;
+  if (turnTimerInterval) clearInterval(turnTimerInterval);
+  timerEl.textContent = turnTimeRemaining + "s";
+
+  turnTimerInterval = setInterval(() => {
+    turnTimeRemaining--;
+    if (turnTimeRemaining <= 0) {
+      clearInterval(turnTimerInterval);
+      turnTimeRemaining = 0;
+      timerEl.textContent = "0s";
+      if (roomData && roomData.gameState === "started" && isMyTurn()) {
+        nextTurn(true);
+      }
+    } else {
+      timerEl.textContent = turnTimeRemaining + "s";
+    }
+  }, 1000);
+}
+
+function stopTurnTimer() {
+  if (turnTimerInterval) clearInterval(turnTimerInterval);
+  const timerEl = document.getElementById("turn-timer");
+  if (timerEl) timerEl.textContent = "60s";
+}
+
+/*****************************************************************
+ * 12. Oyun Butonları (Tur Sonu, Odadan Çık)
+ *****************************************************************/
+document.getElementById("end-turn-btn").addEventListener("click", () => {
+  nextTurn(false);
+});
+
+function nextTurn(autoEnd = false) {
+  if (!isMyTurn()) return;
+  stopTurnTimer();
+
+  const turnIndex = roomData.currentTurnIndex || 0;
+  const currentPid = roomData.playerOrder[turnIndex];
+  const player = roomData.players[currentPid];
+  if (!player) return;
+
+  const updates = {};
+  // Tur sonu gelir
+  if (player.countries && roomData.countryData) {
+    let totalMoneyGained = 0;
+    let totalWheatGained = 0;
+
+    player.countries.forEach((cName) => {
+      const cData = roomData.countryData[cName];
+      if (!cData) return;
+      // Kışla -> asker
+      if (cData.barracksCount) {
+        updates[`countryData/${cName}/soldiers`] =
+          (cData.soldiers || 0) + 5 * cData.barracksCount;
+      }
+      // Para
+      let effectiveIncome = cData.income || 0;
+      if (cData.factories) {
+        effectiveIncome = Math.floor(
+          effectiveIncome * (1 + 0.20 * cData.factories)
+        );
+      }
+      totalMoneyGained += effectiveIncome;
+      // Buğday
+      if (cData.wheatProduction) {
+        const effWheat = Math.floor(
+          cData.wheatProduction * (1 + 0.20 * (cData.grainMills || 0))
+        );
+        totalWheatGained += effWheat;
+      }
+    });
+    updates[`players/${currentPid}/money`] =
+      (player.money || 0) + totalMoneyGained;
+    updates[`players/${currentPid}/wheat`] =
+      (player.wheat || 0) + totalWheatGained;
+  }
+
+  let newIndex = turnIndex + 1;
+  let newRound = roomData.round || 1;
+  if (newIndex >= roomData.playerOrder.length) {
+    newIndex = 0;
+    newRound++;
+    updates["round"] = newRound;
+  }
+  updates["currentTurnIndex"] = newIndex;
+  roomRef.update(updates);
+
+  const nextPid = roomData.playerOrder[newIndex];
+  let endText =
+    "Sıra " + (roomData.players[nextPid]?.name || "?") + " adlı oyuncuya geçti.";
+  if (autoEnd) {
+    endText = player.name + " süresini doldurdu! " + endText;
+  }
+  broadcastNotification(endText);
+  showNotification(endText, 1500);
+}
+
+/** Odadan Çık */
+document.getElementById("exit-room-btn").addEventListener("click", async () => {
+  if (!roomRef || !roomData) return;
+  const updates = {};
+  let newOrder = (roomData.playerOrder || []).filter(
+    (id) => id !== localPlayerId
+  );
+
+  if (isMyTurn()) {
+    stopTurnTimer();
+    let idx = roomData.currentTurnIndex || 0;
+    idx++;
+    let newR = roomData.round || 1;
+    if (idx >= newOrder.length && newOrder.length > 0) {
+      idx = 0;
+      newR++;
+    }
+    updates["round"] = newR;
+    updates["currentTurnIndex"] = newOrder.length ? idx : 0;
+  }
+  updates["playerOrder"] = newOrder;
+  updates[`players/${localPlayerId}`] = null;
+
+  await roomRef.update(updates);
+  showLobbyPage();
+  localStorage.removeItem("roomCode");
+  stopTurnTimer();
+  clearInterval(startInterval);
+  showNotification("Odadan ayrıldınız.");
+});
+
+/*****************************************************************
+ * 13. Asker İşlemleri (Saldırı, Satın Al, Çek, Destek)
+ *****************************************************************/
+const militaryPopup = document.getElementById("military-popup");
+const buildingPopup = document.getElementById("building-popup");
+const resourcePopup = document.getElementById("resource-popup");
+const playersPopup = document.getElementById("players-popup");
+const pactPopup = document.getElementById("pact-popup");
+const marketPopup = document.getElementById("market-popup");
+const chatPopup = document.getElementById("chat-popup");
+
+/** Popup aç/kapa */
+function togglePopup(popupElement) {
+  if (popupElement.style.display === "flex") {
+    popupElement.style.display = "none";
+  } else {
+    popupElement.style.display = "flex";
+  }
+}
+
+document.getElementById("open-military-btn").addEventListener("click", () => {
+  togglePopup(militaryPopup);
+});
+document
+  .getElementById("close-military-btn")
+  .addEventListener("click", () => {
+    militaryPopup.style.display = "none";
+  });
+
+document.getElementById("open-building-btn").addEventListener("click", () => {
+  togglePopup(buildingPopup);
+  updateCastleUpgradeCostUI();
+});
+document
+  .getElementById("close-building-btn")
+  .addEventListener("click", () => {
+    buildingPopup.style.display = "none";
+  });
+
+document.getElementById("open-resource-btn").addEventListener("click", () => {
+  togglePopup(resourcePopup);
+});
+document
+  .getElementById("close-resource-btn")
+  .addEventListener("click", () => {
+    resourcePopup.style.display = "none";
+  });
+
+document.getElementById("open-players-btn").addEventListener("click", () => {
+  togglePopup(playersPopup);
+});
+document
+  .getElementById("close-players-btn")
+  .addEventListener("click", () => {
+    playersPopup.style.display = "none";
+  });
+
+document.getElementById("open-pact-btn").addEventListener("click", () => {
+  togglePopup(pactPopup);
+});
+document.getElementById("close-pact-btn").addEventListener("click", () => {
+  pactPopup.style.display = "none";
+});
+
+document.getElementById("open-market-btn").addEventListener("click", () => {
+  togglePopup(marketPopup);
+});
+document.getElementById("close-market-btn").addEventListener("click", () => {
+  marketPopup.style.display = "none";
+});
+
+/** Chat popup */
+document.getElementById("open-chat-btn").addEventListener("click", () => {
+  toggleChat(!chatOpen);
+});
+document.getElementById("close-chat-btn").addEventListener("click", () => {
+  toggleChat(false);
+});
+
+/** Saldırı */
+document.getElementById("attack-btn").addEventListener("click", attack);
+function attack() {
+  if (!isMyTurn()) {
+    showNotification("Sıranız değil!");
+    return;
+  }
+  if (!selectedCountry) {
+    showNotification("Bir ülke seçin!");
+    return;
+  }
+  const soldiersToSend = parseInt(
+    document.getElementById("attack-soldiers").value
+  );
+  if (isNaN(soldiersToSend) || soldiersToSend <= 0) {
+    showNotification("Geçerli bir asker sayısı girin!");
+    return;
+  }
+  const attacker = roomData.players[localPlayerId];
+  if (!attacker) return;
+  if (attacker.petrol < soldiersToSend) {
+    showNotification(
+      `Bu saldırı için ${soldiersToSend} varil petrol gerekiyor, elinizde yeterli yok!`
+    );
+    return;
+  }
+  const target = roomData.countryData[selectedCountry];
+  if (!target) return;
+
+  // İlk 3 tur sadece sahipsiz ülke
+  if (roomData.round < 4) {
+    if (target.owner) {
+      showNotification("İlk 3 tur yalnızca sahipsiz ülkelere saldırabilirsiniz!");
+      return;
     }
   }
-  // neighbors within axial grid bounds
-  for(const c of cells){
-    for(const d of DIRS){
-      const nq = c.q + d.q, nr = c.r + d.r;
-      if(nq>=0 && nq<w && nr>=0 && nr<h){
-        const nid = nr*w + nq;
-        c.neighbors.push(nid);
+  // Pakt kontrol
+  if (target.owner && target.owner !== localPlayerId) {
+    if (hasActivePact(localPlayerId, target.owner)) {
+      showNotification("Bu oyuncu ile saldırmazlık paktınız var!");
+      return;
+    }
+  }
+
+  const updates = {};
+  let result = "";
+  updates[`players/${localPlayerId}/petrol`] = attacker.petrol - soldiersToSend;
+
+  // Kendi toprağımıza asker
+  if (target.owner === localPlayerId) {
+    if (soldiersToSend > attacker.soldiers) {
+      showNotification("Yeterli asker yok!");
+      return;
+    }
+    updates[`countryData/${selectedCountry}/soldiers`] =
+      target.soldiers + soldiersToSend;
+    updates[`players/${localPlayerId}/soldiers`] =
+      attacker.soldiers - soldiersToSend;
+    result = `${selectedCountry} ülkesine ${soldiersToSend} asker yerleştirildi.`;
+    roomRef.update(updates, () => {
+      immediateOilReward(localPlayerId);
+    });
+    broadcastNotification(
+      `Saldırı(?): ${attacker.name} (kendi ülkesine asker yolladı).`
+    );
+    showNotification(result);
+    return;
+  }
+
+  // Başka ülkeye saldırı
+  if (soldiersToSend > attacker.soldiers) {
+    showNotification("Yeterli askeriniz yok!");
+    return;
+  }
+  updates[`players/${localPlayerId}/soldiers`] =
+    attacker.soldiers - soldiersToSend;
+
+  let effectiveAttackers = soldiersToSend;
+  // Kale
+  if (target.castleDefenseLevel > 0) {
+    const defensePercent = 5 * target.castleDefenseLevel;
+    const killedByCastle = Math.floor((defensePercent / 100) * effectiveAttackers);
+    effectiveAttackers -= killedByCastle;
+    if (effectiveAttackers < 0) effectiveAttackers = 0;
+    result += `Kale savunması: ${killedByCastle} saldıran asker öldü. `;
+  }
+
+  if (effectiveAttackers > target.soldiers) {
+    // Fethedildi
+    const remaining = effectiveAttackers - target.soldiers;
+    updates[`countryData/${selectedCountry}/soldiers`] = remaining;
+    updates[`countryData/${selectedCountry}/owner`] = localPlayerId;
+    updates[`countryData/${selectedCountry}/supporters`] = {};
+
+    // Eski sahibin listesinden çıkar
+    if (target.owner && roomData.players[target.owner]) {
+      let defCountries = roomData.players[target.owner].countries || [];
+      defCountries = defCountries.filter((x) => x !== selectedCountry);
+      updates[`players/${target.owner}/countries`] = defCountries;
+    }
+    // Bize ekle
+    let myCountries = attacker.countries || [];
+    if (!myCountries.includes(selectedCountry)) myCountries.push(selectedCountry);
+    updates[`players/${localPlayerId}/countries`] = myCountries;
+
+    result += `${selectedCountry} fethedildi! (${soldiersToSend} vs ${target.soldiers})`;
+  } else {
+    // Savunan kazandı
+    updates[`countryData/${selectedCountry}/soldiers`] =
+      target.soldiers - effectiveAttackers;
+    result += `${selectedCountry} savunuldu! (${soldiersToSend} vs ${target.soldiers})`;
+  }
+
+  roomRef.update(updates, () => {
+    immediateOilReward(localPlayerId);
+  });
+  broadcastNotification(`${attacker.name} → ${selectedCountry}. ${result}`);
+  showNotification(result);
+
+  nextTurn();
+}
+
+/** Saldırı sonrası petrol ödülü */
+function immediateOilReward(playerId) {
+  if (!roomData || !roomData.players[playerId]) return;
+  const p = roomData.players[playerId];
+  if (!p.countries) return;
+  let totalOil = 0;
+  p.countries.forEach((cName) => {
+    const c = roomData.countryData[cName];
+    if (c && c.oilProduction) {
+      const effOil = Math.floor(c.oilProduction * (1 + 0.15 * (c.refineries || 0)));
+      totalOil += effOil;
+    }
+  });
+  if (totalOil > 0) {
+    roomRef.child(`players/${playerId}/petrol`).set(p.petrol + totalOil);
+    showNotification(`Saldırı sonrası petrol: +${totalOil} varil`);
+    broadcastNotification(`${p.name}, saldırı sonrası +${totalOil} petrol kazandı!`);
+  }
+}
+
+/** Asker Satın Al */
+document
+  .getElementById("buy-soldiers-btn")
+  .addEventListener("click", buySoldiers);
+function buySoldiers() {
+  const count = parseInt(document.getElementById("soldiers-to-buy").value);
+  if (isNaN(count) || count <= 0) {
+    showNotification("Geçerli bir sayı girin!");
+    return;
+  }
+  const costMoney = 10 * count;
+  const costWheat = 25 * count;
+  const currP = roomData.players[localPlayerId];
+  if (currP.money < costMoney) {
+    showNotification("Yeterli paranız yok!");
+    return;
+  }
+  if (currP.wheat < costWheat) {
+    showNotification("Yeterli buğdayınız yok!");
+    return;
+  }
+
+  const updates = {};
+  updates[`players/${localPlayerId}/money`] = currP.money - costMoney;
+  updates[`players/${localPlayerId}/wheat`] = currP.wheat - costWheat;
+  updates[`players/${localPlayerId}/soldiers`] = currP.soldiers + count;
+  roomRef.update(updates);
+  broadcastNotification(`${currP.name} ${count} asker satın aldı.`);
+  showNotification(`${count} asker satın alındı.`);
+}
+
+/** Asker Çek */
+document
+  .getElementById("pull-soldiers-btn")
+  .addEventListener("click", pullSoldiers);
+function pullSoldiers() {
+  if (!selectedCountry) {
+    showNotification("Bir ülke seçin!");
+    return;
+  }
+  const count = parseInt(document.getElementById("pull-soldiers-count").value);
+  if (isNaN(count) || count <= 0) {
+    showNotification("Geçerli bir asker sayısı girin!");
+    return;
+  }
+  const currP = roomData.players[localPlayerId];
+  if (!currP) return;
+
+  const cData = roomData.countryData[selectedCountry];
+  if (!cData) return;
+
+  const updates = {};
+
+  if (cData.owner === localPlayerId) {
+    let totalSup = 0;
+    for (let sid in cData.supporters) {
+      totalSup += cData.supporters[sid];
+    }
+    const occupant = cData.soldiers - totalSup;
+    if (occupant < count) {
+      showNotification("Ülkedeki destek askerleri hariç bu kadar çekemezsiniz!");
+      return;
+    }
+    updates[`countryData/${selectedCountry}/soldiers`] = cData.soldiers - count;
+    updates[`players/${localPlayerId}/soldiers`] = currP.soldiers + count;
+    broadcastNotification(
+      `${currP.name}, ${selectedCountry} ülkesinden ${count} asker çekti.`
+    );
+  } else {
+    const mySupport =
+      cData.supporters && cData.supporters[localPlayerId]
+        ? cData.supporters[localPlayerId]
+        : 0;
+    if (mySupport < count) {
+      showNotification("Bu ülkede o kadar destek askeriniz yok!");
+      return;
+    }
+    if (cData.soldiers < count) {
+      showNotification("Ülkedeki toplam asker yetersiz! (Veri tutarsızlığı)");
+      return;
+    }
+    updates[`countryData/${selectedCountry}/soldiers`] = cData.soldiers - count;
+    const newSup = mySupport - count;
+    if (newSup <= 0) {
+      updates[`countryData/${selectedCountry}/supporters/${localPlayerId}`] = null;
+    } else {
+      updates[`countryData/${selectedCountry}/supporters/${localPlayerId}`] =
+        newSup;
+    }
+    updates[`players/${localPlayerId}/soldiers`] = currP.soldiers + count;
+    broadcastNotification(
+      `${currP.name}, ${selectedCountry} ülkesinden ${count} destek askerini geri çekti.`
+    );
+  }
+  roomRef.update(updates);
+  showNotification("Asker çekildi.");
+}
+
+/** Askeri Destek Gönder */
+document
+  .getElementById("send-support-btn")
+  .addEventListener("click", sendSupport);
+function sendSupport() {
+  const recipient = document.getElementById("support-recipient").value;
+  const cName = document.getElementById("support-recipient-country").value;
+  const num = parseInt(document.getElementById("support-soldiers").value);
+
+  if (!recipient || !cName) {
+    showNotification("Oyuncu ve ülke seçmelisiniz!");
+    return;
+  }
+  if (isNaN(num) || num <= 0) {
+    showNotification("Geçerli bir asker sayısı girin!");
+    return;
+  }
+  const currP = roomData.players[localPlayerId];
+  if (currP.soldiers < num) {
+    showNotification("Yeterli askeriniz yok!");
+    return;
+  }
+  const targC = roomData.countryData[cName];
+  if (!targC) {
+    showNotification("Ülke bulunamadı!");
+    return;
+  }
+  if (targC.owner !== recipient) {
+    showNotification("Bu ülke o oyuncuya ait değil!");
+    return;
+  }
+
+  const updates = {};
+  updates[`players/${localPlayerId}/soldiers`] = currP.soldiers - num;
+  updates[`countryData/${cName}/soldiers`] = (targC.soldiers || 0) + num;
+  const oldSup =
+    targC.supporters && targC.supporters[localPlayerId]
+      ? targC.supporters[localPlayerId]
+      : 0;
+  updates[`countryData/${cName}/supporters/${localPlayerId}`] = oldSup + num;
+
+  roomRef.update(updates);
+  broadcastNotification(
+    `${currP.name}, ${roomData.players[recipient].name} (${cName}) ülkesine ${num} asker destek gönderdi.`
+  );
+  showNotification("Askeri destek gönderildi!");
+}
+
+/** Select listeleri */
+function updateSupportRecipientSelect() {
+  const sel = document.getElementById("support-recipient");
+  sel.innerHTML = "<option value=''>--Oyuncu Seç--</option>";
+  if (!roomData || !roomData.playerOrder) return;
+  roomData.playerOrder.forEach((pid) => {
+    if (pid !== localPlayerId && roomData.players[pid]) {
+      const o = document.createElement("option");
+      o.value = pid;
+      o.textContent = roomData.players[pid].name;
+      sel.appendChild(o);
+    }
+  });
+}
+document
+  .getElementById("support-recipient")
+  .addEventListener("change", function () {
+    const recipient = this.value;
+    const selC = document.getElementById("support-recipient-country");
+    selC.innerHTML = "<option value=''>--Ülke Seç--</option>";
+    if (!recipient || !roomData.players[recipient]) return;
+    const rc = roomData.players[recipient].countries || [];
+    rc.forEach((cName) => {
+      const opt = document.createElement("option");
+      opt.value = cName;
+      opt.textContent = cName;
+      selC.appendChild(opt);
+    });
+  });
+
+/*****************************************************************
+ * 14. Kaynak Gönderme
+ *****************************************************************/
+document.getElementById("send-money-btn").addEventListener("click", sendMoney);
+document.getElementById("send-petrol-btn").addEventListener("click", sendPetrol);
+document.getElementById("send-wheat-btn").addEventListener("click", sendWheat);
+
+function updateRecipientSelects() {
+  const moneySel = document.getElementById("recipient-player");
+  const petrolSel = document.getElementById("recipient-player-petrol");
+  const wheatSel = document.getElementById("recipient-player-wheat");
+  if (!moneySel || !petrolSel || !wheatSel) return;
+
+  moneySel.innerHTML = "";
+  petrolSel.innerHTML = "";
+  wheatSel.innerHTML = "";
+
+  if (roomData && roomData.playerOrder) {
+    roomData.playerOrder.forEach((pid) => {
+      if (pid !== localPlayerId && roomData.players[pid]) {
+        const pName = roomData.players[pid].name;
+        // Money
+        const o1 = document.createElement("option");
+        o1.value = pid;
+        o1.textContent = pName;
+        moneySel.appendChild(o1);
+        // Petrol
+        const o2 = document.createElement("option");
+        o2.value = pid;
+        o2.textContent = pName;
+        petrolSel.appendChild(o2);
+        // Wheat
+        const o3 = document.createElement("option");
+        o3.value = pid;
+        o3.textContent = pName;
+        wheatSel.appendChild(o3);
+      }
+    });
+  }
+}
+
+function sendMoney() {
+  const amt = parseInt(document.getElementById("money-to-send").value);
+  const recId = document.getElementById("recipient-player").value;
+  if (isNaN(amt) || amt <= 0) {
+    showNotification("Geçerli miktar girin!");
+    return;
+  }
+  const cp = roomData.players[localPlayerId];
+  if (cp.money < amt) {
+    showNotification("Yeterli paranız yok!");
+    return;
+  }
+  if (!recId) {
+    showNotification("Alıcı seçin!");
+    return;
+  }
+  const updates = {};
+  updates[`players/${localPlayerId}/money`] = cp.money - amt;
+  updates[`players/${recId}/money`] = roomData.players[recId].money + amt;
+
+  roomRef.update(updates);
+  broadcastNotification(`${cp.name} → ${roomData.players[recId].name}: ${amt}$`);
+  showNotification(`${amt}$ gönderildi.`);
+}
+
+function sendPetrol() {
+  const amt = parseInt(document.getElementById("petrol-to-send").value);
+  const recId = document.getElementById("recipient-player-petrol").value;
+  if (isNaN(amt) || amt <= 0) {
+    showNotification("Geçerli miktar girin!");
+    return;
+  }
+  const cp = roomData.players[localPlayerId];
+  if (cp.petrol < amt) {
+    showNotification("Yeterli petrol yok!");
+    return;
+  }
+  if (!recId) {
+    showNotification("Alıcı seçin!");
+    return;
+  }
+  const updates = {};
+  updates[`players/${localPlayerId}/petrol`] = cp.petrol - amt;
+  updates[`players/${recId}/petrol`] = roomData.players[recId].petrol + amt;
+
+  roomRef.update(updates);
+  broadcastNotification(
+    `${cp.name} → ${roomData.players[recId].name}: ${amt} varil petrol`
+  );
+  showNotification(`${amt} varil petrol gönderildi.`);
+}
+
+function sendWheat() {
+  const amt = parseInt(document.getElementById("wheat-to-send").value);
+  const recId = document.getElementById("recipient-player-wheat").value;
+  if (isNaN(amt) || amt <= 0) {
+    showNotification("Geçerli miktar girin!");
+    return;
+  }
+  const cp = roomData.players[localPlayerId];
+  if (cp.wheat < amt) {
+    showNotification("Yeterli buğday yok!");
+    return;
+  }
+  if (!recId) {
+    showNotification("Alıcı seçin!");
+    return;
+  }
+  const updates = {};
+  updates[`players/${localPlayerId}/wheat`] = cp.wheat - amt;
+  updates[`players/${recId}/wheat`] = roomData.players[recId].wheat + amt;
+
+  roomRef.update(updates);
+  broadcastNotification(`${cp.name} → ${roomData.players[recId].name}: ${amt} buğday`);
+  showNotification(`${amt} buğday gönderildi.`);
+}
+
+/*****************************************************************
+ * 15. Bina Kurma (Kışla, Fabrika, Rafine, Değirmen, Kale)
+ *****************************************************************/
+document
+  .getElementById("buy-barracks-btn")
+  .addEventListener("click", buildBarracks);
+document
+  .getElementById("build-factory-btn")
+  .addEventListener("click", buildFactory);
+document
+  .getElementById("build-refinery-btn")
+  .addEventListener("click", buildRefinery);
+document
+  .getElementById("build-grainmill-btn")
+  .addEventListener("click", buildGrainMill);
+document
+  .getElementById("build-castle-btn")
+  .addEventListener("click", buildCastle);
+document
+  .getElementById("upgrade-castle-btn")
+  .addEventListener("click", upgradeCastle);
+
+function buildBarracks() {
+  if (!selectedCountry) {
+    showNotification("Bir ülke seçin!");
+    return;
+  }
+  const q = parseInt(document.getElementById("barracks-quantity").value);
+  if (isNaN(q) || q <= 0) {
+    showNotification("Geçerli bir kışla sayısı girin!");
+    return;
+  }
+  const cData = roomData.countryData[selectedCountry];
+  if (!cData) return;
+  if (cData.owner !== localPlayerId) {
+    showNotification("Bu ülke size ait değil!");
+    return;
+  }
+  const costMoney = 300 * q;
+  const costPetrol = 50 * q;
+  const costWheat = 120 * q;
+  const p = roomData.players[localPlayerId];
+  if (p.money < costMoney || p.petrol < costPetrol || p.wheat < costWheat) {
+    showNotification("Yeterli kaynağınız yok!");
+    return;
+  }
+
+  const updates = {};
+  updates[`players/${localPlayerId}/money`] = p.money - costMoney;
+  updates[`players/${localPlayerId}/petrol`] = p.petrol - costPetrol;
+  updates[`players/${localPlayerId}/wheat`] = p.wheat - costWheat;
+  updates[`countryData/${selectedCountry}/barracksCount`] =
+    cData.barracksCount + q;
+
+  roomRef.update(updates);
+  broadcastNotification(`${p.name}, ${selectedCountry} ülkesine ${q} kışla kurdu!`);
+  showNotification(`${q} kışla kuruldu!`);
+}
+
+function buildFactory() {
+  if (!selectedCountry) {
+    showNotification("Bir ülke seçin!");
+    return;
+  }
+  const q = parseInt(document.getElementById("factory-quantity").value);
+  if (isNaN(q) || q <= 0) {
+    showNotification("Geçerli bir fabrika sayısı girin!");
+    return;
+  }
+  const cData = roomData.countryData[selectedCountry];
+  if (!cData) return;
+  if (cData.owner !== localPlayerId) {
+    showNotification("Bu ülke size ait değil!");
+    return;
+  }
+  const costMoney = 500 * q;
+  const costPetrol = 130 * q;
+  const p = roomData.players[localPlayerId];
+  if (p.money < costMoney || p.petrol < costPetrol) {
+    showNotification("Yeterli kaynağınız yok!");
+    return;
+  }
+
+  const updates = {};
+  updates[`players/${localPlayerId}/money`] = p.money - costMoney;
+  updates[`players/${localPlayerId}/petrol`] = p.petrol - costPetrol;
+  updates[`countryData/${selectedCountry}/factories`] = cData.factories + q;
+  roomRef.update(updates);
+  broadcastNotification(`${p.name}, ${selectedCountry} ülkesine ${q} fabrika kurdu!`);
+  showNotification(`${q} fabrika kuruldu!`);
+}
+
+function buildRefinery() {
+  if (!selectedCountry) {
+    showNotification("Bir ülke seçin!");
+    return;
+  }
+  const q = parseInt(document.getElementById("refinery-quantity").value);
+  if (isNaN(q) || q <= 0) {
+    showNotification("Geçerli rafine sayısı girin!");
+    return;
+  }
+  const cData = roomData.countryData[selectedCountry];
+  if (!cData) return;
+  if (cData.owner !== localPlayerId) {
+    showNotification("Bu ülke size ait değil!");
+    return;
+  }
+  const costMoney = 800 * q;
+  const costPetrol = 250 * q;
+  const p = roomData.players[localPlayerId];
+  if (p.money < costMoney || p.petrol < costPetrol) {
+    showNotification("Yeterli kaynağınız yok!");
+    return;
+  }
+
+  const updates = {};
+  updates[`players/${localPlayerId}/money`] = p.money - costMoney;
+  updates[`players/${localPlayerId}/petrol`] = p.petrol - costPetrol;
+  updates[`countryData/${selectedCountry}/refineries`] = cData.refineries + q;
+  roomRef.update(updates);
+  broadcastNotification(`${p.name}, ${selectedCountry} ülkesine ${q} rafine kurdu!`);
+  showNotification(`${q} rafine kuruldu!`);
+}
+
+function buildGrainMill() {
+  if (!selectedCountry) {
+    showNotification("Bir ülke seçin!");
+    return;
+  }
+  const q = parseInt(document.getElementById("grainmill-quantity").value);
+  if (isNaN(q) || q <= 0) {
+    showNotification("Geçerli değirmen sayısı girin!");
+    return;
+  }
+  const cData = roomData.countryData[selectedCountry];
+  if (cData.owner !== localPlayerId) {
+    showNotification("Bu ülke size ait değil!");
+    return;
+  }
+  const costMoney = 200 * q;
+  const costPetrol = 100 * q;
+  const p = roomData.players[localPlayerId];
+  if (p.money < costMoney || p.petrol < costPetrol) {
+    showNotification("Yeterli kaynağınız yok!");
+    return;
+  }
+
+  const updates = {};
+  updates[`players/${localPlayerId}/money`] = p.money - costMoney;
+  updates[`players/${localPlayerId}/petrol`] = p.petrol - costPetrol;
+  updates[`countryData/${selectedCountry}/grainMills`] = cData.grainMills + q;
+  roomRef.update(updates);
+  broadcastNotification(`${p.name}, ${selectedCountry} ülkesine ${q} değirmen kurdu!`);
+  showNotification(`${q} değirmen kuruldu!`);
+}
+
+function buildCastle() {
+  if (!selectedCountry) {
+    showNotification("Bir ülke seçin!");
+    return;
+  }
+  const cData = roomData.countryData[selectedCountry];
+  if (!cData || cData.owner !== localPlayerId) {
+    showNotification("Bu ülke size ait değil!");
+    return;
+  }
+  if (cData.castleDefenseLevel > 0) {
+    showNotification("Bu ülkede zaten kale var!");
+    return;
+  }
+  const p = roomData.players[localPlayerId];
+  if (p.money < 1000 || p.petrol < 1000 || p.wheat < 1000) {
+    showNotification("Kale için yeterli kaynak yok!");
+    return;
+  }
+
+  const updates = {};
+  updates[`players/${localPlayerId}/money`] = p.money - 1000;
+  updates[`players/${localPlayerId}/petrol`] = p.petrol - 1000;
+  updates[`players/${localPlayerId}/wheat`] = p.wheat - 1000;
+
+  updates[`countryData/${selectedCountry}/castleDefenseLevel`] = 1;
+  updates[`countryData/${selectedCountry}/castleNextUpgradeCost`] = {
+    money: 1300,
+    petrol: 1300,
+    wheat: 1300
+  };
+  roomRef.update(updates);
+  broadcastNotification(`${p.name}, ${selectedCountry} ülkesine kale kurdu!`);
+  showNotification("Kale kuruldu (%5).");
+}
+
+function upgradeCastle() {
+  if (!selectedCountry) {
+    showNotification("Bir ülke seçin!");
+    return;
+  }
+  const cData = roomData.countryData[selectedCountry];
+  if (!cData || cData.owner !== localPlayerId) {
+    showNotification("Bu ülke size ait değil!");
+    return;
+  }
+  if (cData.castleDefenseLevel < 1) {
+    showNotification("Önce kale kurun!");
+    return;
+  }
+  if (cData.castleDefenseLevel >= 6) {
+    showNotification("Kale savunması %30'u aştı!");
+    return;
+  }
+  if (!cData.castleNextUpgradeCost) {
+    showNotification("Yükseltme verisi yok!");
+    return;
+  }
+  const p = roomData.players[localPlayerId];
+  const cost = cData.castleNextUpgradeCost;
+  if (
+    p.money < cost.money ||
+    p.petrol < cost.petrol ||
+    p.wheat < cost.wheat
+  ) {
+    showNotification("Gerekli kaynak yok!");
+    return;
+  }
+  const updates = {};
+  updates[`players/${localPlayerId}/money`] = p.money - cost.money;
+  updates[`players/${localPlayerId}/petrol`] = p.petrol - cost.petrol;
+  updates[`players/${localPlayerId}/wheat`] = p.wheat - cost.wheat;
+
+  const newLevel = cData.castleDefenseLevel + 1;
+  updates[`countryData/${selectedCountry}/castleDefenseLevel`] = newLevel;
+  const nm = Math.floor(cost.money * 1.3);
+  const np = Math.floor(cost.petrol * 1.3);
+  const nw = Math.floor(cost.wheat * 1.3);
+  updates[`countryData/${selectedCountry}/castleNextUpgradeCost`] = {
+    money: nm,
+    petrol: np,
+    wheat: nw
+  };
+  roomRef.update(updates, () => {
+    updateCastleUpgradeCostUI();
+  });
+  broadcastNotification(
+    `${p.name}, ${selectedCountry} kalesini güçlendirdi (Seviye ${newLevel}).`
+  );
+  showNotification(`Kale güçlendirildi. (%${newLevel * 5} savunma)`);
+}
+
+function updateCastleUpgradeCostUI() {
+  const costSpan = document.getElementById("castle-upgrade-cost-text");
+  if (!costSpan) return;
+  if (!selectedCountry || !roomData?.countryData[selectedCountry]) {
+    costSpan.textContent = "-";
+    return;
+  }
+  const cData = roomData.countryData[selectedCountry];
+  if (cData.castleDefenseLevel < 1) {
+    costSpan.textContent = "Önce kale kurulmalı.";
+    return;
+  }
+  if (cData.castleDefenseLevel >= 6) {
+    costSpan.textContent = "Maksimum seviye (%30)!";
+    return;
+  }
+  if (!cData.castleNextUpgradeCost) {
+    costSpan.textContent = "-";
+    return;
+  }
+  costSpan.textContent = `
+    ${cData.castleNextUpgradeCost.money}$ + 
+    ${cData.castleNextUpgradeCost.petrol} Varil + 
+    ${cData.castleNextUpgradeCost.wheat} Buğday
+  `;
+}
+
+/*****************************************************************
+ * 16. Saldırmazlık Pakti
+ *****************************************************************/
+document
+  .getElementById("send-pact-offer-btn")
+  .addEventListener("click", () => {
+    if (!isMyTurn()) {
+      showNotification("Pakt teklifini yalnızca kendi sıranızda yapabilirsiniz!");
+      return;
+    }
+    const recip = document.getElementById("pact-offer-recipient").value;
+    const duration = parseInt(document.getElementById("pact-duration").value);
+    const cost = parseInt(document.getElementById("pact-cost").value);
+
+    if (!recip || recip === localPlayerId) {
+      showNotification("Geçerli bir oyuncu seçin!");
+      return;
+    }
+    if (isNaN(duration) || duration <= 0) {
+      showNotification("Tur sayısı geçersiz!");
+      return;
+    }
+    if (isNaN(cost) || cost < 0) {
+      showNotification("Para miktarı geçersiz!");
+      return;
+    }
+    if (hasActivePact(localPlayerId, recip)) {
+      showNotification("Bu oyuncuyla zaten aktif pakt var!");
+      return;
+    }
+    const sender = roomData.players[localPlayerId];
+    const offRef = roomRef.child("pactOffers").push();
+    const newOffer = {
+      offerId: offRef.key,
+      senderId: localPlayerId,
+      senderName: sender.name,
+      recipientId: recip,
+      duration,
+      cost,
+      status: "pending"
+    };
+    offRef.set(newOffer);
+    broadcastNotification(
+      `Pakt Teklifi: ${sender.name} → ${roomData.players[recip].name} (Tur:${duration}, Para:${cost}$)`
+    );
+    showNotification("Pakt teklifi gönderildi!");
+  });
+
+function hasActivePact(a, b) {
+  if (!roomData?.pacts) return false;
+  for (let pid in roomData.pacts) {
+    const pact = roomData.pacts[pid];
+    if (pact.active && roomData.round <= pact.expirationRound) {
+      if (
+        (pact.playerA === a && pact.playerB === b) ||
+        (pact.playerA === b && pact.playerB === a)
+      ) {
+        return true;
       }
     }
   }
-  return {
-    cells, size,
-    bounds: {minX:minX.v, maxX:maxX.v, minY:minY.v, maxY:maxY.v}
-  };
+  return false;
 }
 
-function makeNames(n, rng){
-  // silly placeholder names
-  const A = ["Ara","Bel","Cora","Dion","Ery","Fara","Gala","Hera","Ily","Jora","Kara","Lysa","Mira","Nera","Orin","Pava","Qira","Rava","Sora","Tyra","Ura","Vena","Wyra","Xara","Yara","Zora"];
-  const B = ["land","stan","polis","grad","tia","via","nia","ria","dor","gard","heim","shire"];
-  const out=[];
-  for(let i=0;i<n;i++){
-    out.push(choice(A)+choice(B));
-  }
-  return out;
-}
+function displayPendingPactOffers() {
+  const container = document.getElementById("pact-pending-offers");
+  if (!container) return;
+  container.innerHTML = "";
+  if (!roomData?.pactOffers) return;
 
-/////////////////////////////////////
-// 5) Players & initial placement  //
-/////////////////////////////////////
-function makePlayer(name, color, isBot, diff="normal"){
-  return {
-    name, color, isBot, diff,
-    money: isBot ? START.bot.money : START.human.money,
-    oil:   isBot ? START.bot.oil   : START.human.oil,
-    wheat: isBot ? START.bot.wheat : START.human.wheat,
-    soldiers: isBot ? START.bot.soldiers : START.human.soldiers,
-    cells: [], // owned cell ids
-  };
-}
-
-function initGame({bots,diff,mapSize,color,turnSeconds,seed}){
-  world = makeWorld(seed, mapSize);
-  sizeCanvas();
-
-  // Players
-  const players = [];
-  players.push( makePlayer("Sen", color, false, "human") );
-  const botColors = genBotColors(bots, color);
-  for(let i=0;i<bots;i++){
-    const d = diff; // can vary per bot if you want
-    players.push( makePlayer(`Bot ${i+1}`, botColors[i], true, d) );
-  }
-
-  // Start cells: each player 1 bölge + garnizon
-  const free = shuffle(world.cells.filter(c=>c.owner===null).map(c=>c.id));
-  for(let i=0;i<players.length;i++){
-    const id = free[i];
-    const cell = world.cells[id];
-    cell.owner = i;
-    cell.soldiers = 8 + (RNG()*5|0);
-    players[i].cells.push(id);
-  }
-
-  // Game state
-  state = {
-    round: 1,
-    current: 0, // player index
-    players,
-    market: { oil:[], wheat:[] }, // simple orderbooks
-    pacts: [], // {a,b,expireRound}
-    log: [],
-    turnSeconds,
-  };
-  updateHUD();
-  refreshPanels();
-  buildPactTargetOptions();
-  draw();
-  gameRoot.classList.add("ready");
-  startTurnTimer();
-  toast("Oyun başladı. İlk sıra sende.");
-  logEvent("Oyun başlatıldı.");
-}
-
-function genBotColors(n, humanColor){
-  const out=[];
-  for(let i=0;i<n;i++){
-    // random pleasant colors
-    let h = (RNG()*360)|0;
-    let s = 60 + (RNG()*30|0);
-    let l = 55 + (RNG()*10|0);
-    out.push(`hsl(${h} ${s}% ${l}%)`);
-  }
-  // avoid humanColor collision: meh for now
-  return out;
-}
-
-/////////////////////////////////////
-// 6) Economy & building helpers   //
-/////////////////////////////////////
-function effIncome(cell){
-  return Math.floor(cell.income * (1 + cell.factories*EFFECT.factoryIncome));
-}
-function effOilProd(cell){
-  return Math.floor(cell.oil * (1 + cell.refineries*EFFECT.refineryOil));
-}
-function effWheatProd(cell){
-  return Math.floor(cell.wheat * (1 + cell.mills*EFFECT.millWheat));
-}
-function castleNextCost(cell){
-  if(cell.castle === 0) return { ...COST.castle };
-  const step = cell.castleNext || {
-    money: Math.floor(COST.castle.money  * Math.pow(COST.castleUpgradeMul, cell.castle-1)),
-    oil:   Math.floor(COST.castle.oil    * Math.pow(COST.castleUpgradeMul, cell.castle-1)),
-    wheat: Math.floor(COST.castle.wheat  * Math.pow(COST.castleUpgradeMul, cell.castle-1)),
-  };
-  return step;
-}
-function updateCastleCostUI(cell){
-  if(!cell){ castleUpgradeCostEl.textContent="Sonraki maliyet: —"; return; }
-  if(cell.castle>=6){ castleUpgradeCostEl.textContent="Maks seviye (%30)"; return; }
-  const c = castleNextCost(cell);
-  castleUpgradeCostEl.textContent = `Sonraki maliyet: ${c.money}$ + ${c.oil}⛽ + ${c.wheat}🌾`;
-}
-
-function spend(p, cost){
-  if(p.money < (cost.money||0)) return false;
-  if(p.oil   < (cost.oil||0))   return false;
-  if(p.wheat < (cost.wheat||0)) return false;
-  p.money -= (cost.money||0);
-  p.oil   -= (cost.oil||0);
-  p.wheat -= (cost.wheat||0);
-  return true;
-}
-
-/////////////////////////////////////
-// 7) Turn flow & timer            //
-/////////////////////////////////////
-function isMyTurn(){
-  return state && state.players[state.current] && !state.players[state.current].isBot;
-}
-
-function startTurnTimer(){
-  clearInterval(turnTimer);
-  remaining = Number(state.turnSeconds || 60);
-  hud.timer.textContent = remaining + "s";
-  turnTimer = setInterval(()=>{
-    remaining--;
-    if(remaining<=0){
-      clearInterval(turnTimer);
-      hud.timer.textContent = "0s";
-      endTurn(true);
-    }else{
-      hud.timer.textContent = remaining + "s";
+  Object.values(roomData.pactOffers).forEach((offer) => {
+    if (offer.status === "pending" && offer.recipientId === localPlayerId) {
+      const div = document.createElement("div");
+      div.className = "pact-offer-item";
+      div.dataset.offerId = offer.offerId;
+      div.innerHTML = `
+        <p><strong>${offer.senderName}</strong> size saldırmazlık pakti teklif ediyor.</p>
+        <p>Tur: ${offer.duration}, Para: ${offer.cost}$</p>
+        <button class="accept-btn" data-offer-id="${offer.offerId}">Kabul</button>
+        <button class="reject-btn" data-offer-id="${offer.offerId}">Reddet</button>
+      `;
+      container.appendChild(div);
     }
-  },1000);
-}
-
-function endTurn(auto=false){
-  // resolve end-of-turn income for current player
-  const p = state.players[state.current];
-  // barracks produce soldiers, add income & wheat
-  let addMoney=0, addWheat=0;
-  for(const id of p.cells){
-    const c = world.cells[id];
-    c.soldiers += c.barracks * EFFECT.barracksSoldiers;
-    addMoney += effIncome(c);
-    if(c.wheat>0) addWheat += effWheatProd(c);
-  }
-  p.money += addMoney;
-  p.wheat += addWheat;
-
-  // pacts expiry
-  state.pacts = state.pacts.filter(pk => state.round <= pk.expireRound);
-
-  logEvent(`${p.name} tur sonu: +$${addMoney}, +🌾${addWheat}.`);
-  if(auto) toast(`${p.name} süresi doldu, tur sonlandırıldı.`);
-
-  // next player
-  state.current = (state.current + 1) % state.players.length;
-  if(state.current === 0) {
-    state.round++;
-  }
-  updateHUD();
-  refreshPanels();
-  draw();
-
-  // Next actor
-  const n = state.players[state.current];
-  if(n.isBot){
-    setTimeout(()=> botPlay(state.current), 450);
-  }else{
-    toast(`Sıra sende.`);
-    startTurnTimer();
-  }
-}
-
-on(btnEnd,"click", ()=> {
-  if(!isMyTurn()) return toast("Sıran değil.");
-  endTurn(false);
-});
-
-function updateHUD(){
-  hud.round.textContent   = state.round;
-  hud.current.textContent = state.players[state.current].name;
-  hud.bots.textContent    = state.players.filter(p=>p.isBot).length;
-  const me = state.players[0]; // human at index 0
-  hud.oil.textContent   = me.oil;
-  hud.wheat.textContent = me.wheat;
-  hud.money.textContent = me.money;
-}
-
-function refreshPanels(){
-  playersList.innerHTML = "";
-  state.players.forEach((p,idx)=>{
-    const div = document.createElement("div");
-    div.className = "player-card";
-    div.innerHTML = `
-      <div class="avatar" style="background:${p.color}"></div>
-      <div>
-        <div><strong>${p.name}</strong>${idx===state.current?' • <span style="color:#ffb757">Sıra</span>':''}</div>
-        <div>💵 ${p.money} &nbsp; ⛽ ${p.oil} &nbsp; 🌾 ${p.wheat} &nbsp; 🪖 ${p.soldiers}</div>
-        <div>Ülke: ${p.cells.length}</div>
-      </div>
-    `;
-    playersList.appendChild(div);
   });
+}
 
-  // army list (human)
-  armyList.innerHTML = "";
-  const human = state.players[0];
-  human.cells.slice().sort((a,b)=> world.cells[a].name.localeCompare(world.cells[b].name)).forEach(id=>{
-    const c = world.cells[id];
-    const row = document.createElement("div");
-    row.textContent = `${c.name} — 🪖 ${c.soldiers}`;
-    armyList.appendChild(row);
-  });
+function displayActivePacts() {
+  const container = document.getElementById("active-pacts-container");
+  if (!container) return;
+  container.innerHTML = "";
+  if (!roomData?.pacts) return;
 
-  // pacts list
-  pactsList.innerHTML = "";
-  state.pacts.forEach(pk=>{
-    if(pk.a===0 || pk.b===0){
-      const other = pk.a===0 ? pk.b : pk.a;
-      const row = document.createElement("div");
-      row.textContent = `🤝 ${state.players[other].name} • kalan tur: ${pk.expireRound - state.round + 1}`;
-      pactsList.appendChild(row);
+  for (let pid in roomData.pacts) {
+    const pact = roomData.pacts[pid];
+    if (pact.active && roomData.round <= pact.expirationRound) {
+      if (pact.playerA === localPlayerId || pact.playerB === localPlayerId) {
+        const otherId =
+          pact.playerA === localPlayerId ? pact.playerB : pact.playerA;
+        const otherName = roomData.players[otherId]?.name || "???";
+        const rLeft = pact.expirationRound - roomData.round + 1;
+
+        const d = document.createElement("div");
+        d.className = "active-pact-item";
+        d.innerHTML = `
+          <p>Pakt: <strong>${otherName}</strong></p>
+          <p>Kalan Tur: <strong>${rLeft}</strong></p>
+        `;
+        container.appendChild(d);
+      }
+    }
+  }
+}
+
+document
+  .getElementById("pact-pending-offers")
+  .addEventListener("click", (e) => {
+    if (e.target.classList.contains("accept-btn")) {
+      const oid = e.target.getAttribute("data-offer-id");
+      acceptPactOffer(oid);
+    } else if (e.target.classList.contains("reject-btn")) {
+      const oid = e.target.getAttribute("data-offer-id");
+      rejectPactOffer(oid);
     }
   });
 
-  // orders list
-  renderOrders();
-}
-
-/////////////////////////////
-// 8) Attack & movement    //
-/////////////////////////////
-function findBestSource(targetId, attackerIdx){
-  const t = world.cells[targetId];
-  let best = null, bestSold = -1;
-  for(const nid of t.neighbors){
-    const c = world.cells[nid];
-    if(c.owner===attackerIdx && c.soldiers>bestSold){
-      best = c; bestSold = c.soldiers;
-    }
+function acceptPactOffer(offerId) {
+  const offer = roomData?.pactOffers[offerId];
+  if (!offer || offer.status !== "pending") return;
+  if (hasActivePact(offer.senderId, offer.recipientId)) {
+    showNotification("Zaten aktif bir pakt var!");
+    roomRef.child("pactOffers").child(offerId).update({ status: "rejected" });
+    return;
   }
-  return best;
-}
-function areNeighbors(aId,bId){
-  return world.cells[aId].neighbors.includes(bId);
-}
-function hasPact(a,b){
-  return state.pacts.some(pk => ((pk.a===a && pk.b===b)||(pk.a===b && pk.b===a)) && state.round<=pk.expireRound);
-}
+  const sender = roomData.players[offer.senderId];
+  const rec = roomData.players[offer.recipientId];
+  if (!sender || !rec) return;
 
-on(doAttackBtn, "click", ()=>{
-  if(!isMyTurn()) return toast("Sıran değil.");
-  if(selectedId==null) return toast("Hedef bölge seç.");
-  const t = world.cells[selectedId];
-  if(t.owner===0) return toast("Kendi bölgen zaten.");
-  // must be adjacent to any owned cell
-  const src = findBestSource(selectedId, 0);
-  if(!src) return toast("Hedefe komşu bir birliğin yok.");
-  let n = Number(attackUnits.value||0);
-  if(n<=0) return toast("Geçerli asker sayısı gir.");
-  if(n>src.soldiers) n = src.soldiers;
-
-  const plan = attackPlan.value; // normal|blitz|cautious
-  const oilCostMul = plan==="blitz" ? 1.2 : 1.0;
-  const lossMul    = plan==="cautious" ? 0.85 : 1.0;
-
-  const me = state.players[0];
-  const oilNeed = Math.ceil(n * oilCostMul);
-  if(me.oil < oilNeed) return toast(`Yeterli petrol yok (gerekli: ${oilNeed}).`);
-
-  // pacts?
-  if(t.owner!=null && hasPact(0, t.owner)) return toast("Bu oyuncu ile saldırmazlık paktı var.");
-
-  // resolve
-  me.oil -= oilNeed;
-  src.soldiers -= n;
-
-  // castle damage
-  let effAttack = n;
-  if(t.castle>0){
-    const kill = Math.floor(effAttack * (t.castle*EFFECT.castleStep)/100);
-    effAttack = Math.max(0, effAttack - kill);
-    logEvent(`Kale savunması: ${kill} saldıran asker öldü.`);
+  if (sender.money < offer.cost) {
+    showNotification("Teklifi gönderenin parası yok! Teklif geçersiz.");
+    roomRef.child("pactOffers").child(offerId).update({ status: "rejected" });
+    return;
   }
-
-  // compare
-  const defender = t.soldiers;
-  const adjustedAtk = Math.round(effAttack * (plan==="blitz"?1.15:1.0) * lossMul);
-  if(adjustedAtk > defender){
-    // capture
-    const rem = adjustedAtk - defender;
-    const prev = t.owner;
-    t.owner = 0;
-    t.soldiers = rem;
-
-    if(prev!=null){
-      state.players[prev].cells = state.players[prev].cells.filter(x=>x!==t.id);
-    }
-    if(!state.players[0].cells.includes(t.id)) state.players[0].cells.push(t.id);
-
-    // immediate oil reward from all owned oil tiles
-    const totalOil = state.players[0].cells.reduce((sum,id)=>{
-      const c = world.cells[id];
-      return sum + (c.oil>0 ? effOilProd(c):0);
-    },0);
-    state.players[0].oil += totalOil;
-    toast(`Fetih! +⛽${totalOil}`);
-    logEvent(`Sen → ${t.name}: fethedildi.`);
-  }else{
-    // fail
-    t.soldiers -= adjustedAtk;
-    logEvent(`Sen → ${t.name}: savunuldu.`);
-  }
-
-  updateHUD(); refreshPanels(); draw();
-});
-
-/////////////////////////////
-// 9) Buildings            //
-/////////////////////////////
-function requireOwnedSelected(){
-  const c = world.cells[selectedId||-1];
-  if(!c) { toast("Bölge seç."); return null; }
-  if(c.owner!==0){ toast("Bu bölge sana ait değil."); return null; }
-  return c;
-}
-
-on(btnBuildBarracks,"click", ()=>{
-  const c = requireOwnedSelected(); if(!c) return;
-  const q = Number($("barracks-q").value||0); if(q<=0) return;
-  const cost = { money:COST.barracks.money*q, oil:COST.barracks.oil*q, wheat:COST.barracks.wheat*q };
-  if(!spend(state.players[0], cost)) return toast("Kaynak yetersiz.");
-  c.barracks += q;
-  logEvent(`Bina: ${c.name} → +${q} Kışla`);
-  updateHUD(); refreshPanels(); draw();
-});
-
-on(btnBuildFactory,"click", ()=>{
-  const c = requireOwnedSelected(); if(!c) return;
-  const q = Number($("factory-q").value||0); if(q<=0) return;
-  const cost = { money:COST.factory.money*q, oil:COST.factory.oil*q };
-  if(!spend(state.players[0], cost)) return toast("Kaynak yetersiz.");
-  c.factories += q;
-  logEvent(`Bina: ${c.name} → +${q} Fabrika`);
-  updateHUD(); refreshPanels(); draw();
-});
-
-on(btnBuildRefinery,"click", ()=>{
-  const c = requireOwnedSelected(); if(!c) return;
-  const q = Number($("refinery-q").value||0); if(q<=0) return;
-  const cost = { money:COST.refinery.money*q, oil:COST.refinery.oil*q };
-  if(!spend(state.players[0], cost)) return toast("Kaynak yetersiz.");
-  c.refineries += q;
-  logEvent(`Bina: ${c.name} → +${q} Rafineri`);
-  updateHUD(); refreshPanels(); draw();
-});
-
-on(btnBuildMill,"click", ()=>{
-  const c = requireOwnedSelected(); if(!c) return;
-  const q = Number($("mill-q").value||0); if(q<=0) return;
-  const cost = { money:COST.mill.money*q, oil:COST.mill.oil*q };
-  if(!spend(state.players[0], cost)) return toast("Kaynak yetersiz.");
-  c.mills += q;
-  logEvent(`Bina: ${c.name} → +${q} Değirmen`);
-  updateHUD(); refreshPanels(); draw();
-});
-
-on(btnBuildCastle,"click", ()=>{
-  const c = requireOwnedSelected(); if(!c) return;
-  if(c.castle>0) return toast("Bu bölgede zaten kale var.");
-  const ok = spend(state.players[0], COST.castle);
-  if(!ok) return toast("Kaynak yetersiz.");
-  c.castle = 1;
-  c.castleNext = { money:1300, oil:1300, wheat:1300 };
-  logEvent(`Bina: ${c.name} → Kale (%%${EFFECT.castleStep})`);
-  updateCastleCostUI(c); updateHUD(); refreshPanels(); draw();
-});
-
-on(btnUpgradeCastle,"click", ()=>{
-  const c = requireOwnedSelected(); if(!c) return;
-  if(c.castle<1) return toast("Önce kale kur.");
-  if(c.castle>=6) return toast("Maks seviye.");
-  const cost = castleNextCost(c);
-  if(!spend(state.players[0], cost)) return toast("Kaynak yetersiz.");
-  c.castle++;
-  c.castleNext = {
-    money: Math.floor(cost.money*COST.castleUpgradeMul),
-    oil:   Math.floor(cost.oil*COST.castleUpgradeMul),
-    wheat: Math.floor(cost.wheat*COST.castleUpgradeMul),
+  const expRound = (roomData.round || 1) + offer.duration;
+  const pactId = db.ref().push().key;
+  const ups = {};
+  ups[`pactOffers/${offerId}/status`] = "accepted";
+  ups[`players/${offer.senderId}/money`] = sender.money - offer.cost;
+  ups[`players/${offer.recipientId}/money`] = rec.money + offer.cost;
+  ups[`pacts/${pactId}`] = {
+    playerA: offer.senderId,
+    playerB: offer.recipientId,
+    active: true,
+    cost: offer.cost,
+    duration: offer.duration,
+    expirationRound: expRound
   };
-  logEvent(`Kale: ${c.name} seviye ${c.castle} (%%${c.castle*EFFECT.castleStep})`);
-  updateCastleCostUI(c); updateHUD(); refreshPanels(); draw();
-});
+  roomRef.update(ups);
+  broadcastNotification(
+    `Pakt: ${sender.name} & ${rec.name} (Tur:${offer.duration}, Para:${offer.cost}$).`
+  );
+  showNotification("Pakt teklifi kabul edildi!");
+}
 
-/////////////////////////////
-// 10) Army (buy / pull)   //
-/////////////////////////////
-on(btnBuySoldiers,"click", ()=>{
-  if(!isMyTurn()) return toast("Sıran değil.");
-  const n = Number(buySoldiersInput.value||0); if(n<=0) return;
-  const cost = { money: COST.soldierMoney*n, wheat: COST.soldierWheat*n };
-  const me = state.players[0];
-  if(!spend(me, cost)) return toast("Kaynak yetersiz.");
-  me.soldiers += n;
-  logEvent(`Satın alım: +${n} asker`);
-  updateHUD(); refreshPanels();
-});
+function rejectPactOffer(offerId) {
+  const offer = roomData?.pactOffers[offerId];
+  if (!offer || offer.status !== "pending") return;
+  roomRef.child("pactOffers").child(offerId).update({ status: "rejected" });
+  broadcastNotification(`Pakt Reddedildi: ${offer.senderName} -> Reddedildi.`);
+  showNotification("Pakt teklifi reddedildi.");
+}
 
-on(btnPull,"click", ()=>{
-  if(!isMyTurn()) return toast("Sıran değil.");
-  const c = requireOwnedSelected(); if(!c) return;
-  let n = Number(pullCount.value||0); if(n<=0) return;
-  if(n>c.soldiers) n=c.soldiers;
-  c.soldiers -= n;
-  state.players[0].soldiers += n;
-  logEvent(`Asker çekildi: ${c.name} → ${n}`);
-  updateHUD(); refreshPanels(); draw();
-});
+function updatePactRecipientSelect() {
+  const s = document.getElementById("pact-offer-recipient");
+  if (!s) return;
+  s.innerHTML = "";
+  if (roomData && roomData.playerOrder) {
+    roomData.playerOrder.forEach((pid) => {
+      if (pid !== localPlayerId && roomData.players[pid]) {
+        const o = document.createElement("option");
+        o.value = pid;
+        o.textContent = roomData.players[pid].name;
+        s.appendChild(o);
+      }
+    });
+  }
+}
 
-/////////////////////////////
-// 11) Diplomacy (pacts)   //
-/////////////////////////////
-function buildPactTargetOptions(){
-  dipTarget.innerHTML = "";
-  state.players.forEach((p,idx)=>{
-    if(idx===0) return;
-    const opt = document.createElement("option");
-    opt.value = idx; opt.textContent = p.name;
-    dipTarget.appendChild(opt);
+/*****************************************************************
+ * 17. Market (Ticaret) Sistemi
+ *****************************************************************/
+document
+  .getElementById("create-trade-offer-btn")
+  .addEventListener("click", createTradeOffer);
+
+function createTradeOffer() {
+  if (!roomData?.players[localPlayerId]) return;
+  const itemType = document.getElementById("trade-item-type").value;
+  const qty = parseInt(document.getElementById("trade-quantity").value);
+  const price = parseInt(document.getElementById("trade-price").value);
+
+  if (isNaN(qty) || qty <= 0 || isNaN(price) || price <= 0) {
+    showNotification("Geçerli miktar/fiyat girin!");
+    return;
+  }
+  const seller = roomData.players[localPlayerId];
+  let ok = false;
+  if (itemType === "petrol" && seller.petrol >= qty) ok = true;
+  if (itemType === "wheat" && seller.wheat >= qty) ok = true;
+  if (!ok) {
+    showNotification("Yeterli miktar yok!");
+    return;
+  }
+
+  const embSel = document.getElementById("embargo-players");
+  let embargoList = [];
+  for (let i = 0; i < embSel.options.length; i++) {
+    if (embSel.options[i].selected) {
+      embargoList.push(embSel.options[i].value);
+    }
+  }
+
+  const offRef = roomRef.child("tradeOffers").push();
+  offRef.set({
+    offerId: offRef.key,
+    sellerId: localPlayerId,
+    sellerName: seller.name,
+    itemType,
+    quantity: qty,
+    price,
+    status: "pending",
+    embargo: embargoList
+  });
+  broadcastNotification(
+    `${seller.name} ticaret teklifi oluşturdu (${itemType}, adet:${qty}, fiyat:${price}$).`
+  );
+  showNotification("Ticaret teklifi oluşturuldu!");
+}
+
+function displayTradeOffers() {
+  const div = document.getElementById("trade-offers-list");
+  if (!div) return;
+  div.innerHTML = "";
+  if (!roomData?.tradeOffers) return;
+
+  const offers = Object.values(roomData.tradeOffers);
+  offers.forEach((o) => {
+    if (o.status === "pending") {
+      if (o.embargo && o.embargo.includes(localPlayerId)) return;
+      const d = document.createElement("div");
+      d.className = "offer-item";
+      let itemLabel = (o.itemType === "petrol") ? "Petrol" : "Buğday";
+      let html = `
+        <p><strong>Satıcı:</strong> ${o.sellerName}</p>
+        <p><strong>Ürün:</strong> ${itemLabel}</p>
+        <p><strong>Mevcut Miktar:</strong> ${o.quantity}</p>
+        <p><strong>Birim Fiyat:</strong> ${o.price} $</p>
+      `;
+      if (o.sellerId !== localPlayerId) {
+        html += `
+          <label style="font-size:14px;color:#ccc;">Almak istediğiniz miktar:</label>
+          <input type="number" class="partial-buy-quantity" placeholder="Miktar" min="1" max="${o.quantity}" />
+          <button class="partial-buy-btn">Satın Al</button>
+        `;
+      } else {
+        html += `
+          <button class="cancel-offer-btn" style="background:linear-gradient(45deg, #c0392b, #e74c3c); margin-top:10px;">İptal Et</button>
+        `;
+      }
+      if (o.embargo && o.embargo.length > 0) {
+        const embUsers = o.embargo
+          .map((id) => roomData.players[id]?.name || "???")
+          .join(", ");
+        html += `<p style="color:red;"><strong>Ambargo:</strong> ${embUsers}</p>`;
+      }
+      d.innerHTML = html;
+
+      const partialBtn = d.querySelector(".partial-buy-btn");
+      if (partialBtn) {
+        partialBtn.addEventListener("click", () => {
+          const inp = d.querySelector(".partial-buy-quantity");
+          const amt = parseInt(inp.value);
+          if (isNaN(amt) || amt <= 0) {
+            showNotification("Geçerli miktar girin!");
+            return;
+          }
+          acceptTradeOffer(o.offerId, amt);
+        });
+      }
+      const cancelBtn = d.querySelector(".cancel-offer-btn");
+      if (cancelBtn) {
+        cancelBtn.addEventListener("click", () =>
+          cancelTradeOffer(o.offerId)
+        );
+      }
+      div.appendChild(d);
+    }
   });
 }
-on(btnSendPact, "click", ()=>{
-  if(!isMyTurn()) return toast("Sıran değil.");
-  const b = Number(dipTarget.value);
-  const dur = clamp(Number(dipDuration.value||0),1,20);
-  const cost = clamp(Number(dipCost.value||0),0,1e9);
-  if(isNaN(b)) return toast("Bot seç.");
-  // already
-  if(hasPact(0,b)) return toast("Zaten aktif pakt var.");
-  const me = state.players[0];
-  if(me.money < cost) return toast("Yeterli paran yok.");
 
-  // Bot kabul mantığı (basit): teklif oranı vs round
-  const bot = state.players[b];
-  const base = {easy: 0.5, normal: 0.6, hard:0.7, insane:0.8}[bot.diff] || 0.6;
-  const desire = base - (bot.cells.length - me.cells.length)*0.03 + (cost/(300*dur))*0.3;
-  const accept = RNG() < clamp(desire, 0.15, 0.95);
-
-  if(accept){
-    me.money -= cost; bot.money += cost;
-    state.pacts.push({a:0,b,expireRound: state.round + dur});
-    toast(`Pakt kabul edildi: ${bot.name} (${dur} tur)`);
-    logEvent(`Pakt: Sen & ${bot.name} (${dur} tur).`);
-  }else{
-    toast(`${bot.name} paktı reddetti.`);
-    logEvent(`Pakt reddedildi: ${bot.name}`);
+function acceptTradeOffer(offerId, buyAmount) {
+  if (!roomData?.tradeOffers[offerId]) {
+    showNotification("Teklif bulunamadı!");
+    return;
   }
-  refreshPanels(); updateHUD();
-});
+  const off = roomData.tradeOffers[offerId];
+  if (off.status !== "pending") {
+    showNotification("Teklif geçerli değil!");
+    return;
+  }
+  const seller = roomData.players[off.sellerId];
+  const buyer = roomData.players[localPlayerId];
+  if (!seller || !buyer) return;
+  if (buyAmount > off.quantity) {
+    showNotification("Teklifte yeterli stok yok!");
+    return;
+  }
+  const totalCost = off.price * buyAmount;
+  if (buyer.money < totalCost) {
+    showNotification("Yeterli paranız yok!");
+    return;
+  }
+  const ups = {};
+  let hasEnough = false;
+  if (off.itemType === "petrol") {
+    if (seller.petrol >= buyAmount) {
+      hasEnough = true;
+      ups[`players/${off.sellerId}/petrol`] = seller.petrol - buyAmount;
+      ups[`players/${localPlayerId}/petrol`] = buyer.petrol + buyAmount;
+    }
+  } else if (off.itemType === "wheat") {
+    if (seller.wheat >= buyAmount) {
+      hasEnough = true;
+      ups[`players/${off.sellerId}/wheat`] = seller.wheat - buyAmount;
+      ups[`players/${localPlayerId}/wheat`] = buyer.wheat + buyAmount;
+    }
+  }
+  if (!hasEnough) {
+    showNotification("Satıcının yeterli miktarı kalmamış!");
+    return;
+  }
+  ups[`players/${localPlayerId}/money`] = buyer.money - totalCost;
+  ups[`players/${off.sellerId}/money`] = seller.money + totalCost;
+  const newQty = off.quantity - buyAmount;
+  if (newQty <= 0) {
+    ups[`tradeOffers/${offerId}/status`] = "completed";
+  }
+  ups[`tradeOffers/${offerId}/quantity`] = newQty;
 
-/////////////////////////////
-// 12) Market (simple)     //
-/////////////////////////////
-function renderOrders(){
-  ordersList.innerHTML = "";
-  ["oil","wheat"].forEach(sym=>{
-    const sideBuy = state.market[sym].filter(o=>o.side==="buy").length;
-    const sideSell= state.market[sym].filter(o=>o.side==="sell").length;
-    const row = document.createElement("div");
-    row.textContent = `${sym==="oil"?"⛽ Petrol":"🌾 Buğday"} — Alım ${sideBuy} / Satım ${sideSell}`;
-    ordersList.appendChild(row);
+  roomRef.update(ups, (err) => {
+    if (!err) {
+      broadcastNotification(
+        `Ticaret: ${seller.name} -> ${buyer.name} (${buyAmount} x ${off.itemType}).`
+      );
+      showNotification("Ticaret başarıyla gerçekleşti!");
+      const cMsg = {
+        sender: "Sistem",
+        senderId: "system",
+        text: `Ticaret Onaylandı: ${seller.name} -> ${buyer.name}, ${buyAmount} x ${off.itemType}`,
+        recipientId: "",
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+      };
+      roomRef.child("chat").push(cMsg);
+    }
   });
 }
 
-on(marketPlace,"click", ()=>{
-  if(!isMyTurn()) return toast("Sıran değil.");
-  const sym = marketItem.value; // oil|wheat
-  const side = marketSide.value; // buy|sell
-  let qty = clamp(Number(marketAmount.value||0), 1, 999999);
-  const price = clamp(Number(marketPrice.value||0), 1, 999999);
-  const me = state.players[0];
-
-  if(side==="sell"){
-    if(sym==="oil" && me.oil<qty) return toast("Yeterli petrol yok.");
-    if(sym==="wheat" && me.wheat<qty) return toast("Yeterli buğday yok.");
+function cancelTradeOffer(offerId) {
+  if (!roomData?.tradeOffers[offerId]) return;
+  const off = roomData.tradeOffers[offerId];
+  if (off.sellerId !== localPlayerId) {
+    showNotification("Sadece kendi teklifinizi iptal edebilirsiniz!");
+    return;
   }
-  if(side==="buy"){
-    if(me.money < qty*price) return toast("Yeterli para yok.");
+  if (off.status !== "pending") {
+    showNotification("Bu teklif zaten tamamlanmış/iptal.");
+    return;
   }
-
-  // match against best opposing
-  const book = state.market[sym];
-  const opp = side==="buy" ? "sell" : "buy";
-
-  const bestMatch = book
-    .filter(o=>o.side===opp && (side==="buy" ? o.price<=price : o.price>=price))
-    .sort((a,b)=> side==="buy" ? a.price-b.price : b.price-a.price);
-
-  let remainingQty = qty;
-  for(const o of bestMatch){
-    if(remainingQty<=0) break;
-    const tradeQty = Math.min(remainingQty, o.qty);
-    // transfer
-    if(side==="buy"){
-      me.money -= tradeQty*o.price;
-      if(sym==="oil") me.oil += tradeQty; else me.wheat += tradeQty;
-      const seller = state.players[o.owner];
-      seller.money += tradeQty*o.price;
-      if(sym==="oil") seller.oil -= tradeQty; else seller.wheat -= tradeQty;
-    }else{
-      // sell
-      me.money += tradeQty*o.price;
-      if(sym==="oil") me.oil -= tradeQty; else me.wheat -= tradeQty;
-      const buyer = state.players[o.owner];
-      buyer.money -= tradeQty*o.price;
-      if(sym==="oil") buyer.oil += tradeQty; else buyer.wheat += tradeQty;
-    }
-    o.qty -= tradeQty;
-    remainingQty -= tradeQty;
-  }
-  // remove filled
-  state.market[sym] = book.filter(o=>o.qty>0);
-
-  // leftover becomes order
-  if(remainingQty>0){
-    // reserve assets for sell; reserve money for buy
-    if(side==="sell"){
-      if(sym==="oil") me.oil -= remainingQty; else me.wheat -= remainingQty;
-    }else{
-      me.money -= remainingQty*price;
-    }
-    book.push({ owner:0, side, qty:remainingQty, price });
-  }
-  logEvent(`Piyasa: ${side==="buy"?"Al":"Sat"} ${qty} ${sym} @${price}`);
-  updateHUD(); refreshPanels(); toast("Emir işlendi.");
-});
-
-/////////////////////////////
-// 13) AI Bots             //
-/////////////////////////////
-function botPlay(idx){
-  const bot = state.players[idx];
-  // Simple plan:
-  // 1) If soldiers in pool + garrison low: buy soldiers if possible
-  buySoldiersBot(bot);
-
-  // 2) Build priorities
-  buildBot(bot);
-
-  // 3) Attack: pick frontier target (neutral first, then weak enemy)
-  attackBot(idx);
-
-  // 4) Maybe market random action
-  marketBot(bot);
-
-  // End turn
-  endTurn(false);
+  roomRef.child("tradeOffers").child(offerId).update({ status: "cancelled" });
+  broadcastNotification("Ticaret teklifi iptal edildi: " + off.sellerName);
+  showNotification("Teklif iptal edildi.");
 }
 
-function buySoldiersBot(bot){
-  const want = 6 + (RNG()*10|0);
-  const totalCost = COST.soldierMoney*want + COST.soldierWheat*want;
-  if(bot.money >= COST.soldierMoney*want && bot.wheat >= COST.soldierWheat*want){
-    bot.money -= COST.soldierMoney*want;
-    bot.wheat -= COST.soldierWheat*want;
-    bot.soldiers += want;
-    logEvent(`${bot.name}: ${want} asker satın aldı.`);
+/*****************************************************************
+ * 18. Sohbet (Chat) Sistemi
+ *****************************************************************/
+function toggleChat(show) {
+  chatPopup.style.display = show ? "flex" : "none";
+  chatOpen = show;
+  if (chatOpen) {
+    unreadMessages = 0;
+    updateChatBadge();
   }
 }
+document
+  .getElementById("send-chat-btn")
+  .addEventListener("click", sendChatMessage);
+document
+  .getElementById("chat-input")
+  .addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      sendChatMessage();
+    }
+  });
 
-function buildBot(bot){
-  // choose a owned cell with relevant production
-  const cells = bot.cells.map(id=>world.cells[id]);
-  shuffle(cells);
+function sendChatMessage() {
+  const input = document.getElementById("chat-input");
+  const text = input.value.trim();
+  if (!text || !roomRef) return;
 
-  for(const c of cells){
-    // high oil => refinery, high wheat => mill, else factory/barracks
-    if(c.oil>0 && bot.money>=COST.refinery.money && bot.oil>=COST.refinery.oil){
-      bot.money-=COST.refinery.money; bot.oil-=COST.refinery.oil; c.refineries++; return;
-    }
-    if(c.wheat>0 && bot.money>=COST.mill.money && bot.oil>=COST.mill.oil){
-      bot.money-=COST.mill.money; bot.oil-=COST.mill.oil; c.mills++; return;
-    }
-    if(bot.money>=COST.factory.money && bot.oil>=COST.factory.oil){
-      bot.money-=COST.factory.money; bot.oil-=COST.factory.oil; c.factories++; return;
-    }
-    if(bot.money>=COST.barracks.money && bot.oil>=COST.barracks.oil && bot.wheat>=COST.barracks.wheat){
-      bot.money-=COST.barracks.money; bot.oil-=COST.barracks.oil; bot.wheat-=COST.barracks.wheat; c.barracks++; return;
-    }
+  let senderName = "Anon";
+  if (roomData?.players?.[localPlayerId]) {
+    senderName = roomData.players[localPlayerId].name;
   }
+  const msg = {
+    sender: senderName,
+    senderId: localPlayerId,
+    text,
+    recipientId: "",
+    timestamp: firebase.database.ServerValue.TIMESTAMP
+  };
+  roomRef.child("chat").push(msg, () => {
+    input.value = "";
+  });
 }
 
-function attackBot(idx){
-  const bot = state.players[idx];
-  // source cell with most soldiers
-  const srcId = bot.cells.slice().sort((a,b)=> world.cells[b].soldiers - world.cells[a].soldiers)[0];
-  const src = world.cells[srcId];
-  if(!src || src.soldiers<4 || bot.oil<4) return;
+/** Özel Mesaj */
+document
+  .getElementById("send-private-message-btn")
+  .addEventListener("click", () => {
+    const pmInput = document.getElementById("private-message-input");
+    const pmRecip = document.getElementById("private-message-recipient");
+    const txt = pmInput.value.trim();
+    const rc = pmRecip.value;
+    if (!txt || !rc) return;
 
-  // frontier targets (neighbors not owned by bot)
-  const targets = src.neighbors
-    .map(id=>world.cells[id])
-    .filter(c => c.owner!==idx && !hasPact(idx, c.owner ?? -999));
-
-  if(!targets.length) return;
-
-  // prefer neutral, else weakest
-  let t = targets.filter(x=>x.owner==null)[0];
-  if(!t){
-    t = targets.sort((a,b)=> a.soldiers - b.soldiers)[0];
-  }
-
-  let send = Math.min(src.soldiers-1, 6 + (RNG()*6|0));
-  send = Math.min(send, bot.oil); if(send<=0) return;
-  src.soldiers -= send; bot.oil -= send;
-
-  // castle damage on target
-  let atk = send;
-  if(t.castle>0){
-    const kill = Math.floor(atk * (t.castle*EFFECT.castleStep)/100);
-    atk = Math.max(0, atk - kill);
-  }
-
-  if(atk > t.soldiers){
-    const rem = atk - t.soldiers;
-    const prev = t.owner;
-    t.owner = idx; t.soldiers = rem;
-    if(prev!=null){
-      state.players[prev].cells = state.players[prev].cells.filter(x=>x!==t.id);
+    let senderName = "Anon";
+    if (roomData?.players?.[localPlayerId]) {
+      senderName = roomData.players[localPlayerId].name;
     }
-    if(!bot.cells.includes(t.id)) bot.cells.push(t.id);
-    logEvent(`${bot.name} → ${t.name}: fethedildi.`);
-  }else{
-    t.soldiers -= atk;
-    logEvent(`${bot.name} → ${t.name}: savunuldu.`);
+    const pm = {
+      sender: senderName,
+      senderId: localPlayerId,
+      text: txt,
+      recipientId: rc,
+      timestamp: firebase.database.ServerValue.TIMESTAMP
+    };
+    roomRef.child("chat").push(pm, () => {
+      pmInput.value = "";
+      showNotification("Özel mesaj gönderildi!");
+    });
+  });
+
+function appendChatMessage(message) {
+  // Özel mesaj mı?
+  if (message.recipientId && message.recipientId !== "") {
+    // Sadece bize veya bizden -> göster
+    if (
+      message.senderId !== localPlayerId &&
+      message.recipientId !== localPlayerId
+    ) {
+      return;
+    }
+  }
+  const chatMessagesDiv = document.getElementById("chat-messages");
+  const div = document.createElement("div");
+
+  if (message.recipientId && message.recipientId !== "") {
+    // PM
+    const targName = roomData.players[message.recipientId]?.name || "???";
+    if (message.senderId === localPlayerId) {
+      div.innerHTML = `<strong>[PM to ${targName}]:</strong> ${message.text}`;
+    } else {
+      div.innerHTML = `<strong>[PM from ${message.sender}]:</strong> ${message.text}`;
+    }
+    div.style.color = "#f39c12";
+  } else {
+    div.textContent = `${message.sender}: ${message.text}`;
+  }
+  chatMessagesDiv.appendChild(div);
+  chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+
+  if (!chatOpen && message.senderId !== localPlayerId) {
+    unreadMessages++;
+    updateChatBadge();
   }
 }
 
-function marketBot(bot){
-  if(RNG()<0.5) return;
-  // sell wheat for money sometimes
-  if(bot.wheat>200){
-    const qty = 50 + (RNG()*50|0);
-    bot.wheat -= qty; bot.money += qty * 8; // rough price
-    logEvent(`${bot.name} piyasada ${qty} buğday sattı.`);
+function updateChatBadge() {
+  const btn = document.getElementById("open-chat-btn");
+  if (unreadMessages > 0) {
+    btn.dataset.badge = unreadMessages;
+  } else {
+    btn.dataset.badge = "";
   }
 }
 
-/////////////////////////////
-// 14) Start & Settings    //
-/////////////////////////////
-on(btnStart,"click", ()=>{
-  const bots = clamp(Number(botCountInput.value||3), 1, 7);
-  const diff = difficultySel.value;
-  const mapSize = mapSizeSel.value;
-  const color = playerColorInp.value || "#3cf3c4";
-  const turnSeconds = Number(turnSecondsSel.value||60);
-  const seed = seedInput.value || `${mapSize}-${bots}-${diff}`;
+function updatePrivateMessageRecipientSelect() {
+  const sel = document.getElementById("private-message-recipient");
+  if (!sel) return;
+  sel.innerHTML = "";
+  if (!roomData?.playerOrder) return;
+  roomData.playerOrder.forEach((pid) => {
+    if (pid !== localPlayerId) {
+      const p = roomData.players[pid];
+      if (p) {
+        const o = document.createElement("option");
+        o.value = pid;
+        o.textContent = p.name;
+        sel.appendChild(o);
+      }
+    }
+  });
+}
 
-  // tooltips/anim defaults
-  tooltipsMode = optTooltips.value;
-  animsOn = optAnims.value==="on";
+/*****************************************************************
+ * 19. DOMContentLoaded
+ *****************************************************************/
+document.addEventListener("DOMContentLoaded", () => {
+  // localPlayerId (oyun içi ID)
+  if (!localStorage.getItem("playerId")) {
+    localStorage.setItem("playerId", Math.random().toString(36).substr(2, 9));
+  }
+  localPlayerId = localStorage.getItem("playerId");
 
-  startScreen.classList.add("hidden");
-  initGame({bots,diff,mapSize,color,turnSeconds,seed});
+  // Otomatik oda bağlanma
+  autoReconnect();
+
+  // Harita ekranı açılınca haritayı initialize edelim
+  const gameContainerObserver = new MutationObserver(() => {
+    if (gameContainer.style.display !== "none") {
+      initializeMap();
+    }
+  });
+  gameContainerObserver.observe(document.getElementById("game-container"), {
+    attributes: true,
+    attributeFilter: ["style"]
+  });
 });
-
-on(btnHowto,"click", ()=>{
-  toast("Haritadan bölge seç → Saldırı/Bina/Ordu işlemlerini modallardan yap. Sadece komşu bölgelere saldırılabilir.");
-});
-
-on(optTooltips,"change", ()=>{
-  tooltipsMode = optTooltips.value;
-  if(tooltipsMode!=="hover") tooltipBox.style.display = "none";
-});
-on(optAnims,"change", ()=> animsOn = optAnims.value==="on");
-on(btnReset,"click", ()=>{
-  location.reload();
-});
-
-/////////////////////////////
-// 15) Resize & init       //
-/////////////////////////////
-window.addEventListener("resize", sizeCanvas);
-sizeCanvas(); // before world created—safe
-
-// END OF FILE
