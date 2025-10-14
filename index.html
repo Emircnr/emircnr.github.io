@@ -31,7 +31,6 @@
       user-select: none;
     }
 
-    /* Animated Background */
     body::before {
       content: '';
       position: fixed;
@@ -130,6 +129,60 @@
       transform: translateY(-2px);
     }
 
+    .color-selector {
+      margin: 25px 0;
+      text-align: center;
+    }
+
+    .color-label {
+      display: block;
+      margin-bottom: 15px;
+      font-size: 18px;
+      color: var(--neon-cyan);
+      font-weight: 600;
+      letter-spacing: 2px;
+    }
+
+    .color-options {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .color-option {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 3px solid transparent;
+      transition: all 0.3s;
+      position: relative;
+    }
+
+    .color-option:hover {
+      transform: scale(1.2);
+      box-shadow: 0 0 30px currentColor;
+    }
+
+    .color-option.selected {
+      border-color: white;
+      box-shadow: 0 0 40px currentColor;
+      transform: scale(1.3);
+    }
+
+    .color-option.selected::after {
+      content: '✓';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 28px;
+      font-weight: bold;
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+    }
+
     .btn {
       width: 100%;
       padding: 20px;
@@ -175,6 +228,11 @@
     /* GAME SCREEN */
     #game-screen {
       display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
     }
 
     #map {
@@ -182,12 +240,13 @@
       height: 100%;
     }
 
-    /* Remove Google Watermark */
     .gm-style a,
     .gm-style-cc,
     .gmnoprint,
     .gm-bundled-control,
-    .gm-svpc {
+    .gm-svpc,
+    .gm-style .gm-style-mtc,
+    .gm-style-mtc {
       display: none !important;
     }
 
@@ -234,7 +293,6 @@
       text-shadow: 0 0 10px var(--neon-cyan);
     }
 
-    /* BUILDINGS PANEL */
     #buildings-panel {
       position: fixed;
       top: 120px;
@@ -247,6 +305,8 @@
       z-index: 1000;
       width: 280px;
       box-shadow: 0 0 40px rgba(0, 240, 255, 0.3);
+      max-height: calc(100vh - 140px);
+      overflow-y: auto;
     }
 
     .panel-title {
@@ -292,7 +352,6 @@
       filter: drop-shadow(0 0 5px currentColor);
     }
 
-    /* SELECTION INFO */
     #selection-info {
       position: fixed;
       top: 120px;
@@ -328,7 +387,6 @@
       font-family: 'Orbitron', sans-serif;
     }
 
-    /* NOTIFICATIONS */
     #notifications {
       position: fixed;
       bottom: 20px;
@@ -355,17 +413,10 @@
     }
 
     @keyframes notifSlide {
-      0% {
-        opacity: 0;
-        transform: translateY(50px);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      0% { opacity: 0; transform: translateY(50px); }
+      100% { opacity: 1; transform: translateY(0); }
     }
 
-    /* CONTEXT MENU */
     #context-menu {
       position: fixed;
       background: var(--glass);
@@ -392,7 +443,6 @@
       transform: translateX(5px);
     }
 
-    /* WALL BUILD MODE */
     #wall-preview {
       position: fixed;
       width: 30px;
@@ -406,131 +456,18 @@
       box-shadow: 0 0 20px var(--neon-cyan);
     }
 
-    /* UNIT MARKER STYLES */
-    .unit-marker {
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-      cursor: pointer;
-      filter: drop-shadow(0 0 8px currentColor);
-      animation: unitFloat 3s ease-in-out infinite;
-    }
-
-    @keyframes unitFloat {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-5px); }
-    }
-
-    /* BUILDING MARKER STYLES */
-    .building-marker {
-      width: 60px;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 40px;
-      cursor: pointer;
-      filter: drop-shadow(0 0 15px currentColor);
-      animation: buildingPulse 2s ease-in-out infinite;
-    }
-
-    @keyframes buildingPulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-    }
-
-    /* HEALTH BAR */
-    .health-bar {
-      position: absolute;
-      bottom: -10px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 50px;
-      height: 6px;
-      background: rgba(255, 0, 0, 0.3);
-      border-radius: 3px;
-      overflow: hidden;
-    }
-
-    .health-bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #ff3366, var(--neon-green));
-      border-radius: 3px;
-      transition: width 0.3s;
-      box-shadow: 0 0 10px currentColor;
-    }
-
-    /* ATTACK EFFECTS */
-    .attack-beam {
-      position: absolute;
-      height: 3px;
-      background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-pink), transparent);
-      pointer-events: none;
-      animation: beamFlash 0.3s ease;
-      box-shadow: 0 0 15px var(--neon-cyan);
-    }
-
-    @keyframes beamFlash {
-      0%, 100% { opacity: 0; }
-      50% { opacity: 1; }
-    }
-
-    .explosion-effect {
-      position: absolute;
-      width: 60px;
-      height: 60px;
-      background: radial-gradient(circle, var(--neon-pink), var(--neon-purple), transparent);
-      border-radius: 50%;
-      pointer-events: none;
-      animation: explode 0.6s ease forwards;
-    }
-
-    @keyframes explode {
-      0% {
-        transform: scale(0);
-        opacity: 1;
-      }
-      100% {
-        transform: scale(4);
-        opacity: 0;
-      }
-    }
-
-    /* RANGE INDICATOR */
-    .range-indicator {
-      position: absolute;
-      border: 3px dashed var(--neon-cyan);
-      border-radius: 50%;
-      background: radial-gradient(circle, transparent 60%, rgba(0, 240, 255, 0.1) 100%);
-      pointer-events: none;
-      animation: rangePulse 2s ease-in-out infinite;
-      box-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
-    }
-
-    @keyframes rangePulse {
-      0%, 100% {
-        opacity: 0.5;
-        transform: scale(1);
-      }
-      50% {
-        opacity: 0.8;
-        transform: scale(1.05);
-      }
-    }
-
-    /* LOADING SPINNER */
-    .loading {
+    .loading-screen {
       position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 24px;
-      color: var(--neon-cyan);
-      font-family: 'Orbitron', sans-serif;
-      text-shadow: 0 0 20px var(--neon-cyan);
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
     }
 
     .spinner {
@@ -548,7 +485,13 @@
       to { transform: rotate(360deg); }
     }
 
-    /* Scrollbar */
+    .loading-text {
+      color: var(--neon-cyan);
+      font-size: 24px;
+      font-family: 'Orbitron', sans-serif;
+      text-shadow: 0 0 20px var(--neon-cyan);
+    }
+
     ::-webkit-scrollbar {
       width: 8px;
     }
@@ -565,6 +508,12 @@
   </style>
 </head>
 <body>
+  <!-- LOADING SCREEN -->
+  <div id="loading-screen" class="loading-screen" style="display: none;">
+    <div class="spinner"></div>
+    <div class="loading-text">Harita Yükleniyor...</div>
+  </div>
+
   <!-- AUTH SCREEN -->
   <div id="auth-screen">
     <div class="auth-container">
@@ -574,6 +523,21 @@
       <div class="auth-box">
         <input type="text" id="player-name" class="input" placeholder="👤 Komutan Adınız" />
         <input type="text" id="room-code" class="input" placeholder="🔑 Oda Kodu (Boş = Yeni Oda)" />
+        
+        <div class="color-selector">
+          <span class="color-label">🎨 TAKIM RENGİ SEÇİN</span>
+          <div class="color-options" id="color-options">
+            <div class="color-option" style="background: #00f0ff;" data-color="#00f0ff"></div>
+            <div class="color-option" style="background: #ff006e;" data-color="#ff006e"></div>
+            <div class="color-option" style="background: #39ff14;" data-color="#39ff14"></div>
+            <div class="color-option" style="background: #ffaa00;" data-color="#ffaa00"></div>
+            <div class="color-option" style="background: #b026ff;" data-color="#b026ff"></div>
+            <div class="color-option" style="background: #ff3366;" data-color="#ff3366"></div>
+            <div class="color-option" style="background: #00ffcc;" data-color="#00ffcc"></div>
+            <div class="color-option" style="background: #ffff00;" data-color="#ffff00"></div>
+          </div>
+        </div>
+        
         <button class="btn" onclick="startGame()">
           <span style="position: relative; z-index: 1;">🚀 SAVAŞA BAŞLA</span>
         </button>
@@ -585,7 +549,6 @@
   <div id="game-screen">
     <div id="map"></div>
 
-    <!-- TOP HUD -->
     <div id="top-hud">
       <div class="hud-item">
         <span class="hud-icon">💰</span>
@@ -605,35 +568,26 @@
       </div>
     </div>
 
-    <!-- BUILDINGS PANEL -->
     <div id="buildings-panel">
       <div class="panel-title">⚒️ İNŞAAT</div>
       <div id="buildings-list"></div>
     </div>
 
-    <!-- SELECTION INFO -->
     <div id="selection-info">
       <div class="panel-title">📊 BİRİM BİLGİSİ</div>
       <div id="info-content"></div>
     </div>
 
-    <!-- NOTIFICATIONS -->
     <div id="notifications"></div>
-
-    <!-- CONTEXT MENU -->
     <div id="context-menu"></div>
-
-    <!-- WALL PREVIEW -->
     <div id="wall-preview"></div>
   </div>
 
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
   <script>
-    // ==================== FIREBASE ====================
     const firebaseConfig = {
       apiKey: "AIzaSyCINihMNGs-qRYIIBLzXyeaLnM_Lhp-iwg",
       authDomain: "warmapg-77acb.firebaseapp.com",
@@ -646,7 +600,6 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // ==================== GAME STATE ====================
     let map, playerId, roomCode, roomRef;
     let playerData = {
       name: '',
@@ -660,11 +613,11 @@
 
     let selectedUnits = [];
     let selectedBuilding = null;
+    let selectedColor = '#00f0ff';
     let gameLoop;
     let wallBuildMode = false;
     let lastWallPoint = null;
 
-    // ==================== UNIT TYPES (3x Speed & Range) ====================
     const UNIT_TYPES = {
       infantry: { name: 'Piyade', icon: '🪖', cost: 100, speed: 6, range: 150, attack: 10, health: 100, maxHealth: 100, buildingRequired: 'barracks' },
       tank: { name: 'Tank', icon: '🚜', cost: 500, speed: 4.5, range: 450, attack: 50, health: 300, maxHealth: 300, buildingRequired: 'factory' },
@@ -686,7 +639,6 @@
       excavator: { name: 'Kepçe', icon: '🚧', cost: 300, speed: 3, range: 30, attack: 0, health: 200, maxHealth: 200, buildingRequired: 'hq' }
     };
 
-    // ==================== BUILDING TYPES ====================
     const BUILDING_TYPES = {
       hq: { name: 'Ana Karargah', icon: '🏛️', cost: 0, canProduce: ['excavator'] },
       barracks: { name: 'Kışla', icon: '🏰', cost: 500, canProduce: ['infantry', 'sniper', 'commando', 'machinegun'] },
@@ -698,7 +650,6 @@
       wall: { name: 'Duvar', icon: '🧱', cost: 50, canProduce: [] }
     };
 
-    // ==================== AUDIO ====================
     const sounds = {
       click: () => playTone(1000, 0.1, 0.05),
       build: () => playTone(500, 0.2, 0.1),
@@ -723,7 +674,71 @@
       } catch(e) {}
     }
 
-    // ==================== START GAME ====================
+    // COLOR SELECTION
+    document.querySelectorAll('.color-option').forEach(option => {
+      option.addEventListener('click', function() {
+        document.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
+        this.classList.add('selected');
+        selectedColor = this.dataset.color;
+        sounds.click();
+      });
+    });
+
+    // Auto-select first color
+    document.querySelector('.color-option').classList.add('selected');
+
+    // SAVE & LOAD
+    function saveGameState() {
+      const state = {
+        playerId,
+        roomCode,
+        playerData: {
+          name: playerData.name,
+          color: playerData.color,
+          money: playerData.money,
+          energy: playerData.energy,
+          oil: playerData.oil
+        }
+      };
+      localStorage.setItem('globalConquestState', JSON.stringify(state));
+    }
+
+    function loadGameState() {
+      const saved = localStorage.getItem('globalConquestState');
+      if (saved) {
+        try {
+          const state = JSON.parse(saved);
+          playerId = state.playerId;
+          roomCode = state.roomCode;
+          playerData.name = state.playerData.name;
+          playerData.color = state.playerData.color;
+          playerData.money = state.playerData.money;
+          playerData.energy = state.playerData.energy;
+          playerData.oil = state.playerData.oil;
+          selectedColor = state.playerData.color;
+          return true;
+        } catch(e) {
+          return false;
+        }
+      }
+      return false;
+    }
+
+    // Auto-reconnect on page load
+    window.addEventListener('load', () => {
+      if (loadGameState()) {
+        roomRef = db.ref('rooms/' + roomCode);
+        roomRef.once('value').then(snapshot => {
+          if (snapshot.exists()) {
+            initGame();
+          }
+        });
+      }
+    });
+
+    // Save state periodically
+    setInterval(saveGameState, 5000);
+
     function startGame() {
       const nameInput = document.getElementById('player-name').value.trim();
       const roomInput = document.getElementById('room-code').value.trim();
@@ -734,7 +749,12 @@
       }
 
       playerData.name = nameInput;
-      playerId = 'p_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      playerData.color = selectedColor;
+      
+      if (!playerId) {
+        playerId = 'p_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      }
+      
       roomCode = roomInput ? roomInput.toUpperCase() : generateRoomCode();
       roomRef = db.ref('rooms/' + roomCode);
 
@@ -749,6 +769,7 @@
           lastUpdate: Date.now()
         });
 
+        saveGameState();
         initGame();
       });
     }
@@ -757,45 +778,54 @@
       return Array(6).fill(0).map(() => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[Math.floor(Math.random() * 36)]).join('');
     }
 
-    // ==================== INIT GAME ====================
     function initGame() {
       document.getElementById('auth-screen').style.display = 'none';
-      document.getElementById('game-screen').style.display = 'block';
-
-      // Init Map
-      map = new google.maps.Map(document.getElementById('map'), {
-        center: { lat: 39.9334, lng: 32.8597 },
-        zoom: 8,
-        mapTypeId: 'satellite',
-        disableDefaultUI: true,
-        zoomControl: false,
-        gestureHandling: 'greedy',
-        styles: [
-          { featureType: 'all', elementType: 'labels', stylers: [{ visibility: 'off' }] }
-        ]
-      });
-
-      setupUI();
-      setupMapEvents();
+      document.getElementById('loading-screen').style.display = 'flex';
       
-      // Spawn HQ at start
-      spawnBuilding('hq', map.getCenter());
-      
-      gameLoop = setInterval(updateGame, 50);
-      
-      roomRef.child('units').on('child_changed', updateUnitFromServer);
-      roomRef.child('units').on('child_added', addUnitFromServer);
-      roomRef.child('units').on('child_removed', removeUnitFromServer);
+      setTimeout(() => {
+        document.getElementById('game-screen').style.display = 'block';
+        
+        map = new google.maps.Map(document.getElementById('map'), {
+          center: { lat: 39.9334, lng: 32.8597 },
+          zoom: 8,
+          mapTypeId: 'satellite',
+          disableDefaultUI: true,
+          zoomControl: false,
+          gestureHandling: 'greedy',
+          styles: [
+            { featureType: 'all', elementType: 'labels', stylers: [{ visibility: 'off' }] }
+          ]
+        });
 
-      showNotification('🎮 Oyuna katıldınız! Oda: ' + roomCode);
-      sounds.spawn();
+        google.maps.event.addListenerOnce(map, 'idle', () => {
+          document.getElementById('loading-screen').style.display = 'none';
+          setupUI();
+          setupMapEvents();
+          
+          const hasHQ = Object.values(playerData.buildings).some(b => b.type === 'hq');
+          if (!hasHQ) {
+            spawnBuilding('hq', map.getCenter());
+          }
+          
+          gameLoop = setInterval(updateGame, 50);
+          
+          roomRef.child('units').on('child_changed', updateUnitFromServer);
+          roomRef.child('units').on('child_added', addUnitFromServer);
+          roomRef.child('units').on('child_removed', removeUnitFromServer);
+
+          showNotification('🎮 Oyuna katıldınız! Oda: ' + roomCode);
+          sounds.spawn();
+          updateHUD();
+        });
+      }, 100);
     }
 
-    // ==================== SETUP UI ====================
     function setupUI() {
       const buildingsList = document.getElementById('buildings-list');
+      buildingsList.innerHTML = '';
+      
       Object.keys(BUILDING_TYPES).forEach(type => {
-        if (type === 'hq') return; // HQ otomatik
+        if (type === 'hq') return;
         const building = BUILDING_TYPES[type];
         const btn = document.createElement('div');
         btn.className = 'building-btn';
@@ -857,7 +887,6 @@
       });
     }
 
-    // ==================== BUILDING MANAGEMENT ====================
     function selectBuilding(type) {
       selectedBuilding = type;
       document.querySelectorAll('.building-btn').forEach(b => b.classList.remove('selected'));
@@ -867,7 +896,7 @@
         wallBuildMode = true;
         showNotification('🧱 Duvar modu: Tıklayarak duvar inşa edin');
       } else {
-        showNotification(`${BUILDING_TYPES[type].icon} ${BUILDING_TYPES[type].name} seçildi - Haritaya tıklayın`);
+        showNotification(`${BUILDING_TYPES[type].icon} ${BUILDING_TYPES[type].name} seçildi`);
       }
       
       sounds.click();
@@ -882,7 +911,6 @@
       }
 
       if (lastWallPoint) {
-        // Draw wall line
         const distance = google.maps.geometry.spherical.computeDistanceBetween(lastWallPoint, position);
         const segments = Math.floor(distance / 10);
         
@@ -916,6 +944,7 @@
         
         playerData.money -= cost * segments;
         updateHUD();
+        saveGameState();
         sounds.build();
         showNotification(`✅ ${segments} duvar bloğu inşa edildi!`);
       }
@@ -959,6 +988,7 @@
       if (type !== 'hq') {
         playerData.money -= buildingData.cost;
         updateHUD();
+        saveGameState();
       }
 
       showNotification(`✅ ${buildingData.name} inşa edildi!`);
@@ -967,6 +997,8 @@
 
     function showBuildingMenu(buildingId) {
       const building = playerData.buildings[buildingId];
+      if (!building) return;
+      
       const buildingType = BUILDING_TYPES[building.type];
       
       if (!buildingType.canProduce || buildingType.canProduce.length === 0) return;
@@ -986,28 +1018,20 @@
         menu.appendChild(item);
       });
 
-      const rect = building.marker.getPosition();
-      const point = getPixelPositionFromLatLng(rect);
-      menu.style.left = point.x + 'px';
-      menu.style.top = point.y + 'px';
+      menu.style.left = '50%';
+      menu.style.top = '50%';
+      menu.style.transform = 'translate(-50%, -50%)';
       menu.style.display = 'block';
+
+      setTimeout(() => {
+        document.addEventListener('click', () => {
+          menu.style.display = 'none';
+        }, { once: true });
+      }, 100);
 
       sounds.click();
     }
 
-    function getPixelPositionFromLatLng(latLng) {
-      const scale = Math.pow(2, map.getZoom());
-      const proj = map.getProjection();
-      const bounds = map.getBounds();
-      const nw = proj.fromLatLngToPoint(bounds.getNorthEast());
-      const point = proj.fromLatLngToPoint(latLng);
-      return {
-        x: Math.floor((point.x - nw.x) * scale),
-        y: Math.floor((point.y - nw.y) * scale)
-      };
-    }
-
-    // ==================== UNIT MANAGEMENT ====================
     function spawnUnitFromBuilding(type, building) {
       const unitData = UNIT_TYPES[type];
       
@@ -1018,7 +1042,6 @@
 
       const unitId = 'u_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
       
-      // Spawn near building
       const offset = google.maps.geometry.spherical.computeOffset(
         new google.maps.LatLng(building.position.lat, building.position.lng),
         50,
@@ -1075,6 +1098,7 @@
 
       playerData.money -= unitData.cost;
       updateHUD();
+      saveGameState();
       
       showNotification(`✅ ${unitData.name} üretildi!`);
       sounds.spawn();
@@ -1093,12 +1117,10 @@
       updateSelectionInfo();
     }
 
-    // ==================== GAME LOOP ====================
     function updateGame() {
       Object.values(playerData.units).forEach(unit => {
         const unitData = UNIT_TYPES[unit.type];
         
-        // Movement
         if (unit.targetPosition) {
           const current = unit.marker.getPosition();
           const target = new google.maps.LatLng(unit.targetPosition.lat, unit.targetPosition.lng);
@@ -1114,7 +1136,6 @@
           }
         }
 
-        // Auto-attack
         const now = Date.now();
         if (now - unit.lastAttack > 1000 && unitData.attack > 0) {
           Object.values(playerData.units).forEach(enemy => {
@@ -1133,10 +1154,10 @@
         }
       });
 
-      // Resource generation
       if (Date.now() % 3000 < 50) {
         playerData.money += Object.keys(playerData.buildings).length * 15;
         updateHUD();
+        saveGameState();
       }
     }
 
@@ -1159,7 +1180,6 @@
       }
     }
 
-    // ==================== EFFECTS ====================
     function createAttackEffect(from, to) {
       const line = new google.maps.Polyline({
         path: [from, to],
@@ -1193,7 +1213,6 @@
       }, 50);
     }
 
-    // ==================== UI UPDATES ====================
     function updateHUD() {
       document.getElementById('money').textContent = Math.floor(playerData.money);
       document.getElementById('energy').textContent = Math.floor(playerData.energy);
@@ -1258,7 +1277,6 @@
       }, 3000);
     }
 
-    // ==================== FIREBASE SYNC ====================
     function updateUnitFromServer(snapshot) {
       const unitId = snapshot.key;
       const data = snapshot.val();
@@ -1311,8 +1329,6 @@
     updateHUD();
   </script>
 
-  <!-- Google Maps API - YOUR_API_KEY yazısını kendi API key'inizle değiştirin -->
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA6I7QFuVIR4yYNu7aG1ngsGKsA_mauG8s&libraries=geometry"></script>
 </body>
 </html>
-
