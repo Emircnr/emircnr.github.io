@@ -6,6 +6,8 @@
   <title>Global Conquest - RTS</title>
   
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap');
+
     * {
       margin: 0;
       padding: 0;
@@ -13,98 +15,180 @@
     }
 
     :root {
-      --primary: #00f0ff;
-      --secondary: #7b2cbf;
-      --danger: #ff3366;
-      --success: #00ff88;
-      --warning: #ffaa00;
-      --dark: #0a0a0f;
-      --glass: rgba(255, 255, 255, 0.05);
+      --neon-cyan: #00f0ff;
+      --neon-purple: #b026ff;
+      --neon-pink: #ff006e;
+      --neon-green: #39ff14;
+      --dark-bg: #050505;
+      --glass: rgba(10, 10, 20, 0.7);
     }
 
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: var(--dark);
+      font-family: 'Rajdhani', sans-serif;
+      background: var(--dark-bg);
       color: white;
       overflow: hidden;
       user-select: none;
     }
 
-    #auth-screen, #game-screen {
+    /* Animated Background */
+    body::before {
+      content: '';
+      position: fixed;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 20% 50%, rgba(176, 38, 255, 0.15) 0%, transparent 50%),
+                  radial-gradient(circle at 80% 80%, rgba(0, 240, 255, 0.15) 0%, transparent 50%),
+                  radial-gradient(circle at 40% 20%, rgba(255, 0, 110, 0.1) 0%, transparent 50%);
+      animation: bgFloat 20s ease-in-out infinite;
+      z-index: -1;
+    }
+
+    @keyframes bgFloat {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      50% { transform: translate(-50px, -50px) rotate(5deg); }
+    }
+
+    /* AUTH SCREEN */
+    #auth-screen {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      display: none;
-    }
-
-    #auth-screen {
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+      background: linear-gradient(135deg, #000000 0%, #1a0033 50%, #000033 100%);
+      z-index: 10000;
+    }
+
+    .auth-container {
+      text-align: center;
+      animation: fadeInScale 1s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes fadeInScale {
+      0% { opacity: 0; transform: scale(0.8); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .game-logo {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 72px;
+      font-weight: 900;
+      background: linear-gradient(45deg, var(--neon-cyan), var(--neon-purple), var(--neon-pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 20px;
+      animation: logoGlow 3s ease-in-out infinite;
+      text-shadow: 0 0 60px rgba(0, 240, 255, 0.8);
+    }
+
+    @keyframes logoGlow {
+      0%, 100% { filter: drop-shadow(0 0 30px rgba(0, 240, 255, 0.6)); }
+      50% { filter: drop-shadow(0 0 60px rgba(176, 38, 255, 0.8)); }
+    }
+
+    .logo-subtitle {
+      font-size: 24px;
+      letter-spacing: 8px;
+      color: var(--neon-cyan);
+      margin-bottom: 50px;
+      opacity: 0.8;
     }
 
     .auth-box {
       background: var(--glass);
-      backdrop-filter: blur(20px);
-      padding: 40px;
-      border-radius: 20px;
-      border: 1px solid rgba(255,255,255,0.1);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-      min-width: 400px;
-    }
-
-    .auth-box h1 {
-      text-align: center;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      font-size: 42px;
-      margin-bottom: 30px;
+      backdrop-filter: blur(30px);
+      padding: 50px;
+      border-radius: 30px;
+      border: 2px solid rgba(0, 240, 255, 0.3);
+      box-shadow: 0 0 60px rgba(0, 240, 255, 0.3),
+                  inset 0 0 30px rgba(0, 240, 255, 0.1);
+      min-width: 450px;
     }
 
     .input {
       width: 100%;
-      padding: 15px;
-      margin-bottom: 15px;
-      background: rgba(255,255,255,0.1);
-      border: 2px solid rgba(255,255,255,0.2);
-      border-radius: 10px;
+      padding: 18px 25px;
+      margin-bottom: 20px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 2px solid rgba(0, 240, 255, 0.3);
+      border-radius: 15px;
       color: white;
-      font-size: 16px;
+      font-size: 18px;
+      font-family: 'Rajdhani', sans-serif;
+      transition: all 0.3s;
     }
 
     .input:focus {
       outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 20px rgba(0,240,255,0.3);
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.5);
+      transform: translateY(-2px);
     }
 
     .btn {
       width: 100%;
-      padding: 15px;
+      padding: 20px;
       margin-top: 10px;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
       border: none;
-      border-radius: 10px;
+      border-radius: 15px;
       color: white;
-      font-size: 18px;
-      font-weight: 600;
+      font-size: 22px;
+      font-weight: 700;
+      font-family: 'Orbitron', sans-serif;
       cursor: pointer;
       transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    .btn:hover::before {
+      width: 400px;
+      height: 400px;
     }
 
     .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 30px rgba(0,240,255,0.5);
+      transform: translateY(-5px);
+      box-shadow: 0 15px 50px rgba(0, 240, 255, 0.6);
     }
 
     /* GAME SCREEN */
+    #game-screen {
+      display: none;
+    }
+
     #map {
       width: 100%;
       height: 100%;
+    }
+
+    /* Remove Google Watermark */
+    .gm-style a,
+    .gm-style-cc,
+    .gmnoprint,
+    .gm-bundled-control,
+    .gm-svpc {
+      display: none !important;
     }
 
     /* TOP HUD */
@@ -114,174 +198,170 @@
       left: 50%;
       transform: translateX(-50%);
       background: var(--glass);
-      backdrop-filter: blur(20px);
-      padding: 15px 30px;
-      border-radius: 15px;
-      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(30px);
+      padding: 15px 40px;
+      border-radius: 20px;
+      border: 2px solid rgba(0, 240, 255, 0.3);
       display: flex;
-      gap: 30px;
+      gap: 40px;
       z-index: 1000;
+      box-shadow: 0 0 40px rgba(0, 240, 255, 0.3);
     }
 
     .hud-item {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 16px;
+      gap: 12px;
+      font-size: 18px;
       font-weight: 600;
     }
 
+    .hud-icon {
+      font-size: 28px;
+      filter: drop-shadow(0 0 10px currentColor);
+      animation: iconPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes iconPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
     .hud-value {
-      color: var(--primary);
-      font-size: 18px;
-    }
-
-    /* UNITS PANEL */
-    #units-panel {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--glass);
-      backdrop-filter: blur(20px);
-      padding: 15px;
-      border-radius: 15px;
-      border: 1px solid rgba(255,255,255,0.1);
-      display: flex;
-      gap: 10px;
-      z-index: 1000;
-      max-width: 90%;
-      overflow-x: auto;
-    }
-
-    .unit-btn {
-      width: 80px;
-      height: 80px;
-      background: rgba(255,255,255,0.1);
-      border: 2px solid rgba(255,255,255,0.2);
-      border-radius: 10px;
-      cursor: pointer;
-      transition: all 0.3s;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-size: 32px;
-      position: relative;
-    }
-
-    .unit-btn:hover {
-      border-color: var(--primary);
-      transform: translateY(-5px);
-      box-shadow: 0 5px 20px rgba(0,240,255,0.4);
-    }
-
-    .unit-btn.selected {
-      border-color: var(--success);
-      background: rgba(0,255,136,0.2);
-    }
-
-    .unit-cost {
-      position: absolute;
-      bottom: 5px;
-      font-size: 11px;
-      color: var(--warning);
+      color: var(--neon-cyan);
+      font-size: 22px;
+      font-family: 'Orbitron', sans-serif;
+      text-shadow: 0 0 10px var(--neon-cyan);
     }
 
     /* BUILDINGS PANEL */
     #buildings-panel {
       position: fixed;
-      top: 100px;
+      top: 120px;
       right: 20px;
       background: var(--glass);
-      backdrop-filter: blur(20px);
-      padding: 15px;
-      border-radius: 15px;
-      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(30px);
+      padding: 20px;
+      border-radius: 20px;
+      border: 2px solid rgba(0, 240, 255, 0.3);
       z-index: 1000;
-      width: 250px;
+      width: 280px;
+      box-shadow: 0 0 40px rgba(0, 240, 255, 0.3);
+    }
+
+    .panel-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 20px;
+      margin-bottom: 20px;
+      color: var(--neon-cyan);
+      text-align: center;
+      text-shadow: 0 0 20px var(--neon-cyan);
     }
 
     .building-btn {
       width: 100%;
-      padding: 12px;
-      margin-bottom: 10px;
-      background: rgba(255,255,255,0.1);
-      border: 2px solid rgba(255,255,255,0.2);
-      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 12px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 2px solid rgba(0, 240, 255, 0.2);
+      border-radius: 12px;
       color: white;
       cursor: pointer;
       transition: all 0.3s;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
+      font-size: 16px;
+      font-weight: 600;
     }
 
     .building-btn:hover {
-      border-color: var(--primary);
+      border-color: var(--neon-cyan);
       transform: translateX(-5px);
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
     }
 
     .building-btn.selected {
-      border-color: var(--success);
-      background: rgba(0,255,136,0.2);
+      border-color: var(--neon-green);
+      background: rgba(57, 255, 20, 0.2);
+      box-shadow: 0 0 30px rgba(57, 255, 20, 0.5);
+    }
+
+    .building-icon {
+      font-size: 28px;
+      filter: drop-shadow(0 0 5px currentColor);
     }
 
     /* SELECTION INFO */
     #selection-info {
       position: fixed;
-      top: 100px;
+      top: 120px;
       left: 20px;
       background: var(--glass);
-      backdrop-filter: blur(20px);
-      padding: 15px;
-      border-radius: 15px;
-      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(30px);
+      padding: 20px;
+      border-radius: 20px;
+      border: 2px solid rgba(0, 240, 255, 0.3);
       z-index: 1000;
-      min-width: 250px;
+      min-width: 280px;
       display: none;
+      box-shadow: 0 0 40px rgba(0, 240, 255, 0.3);
     }
 
     .info-row {
       display: flex;
       justify-content: space-between;
-      margin: 8px 0;
-      font-size: 14px;
+      margin: 10px 0;
+      font-size: 16px;
+      padding: 8px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
     }
 
     .info-label {
-      color: var(--primary);
+      color: var(--neon-cyan);
+      font-weight: 600;
+    }
+
+    .info-value {
+      color: white;
+      font-family: 'Orbitron', sans-serif;
     }
 
     /* NOTIFICATIONS */
     #notifications {
       position: fixed;
-      top: 100px;
-      right: 290px;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
       z-index: 2000;
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      max-width: 300px;
+      gap: 12px;
+      align-items: center;
+      pointer-events: none;
     }
 
     .notification {
       background: var(--glass);
-      backdrop-filter: blur(20px);
-      padding: 15px;
-      border-radius: 10px;
-      border-left: 4px solid var(--primary);
-      animation: slideIn 0.3s ease;
+      backdrop-filter: blur(30px);
+      padding: 15px 30px;
+      border-radius: 15px;
+      border: 2px solid rgba(0, 240, 255, 0.5);
+      font-size: 18px;
+      font-weight: 600;
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.5);
+      animation: notifSlide 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    @keyframes slideIn {
-      from {
-        transform: translateX(400px);
+    @keyframes notifSlide {
+      0% {
         opacity: 0;
+        transform: translateY(50px);
       }
-      to {
-        transform: translateX(0);
+      100% {
         opacity: 1;
+        transform: translateY(0);
       }
     }
 
@@ -289,135 +369,215 @@
     #context-menu {
       position: fixed;
       background: var(--glass);
-      backdrop-filter: blur(20px);
-      padding: 5px;
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(30px);
+      padding: 8px;
+      border-radius: 12px;
+      border: 2px solid rgba(0, 240, 255, 0.3);
       z-index: 3000;
       display: none;
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.4);
     }
 
     .context-item {
-      padding: 10px 20px;
+      padding: 12px 25px;
       cursor: pointer;
-      border-radius: 5px;
+      border-radius: 8px;
       transition: all 0.2s;
+      font-size: 16px;
+      font-weight: 600;
     }
 
     .context-item:hover {
-      background: rgba(255,255,255,0.2);
+      background: rgba(0, 240, 255, 0.3);
+      transform: translateX(5px);
     }
 
-    /* MINIMAP */
-    #minimap {
+    /* WALL BUILD MODE */
+    #wall-preview {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 200px;
-      height: 200px;
-      background: rgba(0,0,0,0.7);
-      border: 2px solid var(--primary);
-      border-radius: 10px;
-      z-index: 1000;
+      width: 30px;
+      height: 30px;
+      background: rgba(100, 100, 100, 0.5);
+      border: 3px solid var(--neon-cyan);
+      border-radius: 5px;
+      pointer-events: none;
+      display: none;
+      z-index: 2500;
+      box-shadow: 0 0 20px var(--neon-cyan);
     }
 
-    /* LOADING */
+    /* UNIT MARKER STYLES */
+    .unit-marker {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      cursor: pointer;
+      filter: drop-shadow(0 0 8px currentColor);
+      animation: unitFloat 3s ease-in-out infinite;
+    }
+
+    @keyframes unitFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    /* BUILDING MARKER STYLES */
+    .building-marker {
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      cursor: pointer;
+      filter: drop-shadow(0 0 15px currentColor);
+      animation: buildingPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes buildingPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    /* HEALTH BAR */
+    .health-bar {
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 50px;
+      height: 6px;
+      background: rgba(255, 0, 0, 0.3);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .health-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ff3366, var(--neon-green));
+      border-radius: 3px;
+      transition: width 0.3s;
+      box-shadow: 0 0 10px currentColor;
+    }
+
+    /* ATTACK EFFECTS */
+    .attack-beam {
+      position: absolute;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-pink), transparent);
+      pointer-events: none;
+      animation: beamFlash 0.3s ease;
+      box-shadow: 0 0 15px var(--neon-cyan);
+    }
+
+    @keyframes beamFlash {
+      0%, 100% { opacity: 0; }
+      50% { opacity: 1; }
+    }
+
+    .explosion-effect {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      background: radial-gradient(circle, var(--neon-pink), var(--neon-purple), transparent);
+      border-radius: 50%;
+      pointer-events: none;
+      animation: explode 0.6s ease forwards;
+    }
+
+    @keyframes explode {
+      0% {
+        transform: scale(0);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+
+    /* RANGE INDICATOR */
+    .range-indicator {
+      position: absolute;
+      border: 3px dashed var(--neon-cyan);
+      border-radius: 50%;
+      background: radial-gradient(circle, transparent 60%, rgba(0, 240, 255, 0.1) 100%);
+      pointer-events: none;
+      animation: rangePulse 2s ease-in-out infinite;
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
+    }
+
+    @keyframes rangePulse {
+      0%, 100% {
+        opacity: 0.5;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+      }
+    }
+
+    /* LOADING SPINNER */
     .loading {
       position: fixed;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
       font-size: 24px;
-      color: var(--primary);
+      color: var(--neon-cyan);
+      font-family: 'Orbitron', sans-serif;
+      text-shadow: 0 0 20px var(--neon-cyan);
+    }
+
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 4px solid rgba(0, 240, 255, 0.2);
+      border-top-color: var(--neon-cyan);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.5);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
 
     /* Scrollbar */
     ::-webkit-scrollbar {
       width: 8px;
-      height: 8px;
     }
 
     ::-webkit-scrollbar-track {
-      background: rgba(255,255,255,0.1);
+      background: rgba(0, 0, 0, 0.3);
     }
 
     ::-webkit-scrollbar-thumb {
-      background: var(--primary);
-      border-radius: 4px;
-    }
-
-    /* Health Bar */
-    .health-bar {
-      position: absolute;
-      bottom: -8px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 40px;
-      height: 4px;
-      background: rgba(255,0,0,0.3);
-      border-radius: 2px;
-    }
-
-    .health-bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #ff3366, #00ff88);
-      border-radius: 2px;
-      transition: width 0.3s;
-    }
-
-    /* Range Circle */
-    .range-circle {
-      position: absolute;
-      border: 2px solid var(--primary);
-      border-radius: 50%;
-      background: rgba(0,240,255,0.1);
-      pointer-events: none;
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 0.5; }
-      50% { opacity: 0.8; }
-    }
-
-    /* Attack Effect */
-    .attack-line {
-      position: absolute;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, var(--danger), transparent);
-      pointer-events: none;
-      animation: attackFlash 0.3s ease;
-    }
-
-    @keyframes attackFlash {
-      0%, 100% { opacity: 0; }
-      50% { opacity: 1; }
-    }
-
-    .explosion {
-      position: absolute;
-      width: 30px;
-      height: 30px;
-      background: radial-gradient(circle, var(--warning), transparent);
-      border-radius: 50%;
-      pointer-events: none;
-      animation: explode 0.5s ease forwards;
-    }
-
-    @keyframes explode {
-      0% { transform: scale(0); opacity: 1; }
-      100% { transform: scale(3); opacity: 0; }
+      background: linear-gradient(180deg, var(--neon-cyan), var(--neon-purple));
+      border-radius: 10px;
+      box-shadow: 0 0 10px var(--neon-cyan);
     }
   </style>
 </head>
 <body>
   <!-- AUTH SCREEN -->
   <div id="auth-screen">
-    <div class="auth-box">
-      <h1>GLOBAL CONQUEST</h1>
-      <input type="text" id="player-name" class="input" placeholder="Komutan Adınız" />
-      <input type="text" id="room-code" class="input" placeholder="Oda Kodu (Boş bırak = Yeni Oda)" />
-      <button class="btn" onclick="startGame()">🚀 SAVAŞA BAŞLA</button>
+    <div class="auth-container">
+      <div class="game-logo">⚔️ GLOBAL CONQUEST</div>
+      <div class="logo-subtitle">REAL-TIME STRATEGY</div>
+      
+      <div class="auth-box">
+        <input type="text" id="player-name" class="input" placeholder="👤 Komutan Adınız" />
+        <input type="text" id="room-code" class="input" placeholder="🔑 Oda Kodu (Boş = Yeni Oda)" />
+        <button class="btn" onclick="startGame()">
+          <span style="position: relative; z-index: 1;">🚀 SAVAŞA BAŞLA</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -428,35 +588,32 @@
     <!-- TOP HUD -->
     <div id="top-hud">
       <div class="hud-item">
-        <span>💰</span>
-        <span class="hud-value" id="money">5000</span>
+        <span class="hud-icon">💰</span>
+        <span class="hud-value" id="money">10000</span>
       </div>
       <div class="hud-item">
-        <span>⚡</span>
-        <span class="hud-value" id="energy">1000</span>
+        <span class="hud-icon">⚡</span>
+        <span class="hud-value" id="energy">2000</span>
       </div>
       <div class="hud-item">
-        <span>🛢️</span>
-        <span class="hud-value" id="oil">500</span>
+        <span class="hud-icon">🛢️</span>
+        <span class="hud-value" id="oil">1000</span>
       </div>
       <div class="hud-item">
-        <span>🎯</span>
+        <span class="hud-icon">🎯</span>
         <span class="hud-value" id="selected-count">0</span>
       </div>
     </div>
 
-    <!-- UNITS PANEL -->
-    <div id="units-panel"></div>
-
     <!-- BUILDINGS PANEL -->
     <div id="buildings-panel">
-      <h3 style="margin-bottom: 15px; color: var(--primary);">⚒️ İnşaat</h3>
+      <div class="panel-title">⚒️ İNŞAAT</div>
       <div id="buildings-list"></div>
     </div>
 
     <!-- SELECTION INFO -->
     <div id="selection-info">
-      <h3 style="margin-bottom: 10px; color: var(--primary);">📊 Seçili Birim</h3>
+      <div class="panel-title">📊 BİRİM BİLGİSİ</div>
       <div id="info-content"></div>
     </div>
 
@@ -464,14 +621,10 @@
     <div id="notifications"></div>
 
     <!-- CONTEXT MENU -->
-    <div id="context-menu">
-      <div class="context-item" onclick="contextAttack()">⚔️ Saldır</div>
-      <div class="context-item" onclick="contextMove()">🏃 Hareket</div>
-      <div class="context-item" onclick="contextStop()">✋ Dur</div>
-    </div>
+    <div id="context-menu"></div>
 
-    <!-- MINIMAP -->
-    <div id="minimap"></div>
+    <!-- WALL PREVIEW -->
+    <div id="wall-preview"></div>
   </div>
 
   <!-- Firebase -->
@@ -480,7 +633,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
   <script>
-    // ==================== FIREBASE SETUP ====================
+    // ==================== FIREBASE ====================
     const firebaseConfig = {
       apiKey: "AIzaSyCINihMNGs-qRYIIBLzXyeaLnM_Lhp-iwg",
       authDomain: "warmapg-77acb.firebaseapp.com",
@@ -498,279 +651,76 @@
     let playerData = {
       name: '',
       color: '#00f0ff',
-      money: 5000,
-      energy: 1000,
-      oil: 500,
+      money: 10000,
+      energy: 2000,
+      oil: 1000,
       units: {},
       buildings: {}
     };
 
     let selectedUnits = [];
-    let selectedUnitType = null;
     let selectedBuilding = null;
     let gameLoop;
+    let wallBuildMode = false;
+    let lastWallPoint = null;
 
-    // ==================== UNIT TYPES ====================
+    // ==================== UNIT TYPES (3x Speed & Range) ====================
     const UNIT_TYPES = {
-      infantry: {
-        name: 'Piyade',
-        icon: '🪖',
-        cost: 100,
-        speed: 2,
-        range: 50,
-        attack: 10,
-        health: 100,
-        maxHealth: 100
-      },
-      tank: {
-        name: 'Tank',
-        icon: '🚜',
-        cost: 500,
-        speed: 1.5,
-        range: 150,
-        attack: 50,
-        health: 300,
-        maxHealth: 300
-      },
-      artillery: {
-        name: 'Topçu',
-        icon: '🎯',
-        cost: 800,
-        speed: 1,
-        range: 300,
-        attack: 80,
-        health: 150,
-        maxHealth: 150
-      },
-      helicopter: {
-        name: 'Helikopter',
-        icon: '🚁',
-        cost: 1200,
-        speed: 4,
-        range: 200,
-        attack: 40,
-        health: 200,
-        maxHealth: 200
-      },
-      fighter: {
-        name: 'F-35',
-        icon: '✈️',
-        cost: 2000,
-        speed: 6,
-        range: 400,
-        attack: 100,
-        health: 250,
-        maxHealth: 250
-      },
-      bomber: {
-        name: 'Bombardıman',
-        icon: '🛩️',
-        cost: 3000,
-        speed: 5,
-        range: 500,
-        attack: 150,
-        health: 300,
-        maxHealth: 300
-      },
-      submarine: {
-        name: 'Denizaltı',
-        icon: '🚢',
-        cost: 1500,
-        speed: 2,
-        range: 250,
-        attack: 70,
-        health: 400,
-        maxHealth: 400
-      },
-      destroyer: {
-        name: 'Destroyır',
-        icon: '⛴️',
-        cost: 2500,
-        speed: 2.5,
-        range: 300,
-        attack: 90,
-        health: 500,
-        maxHealth: 500
-      },
-      missile: {
-        name: 'Füze Sistemi',
-        icon: '🚀',
-        cost: 5000,
-        speed: 0.5,
-        range: 800,
-        attack: 200,
-        health: 100,
-        maxHealth: 100
-      },
-      drone: {
-        name: 'Drone',
-        icon: '🛸',
-        cost: 600,
-        speed: 5,
-        range: 150,
-        attack: 30,
-        health: 80,
-        maxHealth: 80
-      },
-      sniper: {
-        name: 'Keskin Nişancı',
-        icon: '🎯',
-        cost: 400,
-        speed: 1.5,
-        range: 400,
-        attack: 60,
-        health: 80,
-        maxHealth: 80
-      },
-      engineer: {
-        name: 'Mühendis',
-        icon: '👷',
-        cost: 200,
-        speed: 2,
-        range: 30,
-        attack: 5,
-        health: 100,
-        maxHealth: 100
-      },
-      medic: {
-        name: 'Sağlıkçı',
-        icon: '⚕️',
-        cost: 300,
-        speed: 2,
-        range: 50,
-        attack: 0,
-        health: 100,
-        maxHealth: 100
-      },
-      commando: {
-        name: 'Komando',
-        icon: '🥷',
-        cost: 700,
-        speed: 3,
-        range: 100,
-        attack: 40,
-        health: 150,
-        maxHealth: 150
-      },
-      machinegun: {
-        name: 'Ağır Makineli',
-        icon: '🔫',
-        cost: 350,
-        speed: 1.5,
-        range: 120,
-        attack: 25,
-        health: 120,
-        maxHealth: 120
-      },
-      mortar: {
-        name: 'Havan Topu',
-        icon: '💣',
-        cost: 600,
-        speed: 1,
-        range: 250,
-        attack: 65,
-        health: 100,
-        maxHealth: 100
-      },
-      rocket: {
-        name: 'Roketatar',
-        icon: '🧨',
-        cost: 900,
-        speed: 1.5,
-        range: 200,
-        attack: 75,
-        health: 130,
-        maxHealth: 130
-      },
-      radar: {
-        name: 'Radar',
-        icon: '📡',
-        cost: 1000,
-        speed: 0,
-        range: 600,
-        attack: 0,
-        health: 150,
-        maxHealth: 150
-      },
-      sam: {
-        name: 'Hava Savunma',
-        icon: '🎆',
-        cost: 1800,
-        speed: 0,
-        range: 450,
-        attack: 85,
-        health: 200,
-        maxHealth: 200
-      },
-      carrier: {
-        name: 'Uçak Gemisi',
-        icon: '🛳️',
-        cost: 10000,
-        speed: 1,
-        range: 100,
-        attack: 20,
-        health: 2000,
-        maxHealth: 2000
-      }
+      infantry: { name: 'Piyade', icon: '🪖', cost: 100, speed: 6, range: 150, attack: 10, health: 100, maxHealth: 100, buildingRequired: 'barracks' },
+      tank: { name: 'Tank', icon: '🚜', cost: 500, speed: 4.5, range: 450, attack: 50, health: 300, maxHealth: 300, buildingRequired: 'factory' },
+      artillery: { name: 'Topçu', icon: '🎯', cost: 800, speed: 3, range: 900, attack: 80, health: 150, maxHealth: 150, buildingRequired: 'factory' },
+      helicopter: { name: 'Helikopter', icon: '🚁', cost: 1200, speed: 12, range: 600, attack: 40, health: 200, maxHealth: 200, buildingRequired: 'airbase' },
+      fighter: { name: 'F-35', icon: '✈️', cost: 2000, speed: 18, range: 1200, attack: 100, health: 250, maxHealth: 250, buildingRequired: 'airbase' },
+      bomber: { name: 'Bombardıman', icon: '🛩️', cost: 3000, speed: 15, range: 1500, attack: 150, health: 300, maxHealth: 300, buildingRequired: 'airbase' },
+      submarine: { name: 'Denizaltı', icon: '🚢', cost: 1500, speed: 6, range: 750, attack: 70, health: 400, maxHealth: 400, buildingRequired: 'naval' },
+      destroyer: { name: 'Destroyır', icon: '⛴️', cost: 2500, speed: 7.5, range: 900, attack: 90, health: 500, maxHealth: 500, buildingRequired: 'naval' },
+      missile: { name: 'Füze', icon: '🚀', cost: 5000, speed: 1.5, range: 2400, attack: 200, health: 100, maxHealth: 100, buildingRequired: 'factory' },
+      drone: { name: 'Drone', icon: '🛸', cost: 600, speed: 15, range: 450, attack: 30, health: 80, maxHealth: 80, buildingRequired: 'airbase' },
+      sniper: { name: 'Keskin Nişancı', icon: '🎯', cost: 400, speed: 4.5, range: 1200, attack: 60, health: 80, maxHealth: 80, buildingRequired: 'barracks' },
+      commando: { name: 'Komando', icon: '🥷', cost: 700, speed: 9, range: 300, attack: 40, health: 150, maxHealth: 150, buildingRequired: 'barracks' },
+      machinegun: { name: 'Ağır Makineli', icon: '🔫', cost: 350, speed: 4.5, range: 360, attack: 25, health: 120, maxHealth: 120, buildingRequired: 'barracks' },
+      mortar: { name: 'Havan', icon: '💣', cost: 600, speed: 3, range: 750, attack: 65, health: 100, maxHealth: 100, buildingRequired: 'factory' },
+      rocket: { name: 'Roketatar', icon: '🧨', cost: 900, speed: 4.5, range: 600, attack: 75, health: 130, maxHealth: 130, buildingRequired: 'factory' },
+      sam: { name: 'Hava Savunma', icon: '🎆', cost: 1800, speed: 0, range: 1350, attack: 85, health: 200, maxHealth: 200, buildingRequired: 'factory' },
+      carrier: { name: 'Uçak Gemisi', icon: '🛳️', cost: 10000, speed: 3, range: 300, attack: 20, health: 2000, maxHealth: 2000, buildingRequired: 'naval' },
+      excavator: { name: 'Kepçe', icon: '🚧', cost: 300, speed: 3, range: 30, attack: 0, health: 200, maxHealth: 200, buildingRequired: 'hq' }
     };
 
     // ==================== BUILDING TYPES ====================
     const BUILDING_TYPES = {
-      barracks: {
-        name: 'Kışla',
-        icon: '🏰',
-        cost: 500
-      },
-      factory: {
-        name: 'Fabrika',
-        icon: '🏭',
-        cost: 1000
-      },
-      airbase: {
-        name: 'Hava Üssü',
-        icon: '✈️',
-        cost: 2000
-      },
-      naval: {
-        name: 'Deniz Üssü',
-        icon: '⚓',
-        cost: 2500
-      },
-      power: {
-        name: 'Enerji Santrali',
-        icon: '⚡',
-        cost: 1500
-      },
-      refinery: {
-        name: 'Rafineri',
-        icon: '🛢️',
-        cost: 1200
-      }
+      hq: { name: 'Ana Karargah', icon: '🏛️', cost: 0, canProduce: ['excavator'] },
+      barracks: { name: 'Kışla', icon: '🏰', cost: 500, canProduce: ['infantry', 'sniper', 'commando', 'machinegun'] },
+      factory: { name: 'Fabrika', icon: '🏭', cost: 1000, canProduce: ['tank', 'artillery', 'missile', 'mortar', 'rocket', 'sam'] },
+      airbase: { name: 'Hava Üssü', icon: '✈️', cost: 2000, canProduce: ['helicopter', 'fighter', 'bomber', 'drone'] },
+      naval: { name: 'Deniz Üssü', icon: '⚓', cost: 2500, canProduce: ['submarine', 'destroyer', 'carrier'] },
+      power: { name: 'Enerji Santrali', icon: '⚡', cost: 1500, canProduce: [] },
+      refinery: { name: 'Rafineri', icon: '🛢️', cost: 1200, canProduce: [] },
+      wall: { name: 'Duvar', icon: '🧱', cost: 50, canProduce: [] }
     };
 
-    // ==================== AUDIO SYSTEM ====================
+    // ==================== AUDIO ====================
     const sounds = {
-      click: () => playSound(1000, 0.1, 0.05),
-      build: () => playSound(500, 0.2, 0.1),
-      attack: () => playSound(200, 0.3, 0.05),
-      explosion: () => playSound(100, 0.5, 0.1),
-      move: () => playSound(800, 0.05, 0.02)
+      click: () => playTone(1000, 0.1, 0.05),
+      build: () => playTone(500, 0.2, 0.1),
+      attack: () => playTone(200, 0.3, 0.05),
+      explosion: () => playTone(100, 0.5, 0.1),
+      move: () => playTone(800, 0.05, 0.02),
+      spawn: () => playTone(600, 0.15, 0.1)
     };
 
-    function playSound(freq, vol, dur) {
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const oscillator = audioCtx.createOscillator();
-      const gainNode = audioCtx.createGain();
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(audioCtx.destination);
-      
-      oscillator.frequency.value = freq;
-      oscillator.type = 'sine';
-      gainNode.gain.value = vol;
-      
-      oscillator.start();
-      setTimeout(() => oscillator.stop(), dur * 1000);
+    function playTone(freq, vol, dur) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        gain.gain.value = vol;
+        osc.start();
+        setTimeout(() => osc.stop(), dur * 1000);
+      } catch(e) {}
     }
 
     // ==================== START GAME ====================
@@ -779,37 +729,23 @@
       const roomInput = document.getElementById('room-code').value.trim();
 
       if (!nameInput) {
-        alert('Lütfen bir komutan adı girin!');
+        showNotification('❌ Lütfen komutan adı girin!');
         return;
       }
 
       playerData.name = nameInput;
-      playerId = 'player_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-      
-      if (roomInput) {
-        roomCode = roomInput.toUpperCase();
-      } else {
-        roomCode = generateRoomCode();
-      }
-
+      playerId = 'p_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      roomCode = roomInput ? roomInput.toUpperCase() : generateRoomCode();
       roomRef = db.ref('rooms/' + roomCode);
-      
+
       roomRef.once('value').then(snapshot => {
         if (!snapshot.exists()) {
-          // Create new room
-          roomRef.set({
-            created: Date.now(),
-            players: {}
-          });
+          roomRef.set({ created: Date.now(), players: {} });
         }
         
-        // Join room
         roomRef.child('players/' + playerId).set({
           name: playerData.name,
           color: playerData.color,
-          money: playerData.money,
-          energy: playerData.energy,
-          oil: playerData.oil,
           lastUpdate: Date.now()
         });
 
@@ -818,12 +754,7 @@
     }
 
     function generateRoomCode() {
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-      let code = '';
-      for (let i = 0; i < 6; i++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      return code;
+      return Array(6).fill(0).map(() => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[Math.floor(Math.random() * 36)]).join('');
     }
 
     // ==================== INIT GAME ====================
@@ -831,104 +762,253 @@
       document.getElementById('auth-screen').style.display = 'none';
       document.getElementById('game-screen').style.display = 'block';
 
-      // Init Google Maps
+      // Init Map
       map = new google.maps.Map(document.getElementById('map'), {
-        center: { lat: 39.9334, lng: 32.8597 }, // Ankara
-        zoom: 6,
+        center: { lat: 39.9334, lng: 32.8597 },
+        zoom: 8,
         mapTypeId: 'satellite',
         disableDefaultUI: true,
-        zoomControl: true,
-        gestureHandling: 'greedy'
+        zoomControl: false,
+        gestureHandling: 'greedy',
+        styles: [
+          { featureType: 'all', elementType: 'labels', stylers: [{ visibility: 'off' }] }
+        ]
       });
 
-      // Setup UI
-      setupUnitsPanel();
-      setupBuildingsPanel();
-      setupEventListeners();
+      setupUI();
+      setupMapEvents();
       
-      // Start game loop
-      gameLoop = setInterval(updateGame, 50); // 20 FPS
-
-      // Listen to Firebase
+      // Spawn HQ at start
+      spawnBuilding('hq', map.getCenter());
+      
+      gameLoop = setInterval(updateGame, 50);
+      
       roomRef.child('units').on('child_changed', updateUnitFromServer);
       roomRef.child('units').on('child_added', addUnitFromServer);
       roomRef.child('units').on('child_removed', removeUnitFromServer);
 
-      showNotification('🎮 Oyuna katıldınız! Oda Kodu: ' + roomCode);
+      showNotification('🎮 Oyuna katıldınız! Oda: ' + roomCode);
+      sounds.spawn();
     }
 
     // ==================== SETUP UI ====================
-    function setupUnitsPanel() {
-      const panel = document.getElementById('units-panel');
-      Object.keys(UNIT_TYPES).forEach(type => {
-        const unit = UNIT_TYPES[type];
-        const btn = document.createElement('div');
-        btn.className = 'unit-btn';
-        btn.innerHTML = `
-          ${unit.icon}
-          <div class="unit-cost">${unit.cost}$</div>
-        `;
-        btn.title = `${unit.name}\n💰 ${unit.cost}\n⚡ Menzil: ${unit.range}m\n⚔️ Güç: ${unit.attack}\n❤️ Can: ${unit.health}`;
-        btn.onclick = () => selectUnitType(type);
-        panel.appendChild(btn);
-      });
-    }
-
-    function setupBuildingsPanel() {
-      const list = document.getElementById('buildings-list');
+    function setupUI() {
+      const buildingsList = document.getElementById('buildings-list');
       Object.keys(BUILDING_TYPES).forEach(type => {
+        if (type === 'hq') return; // HQ otomatik
         const building = BUILDING_TYPES[type];
         const btn = document.createElement('div');
         btn.className = 'building-btn';
-        btn.innerHTML = `${building.icon} ${building.name} (${building.cost}$)`;
-        btn.onclick = () => selectBuildingType(type);
-        list.appendChild(btn);
+        btn.innerHTML = `
+          <span class="building-icon">${building.icon}</span>
+          <div style="flex: 1;">
+            <div>${building.name}</div>
+            <div style="font-size: 12px; color: #ffaa00;">💰 ${building.cost}</div>
+          </div>
+        `;
+        btn.onclick = () => selectBuilding(type);
+        buildingsList.appendChild(btn);
       });
     }
 
-    function setupEventListeners() {
-      // Map click - spawn unit or place building
+    function setupMapEvents() {
       map.addListener('click', (e) => {
-        if (selectedUnitType) {
-          spawnUnit(selectedUnitType, e.latLng);
-        } else if (selectedBuilding) {
-          placeBuilding(selectedBuilding, e.latLng);
+        if (selectedBuilding) {
+          if (selectedBuilding === 'wall') {
+            handleWallBuild(e.latLng);
+          } else {
+            spawnBuilding(selectedBuilding, e.latLng);
+            selectedBuilding = null;
+            document.querySelectorAll('.building-btn').forEach(b => b.classList.remove('selected'));
+          }
         }
       });
 
-      // Map right click - move selected units
       map.addListener('rightclick', (e) => {
+        if (wallBuildMode) {
+          wallBuildMode = false;
+          lastWallPoint = null;
+          document.getElementById('wall-preview').style.display = 'none';
+          showNotification('🧱 Duvar modu kapatıldı');
+          return;
+        }
+
         if (selectedUnits.length > 0) {
-          selectedUnits.forEach(unit => {
-            moveUnitTo(unit, e.latLng);
-          });
+          selectedUnits.forEach(unit => moveUnitTo(unit, e.latLng));
           sounds.move();
         }
       });
 
-      // Key bindings
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
           clearSelection();
-        } else if (e.key === 's') {
-          selectedUnits.forEach(unit => unit.targetPosition = null);
+          wallBuildMode = false;
+          lastWallPoint = null;
+        }
+      });
+
+      document.addEventListener('mousemove', (e) => {
+        if (wallBuildMode) {
+          const preview = document.getElementById('wall-preview');
+          preview.style.left = e.clientX - 15 + 'px';
+          preview.style.top = e.clientY - 15 + 'px';
+          preview.style.display = 'block';
         }
       });
     }
 
-    // ==================== UNIT MANAGEMENT ====================
-    function selectUnitType(type) {
-      selectedUnitType = type;
-      selectedBuilding = null;
-      
-      document.querySelectorAll('.unit-btn').forEach(btn => btn.classList.remove('selected'));
+    // ==================== BUILDING MANAGEMENT ====================
+    function selectBuilding(type) {
+      selectedBuilding = type;
+      document.querySelectorAll('.building-btn').forEach(b => b.classList.remove('selected'));
       event.currentTarget.classList.add('selected');
       
-      showNotification(`${UNIT_TYPES[type].icon} ${UNIT_TYPES[type].name} seçildi`);
+      if (type === 'wall') {
+        wallBuildMode = true;
+        showNotification('🧱 Duvar modu: Tıklayarak duvar inşa edin');
+      } else {
+        showNotification(`${BUILDING_TYPES[type].icon} ${BUILDING_TYPES[type].name} seçildi - Haritaya tıklayın`);
+      }
+      
       sounds.click();
     }
 
-    function spawnUnit(type, position) {
+    function handleWallBuild(position) {
+      const cost = BUILDING_TYPES.wall.cost;
+      
+      if (playerData.money < cost) {
+        showNotification('❌ Yetersiz para!');
+        return;
+      }
+
+      if (lastWallPoint) {
+        // Draw wall line
+        const distance = google.maps.geometry.spherical.computeDistanceBetween(lastWallPoint, position);
+        const segments = Math.floor(distance / 10);
+        
+        for (let i = 0; i <= segments; i++) {
+          const fraction = i / segments;
+          const heading = google.maps.geometry.spherical.computeHeading(lastWallPoint, position);
+          const wallPos = google.maps.geometry.spherical.computeOffset(lastWallPoint, distance * fraction, heading);
+          
+          const wallMarker = new google.maps.Marker({
+            position: wallPos,
+            map: map,
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: 5,
+              fillColor: '#808080',
+              fillOpacity: 1,
+              strokeColor: '#ffffff',
+              strokeWeight: 2
+            },
+            label: { text: '🧱', fontSize: '16px' }
+          });
+
+          const wallId = 'wall_' + Date.now() + '_' + i;
+          playerData.buildings[wallId] = {
+            type: 'wall',
+            position: { lat: wallPos.lat(), lng: wallPos.lng() },
+            marker: wallMarker,
+            health: 500
+          };
+        }
+        
+        playerData.money -= cost * segments;
+        updateHUD();
+        sounds.build();
+        showNotification(`✅ ${segments} duvar bloğu inşa edildi!`);
+      }
+      
+      lastWallPoint = position;
+    }
+
+    function spawnBuilding(type, position) {
+      const buildingData = BUILDING_TYPES[type];
+      
+      if (type !== 'hq' && playerData.money < buildingData.cost) {
+        showNotification('❌ Yetersiz para!');
+        return;
+      }
+
+      const buildingId = 'b_' + Date.now();
+      const marker = new google.maps.Marker({
+        position: position,
+        map: map,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 20,
+          fillColor: '#ffaa00',
+          fillOpacity: 0.8,
+          strokeColor: playerData.color,
+          strokeWeight: 3
+        },
+        label: { text: buildingData.icon, fontSize: '32px' }
+      });
+
+      marker.addListener('click', () => showBuildingMenu(buildingId));
+
+      playerData.buildings[buildingId] = {
+        id: buildingId,
+        type: type,
+        position: { lat: position.lat(), lng: position.lng() },
+        marker: marker,
+        health: 1000
+      };
+
+      if (type !== 'hq') {
+        playerData.money -= buildingData.cost;
+        updateHUD();
+      }
+
+      showNotification(`✅ ${buildingData.name} inşa edildi!`);
+      sounds.build();
+    }
+
+    function showBuildingMenu(buildingId) {
+      const building = playerData.buildings[buildingId];
+      const buildingType = BUILDING_TYPES[building.type];
+      
+      if (!buildingType.canProduce || buildingType.canProduce.length === 0) return;
+
+      const menu = document.getElementById('context-menu');
+      menu.innerHTML = '<div style="padding: 10px; font-weight: 700; color: var(--neon-cyan);">🏭 ÜRETİM</div>';
+      
+      buildingType.canProduce.forEach(unitType => {
+        const unit = UNIT_TYPES[unitType];
+        const item = document.createElement('div');
+        item.className = 'context-item';
+        item.innerHTML = `${unit.icon} ${unit.name} (${unit.cost}$)`;
+        item.onclick = () => {
+          spawnUnitFromBuilding(unitType, building);
+          menu.style.display = 'none';
+        };
+        menu.appendChild(item);
+      });
+
+      const rect = building.marker.getPosition();
+      const point = getPixelPositionFromLatLng(rect);
+      menu.style.left = point.x + 'px';
+      menu.style.top = point.y + 'px';
+      menu.style.display = 'block';
+
+      sounds.click();
+    }
+
+    function getPixelPositionFromLatLng(latLng) {
+      const scale = Math.pow(2, map.getZoom());
+      const proj = map.getProjection();
+      const bounds = map.getBounds();
+      const nw = proj.fromLatLngToPoint(bounds.getNorthEast());
+      const point = proj.fromLatLngToPoint(latLng);
+      return {
+        x: Math.floor((point.x - nw.x) * scale),
+        y: Math.floor((point.y - nw.y) * scale)
+      };
+    }
+
+    // ==================== UNIT MANAGEMENT ====================
+    function spawnUnitFromBuilding(type, building) {
       const unitData = UNIT_TYPES[type];
       
       if (playerData.money < unitData.cost) {
@@ -936,13 +1016,20 @@
         return;
       }
 
-      const unitId = 'unit_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      const unitId = 'u_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
       
+      // Spawn near building
+      const offset = google.maps.geometry.spherical.computeOffset(
+        new google.maps.LatLng(building.position.lat, building.position.lng),
+        50,
+        Math.random() * 360
+      );
+
       const unit = {
         id: unitId,
         type: type,
         owner: playerId,
-        position: { lat: position.lat(), lng: position.lng() },
+        position: { lat: offset.lat(), lng: offset.lng() },
         health: unitData.health,
         maxHealth: unitData.maxHealth,
         targetPosition: null,
@@ -950,34 +1037,33 @@
         lastAttack: 0
       };
 
-      // Create marker
       const marker = new google.maps.Marker({
         position: unit.position,
         map: map,
         icon: {
           path: google.maps.SymbolPath.CIRCLE,
-          scale: 10,
+          scale: 12,
           fillColor: playerData.color,
           fillOpacity: 1,
           strokeColor: '#ffffff',
           strokeWeight: 2
         },
-        label: {
-          text: unitData.icon,
-          fontSize: '20px'
-        },
-        draggable: false
+        label: { text: unitData.icon, fontSize: '24px' }
       });
 
-      marker.addListener('click', () => selectUnit(unit));
-      marker.addListener('rightclick', (e) => {
-        showContextMenu(e.domEvent.clientX, e.domEvent.clientY, unit);
+      marker.addListener('click', () => {
+        if (selectedUnits.includes(unit)) {
+          selectedUnits = selectedUnits.filter(u => u !== unit);
+        } else {
+          selectedUnits.push(unit);
+        }
+        updateSelectionInfo();
+        sounds.click();
       });
 
       unit.marker = marker;
       playerData.units[unitId] = unit;
 
-      // Update Firebase
       roomRef.child('units/' + unitId).set({
         type: type,
         owner: playerId,
@@ -990,94 +1076,21 @@
       playerData.money -= unitData.cost;
       updateHUD();
       
-      showNotification(`✅ ${unitData.name} oluşturuldu!`);
-      sounds.build();
-    }
-
-    function selectUnit(unit) {
-      if (selectedUnits.includes(unit)) {
-        selectedUnits = selectedUnits.filter(u => u !== unit);
-      } else {
-        selectedUnits.push(unit);
-      }
-      
-      updateSelectionInfo();
-      sounds.click();
-    }
-
-    function clearSelection() {
-      selectedUnits = [];
-      selectedUnitType = null;
-      selectedBuilding = null;
-      
-      document.querySelectorAll('.unit-btn, .building-btn').forEach(btn => {
-        btn.classList.remove('selected');
-      });
-      
-      updateSelectionInfo();
+      showNotification(`✅ ${unitData.name} üretildi!`);
+      sounds.spawn();
     }
 
     function moveUnitTo(unit, target) {
       unit.targetPosition = { lat: target.lat(), lng: target.lng() };
       unit.targetUnit = null;
-      
-      // Update Firebase
       roomRef.child('units/' + unit.id + '/targetPosition').set(unit.targetPosition);
     }
 
-    // ==================== BUILDING MANAGEMENT ====================
-    function selectBuildingType(type) {
-      selectedBuilding = type;
-      selectedUnitType = null;
-      
-      document.querySelectorAll('.building-btn').forEach(btn => btn.classList.remove('selected'));
-      event.currentTarget.classList.add('selected');
-      
-      showNotification(`${BUILDING_TYPES[type].icon} ${BUILDING_TYPES[type].name} seçildi`);
-      sounds.click();
-    }
-
-    function placeBuilding(type, position) {
-      const buildingData = BUILDING_TYPES[type];
-      
-      if (playerData.money < buildingData.cost) {
-        showNotification('❌ Yetersiz para!');
-        return;
-      }
-
-      const buildingId = 'building_' + Date.now();
-      
-      const marker = new google.maps.Marker({
-        position: { lat: position.lat(), lng: position.lng() },
-        map: map,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 15,
-          fillColor: '#ffaa00',
-          fillOpacity: 0.8,
-          strokeColor: playerData.color,
-          strokeWeight: 3
-        },
-        label: {
-          text: buildingData.icon,
-          fontSize: '24px'
-        }
-      });
-
-      playerData.buildings[buildingId] = {
-        type: type,
-        position: { lat: position.lat(), lng: position.lng() },
-        marker: marker
-      };
-
-      playerData.money -= buildingData.cost;
-      updateHUD();
-      
-      showNotification(`✅ ${buildingData.name} inşa edildi!`);
-      sounds.build();
-      
+    function clearSelection() {
+      selectedUnits = [];
       selectedBuilding = null;
-      document.querySelectorAll('.building-btn').forEach(btn => btn.classList.remove('selected'));
+      document.querySelectorAll('.building-btn').forEach(b => b.classList.remove('selected'));
+      updateSelectionInfo();
     }
 
     // ==================== GAME LOOP ====================
@@ -1085,13 +1098,13 @@
       Object.values(playerData.units).forEach(unit => {
         const unitData = UNIT_TYPES[unit.type];
         
-        // Move towards target
+        // Movement
         if (unit.targetPosition) {
           const current = unit.marker.getPosition();
           const target = new google.maps.LatLng(unit.targetPosition.lat, unit.targetPosition.lng);
           const distance = google.maps.geometry.spherical.computeDistanceBetween(current, target);
           
-          if (distance < 10) {
+          if (distance < 5) {
             unit.targetPosition = null;
           } else {
             const heading = google.maps.geometry.spherical.computeHeading(current, target);
@@ -1101,17 +1114,17 @@
           }
         }
 
-        // Auto-attack enemies in range
+        // Auto-attack
         const now = Date.now();
-        if (now - unit.lastAttack > 1000) { // 1 second cooldown
+        if (now - unit.lastAttack > 1000 && unitData.attack > 0) {
           Object.values(playerData.units).forEach(enemy => {
             if (enemy.owner !== playerId) {
-              const distance = google.maps.geometry.spherical.computeDistanceBetween(
+              const dist = google.maps.geometry.spherical.computeDistanceBetween(
                 unit.marker.getPosition(),
                 enemy.marker.getPosition()
               );
               
-              if (distance <= unitData.range) {
+              if (dist <= unitData.range) {
                 attackUnit(unit, enemy);
                 unit.lastAttack = now;
               }
@@ -1121,67 +1134,61 @@
       });
 
       // Resource generation
-      if (Date.now() % 2000 < 50) { // Every 2 seconds
-        playerData.money += Object.keys(playerData.buildings).length * 10;
+      if (Date.now() % 3000 < 50) {
+        playerData.money += Object.keys(playerData.buildings).length * 15;
         updateHUD();
       }
     }
 
     function attackUnit(attacker, target) {
       const attackerData = UNIT_TYPES[attacker.type];
-      
       target.health -= attackerData.attack;
       
-      // Visual effects
-      createAttackLine(attacker.marker.getPosition(), target.marker.getPosition());
-      createExplosion(target.marker.getPosition());
+      createAttackEffect(attacker.marker.getPosition(), target.marker.getPosition());
       sounds.attack();
       
       if (target.health <= 0) {
-        // Unit destroyed
         target.marker.setMap(null);
         delete playerData.units[target.id];
         roomRef.child('units/' + target.id).remove();
+        createExplosion(target.marker.getPosition());
         sounds.explosion();
-        showNotification(`💥 Düşman ${UNIT_TYPES[target.type].name} yok edildi!`);
+        showNotification(`💥 ${UNIT_TYPES[target.type].name} yok edildi!`);
       } else {
-        // Update health
         roomRef.child('units/' + target.id + '/health').set(target.health);
       }
     }
 
-    // ==================== VISUAL EFFECTS ====================
-    function createAttackLine(from, to) {
-      const overlay = new google.maps.Polyline({
+    // ==================== EFFECTS ====================
+    function createAttackEffect(from, to) {
+      const line = new google.maps.Polyline({
         path: [from, to],
-        strokeColor: '#ff3366',
-        strokeOpacity: 0.8,
-        strokeWeight: 2,
+        strokeColor: '#00f0ff',
+        strokeOpacity: 1,
+        strokeWeight: 3,
         map: map
       });
-      
-      setTimeout(() => overlay.setMap(null), 300);
+      setTimeout(() => line.setMap(null), 200);
     }
 
     function createExplosion(position) {
-      const explosion = new google.maps.Circle({
+      const circle = new google.maps.Circle({
         center: position,
-        radius: 10,
-        fillColor: '#ffaa00',
-        fillOpacity: 0.6,
+        radius: 20,
+        fillColor: '#ff006e',
+        fillOpacity: 0.8,
         strokeWeight: 0,
         map: map
       });
       
-      let radius = 10;
-      const interval = setInterval(() => {
-        radius += 5;
-        explosion.setRadius(radius);
-        explosion.setOptions({ fillOpacity: explosion.get('fillOpacity') * 0.9 });
-        
-        if (radius > 50) {
-          clearInterval(interval);
-          explosion.setMap(null);
+      let r = 20;
+      const int = setInterval(() => {
+        r += 10;
+        circle.setRadius(r);
+        circle.setOptions({ fillOpacity: circle.get('fillOpacity') * 0.85 });
+        if (r > 80) {
+          clearInterval(int);
+          circle.setMap(null);
         }
       }, 50);
     }
@@ -1208,89 +1215,53 @@
       if (selectedUnits.length === 1) {
         const unit = selectedUnits[0];
         const unitData = UNIT_TYPES[unit.type];
-        
         content.innerHTML = `
           <div class="info-row">
             <span class="info-label">Birim:</span>
-            <span>${unitData.icon} ${unitData.name}</span>
+            <span class="info-value">${unitData.icon} ${unitData.name}</span>
           </div>
           <div class="info-row">
             <span class="info-label">Can:</span>
-            <span>${Math.floor(unit.health)}/${unit.maxHealth}</span>
+            <span class="info-value">${Math.floor(unit.health)}/${unit.maxHealth}</span>
           </div>
           <div class="info-row">
             <span class="info-label">Saldırı:</span>
-            <span>${unitData.attack}</span>
+            <span class="info-value">${unitData.attack}</span>
           </div>
           <div class="info-row">
             <span class="info-label">Menzil:</span>
-            <span>${unitData.range}m</span>
+            <span class="info-value">${unitData.range}m</span>
           </div>
           <div class="info-row">
             <span class="info-label">Hız:</span>
-            <span>${unitData.speed}m/s</span>
+            <span class="info-value">${unitData.speed}m/s</span>
           </div>
         `;
       } else {
         content.innerHTML = `
           <div class="info-row">
             <span class="info-label">Seçili:</span>
-            <span>${selectedUnits.length} birim</span>
+            <span class="info-value">${selectedUnits.length} birim</span>
           </div>
         `;
       }
     }
 
-    function showNotification(message) {
+    function showNotification(msg) {
       const notif = document.createElement('div');
       notif.className = 'notification';
-      notif.textContent = message;
-      
+      notif.textContent = msg;
       document.getElementById('notifications').appendChild(notif);
-      
       setTimeout(() => {
-        notif.style.animation = 'slideIn 0.3s ease reverse';
-        setTimeout(() => notif.remove(), 300);
+        notif.style.animation = 'notifSlide 0.5s cubic-bezier(0.4, 0, 0.2, 1) reverse';
+        setTimeout(() => notif.remove(), 500);
       }, 3000);
-    }
-
-    // ==================== CONTEXT MENU ====================
-    function showContextMenu(x, y, unit) {
-      const menu = document.getElementById('context-menu');
-      menu.style.left = x + 'px';
-      menu.style.top = y + 'px';
-      menu.style.display = 'block';
-      
-      window.contextUnit = unit;
-      
-      document.addEventListener('click', () => {
-        menu.style.display = 'none';
-      }, { once: true });
-    }
-
-    function contextAttack() {
-      showNotification('🎯 Hedef seçin...');
-      // Implement attack targeting
-    }
-
-    function contextMove() {
-      showNotification('🏃 Hareket noktası seçin...');
-      // Implement move command
-    }
-
-    function contextStop() {
-      if (window.contextUnit) {
-        window.contextUnit.targetPosition = null;
-        window.contextUnit.targetUnit = null;
-        showNotification('✋ Birim durduruldu');
-      }
     }
 
     // ==================== FIREBASE SYNC ====================
     function updateUnitFromServer(snapshot) {
       const unitId = snapshot.key;
       const data = snapshot.val();
-      
       if (data.owner !== playerId && playerData.units[unitId]) {
         playerData.units[unitId].position = data.position;
         playerData.units[unitId].health = data.health;
@@ -1301,25 +1272,20 @@
     function addUnitFromServer(snapshot) {
       const unitId = snapshot.key;
       const data = snapshot.val();
-      
       if (data.owner !== playerId && !playerData.units[unitId]) {
         const unitData = UNIT_TYPES[data.type];
-        
         const marker = new google.maps.Marker({
           position: new google.maps.LatLng(data.position.lat, data.position.lng),
           map: map,
           icon: {
             path: google.maps.SymbolPath.CIRCLE,
-            scale: 10,
+            scale: 12,
             fillColor: '#ff3366',
             fillOpacity: 1,
             strokeColor: '#ffffff',
             strokeWeight: 2
           },
-          label: {
-            text: unitData.icon,
-            fontSize: '20px'
-          }
+          label: { text: unitData.icon, fontSize: '24px' }
         });
         
         playerData.units[unitId] = {
@@ -1342,12 +1308,10 @@
       }
     }
 
-    // Initialize
     updateHUD();
   </script>
 
-  <!-- Google Maps API -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA6I7QFuVIR4yYNu7aG1ngsGKsA_mauG8s&libraries=geometry"></script>
+  <!-- Google Maps API - YOUR_API_KEY yazısını kendi API key'inizle değiştirin -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&libraries=geometry"></script>
 </body>
 </html>
-
