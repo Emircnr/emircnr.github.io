@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Global Conquest - RTS</title>
+  <title>Global Conquest - Multiplayer RTS</title>
   
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap');
@@ -48,6 +48,24 @@
       50% { transform: translate(-50px, -50px) rotate(5deg); }
     }
 
+    /* HIDE GOOGLE WATERMARKS */
+    .gm-style-cc,
+    .gmnoprint,
+    a[href^="http://maps.google.com/maps"],
+    a[href^="https://maps.google.com/maps"],
+    .gm-style a[href^="https://maps.google.com/maps"],
+    .gm-style-mtc,
+    .gm-svpc,
+    div[title="Toggle fullscreen view"],
+    .gm-bundled-control,
+    .gmnoprint div {
+      display: none !important;
+    }
+
+    .gm-style .gm-style-cc {
+      display: none !important;
+    }
+
     /* AUTH SCREEN */
     #auth-screen {
       position: fixed;
@@ -82,7 +100,6 @@
       background-clip: text;
       margin-bottom: 20px;
       animation: logoGlow 3s ease-in-out infinite;
-      text-shadow: 0 0 60px rgba(0, 240, 255, 0.8);
     }
 
     @keyframes logoGlow {
@@ -225,6 +242,14 @@
       box-shadow: 0 15px 50px rgba(0, 240, 255, 0.6);
     }
 
+    .btn-danger {
+      background: linear-gradient(135deg, #ff3366, #cc0033);
+    }
+
+    .btn-danger:hover {
+      box-shadow: 0 15px 50px rgba(255, 51, 102, 0.6);
+    }
+
     /* GAME SCREEN */
     #game-screen {
       display: none;
@@ -238,16 +263,6 @@
     #map {
       width: 100%;
       height: 100%;
-    }
-
-    .gm-style a,
-    .gm-style-cc,
-    .gmnoprint,
-    .gm-bundled-control,
-    .gm-svpc,
-    .gm-style .gm-style-mtc,
-    .gm-style-mtc {
-      display: none !important;
     }
 
     /* TOP HUD */
@@ -293,9 +308,33 @@
       text-shadow: 0 0 10px var(--neon-cyan);
     }
 
+    /* EXIT BUTTON */
+    #exit-game-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 25px;
+      background: linear-gradient(135deg, #ff3366, #cc0033);
+      border: 2px solid rgba(255, 51, 102, 0.5);
+      border-radius: 15px;
+      color: white;
+      font-size: 18px;
+      font-weight: 700;
+      font-family: 'Orbitron', sans-serif;
+      cursor: pointer;
+      z-index: 1001;
+      box-shadow: 0 0 30px rgba(255, 51, 102, 0.4);
+      transition: all 0.3s;
+    }
+
+    #exit-game-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 40px rgba(255, 51, 102, 0.6);
+    }
+
     #buildings-panel {
       position: fixed;
-      top: 120px;
+      top: 100px;
       right: 20px;
       background: var(--glass);
       backdrop-filter: blur(30px);
@@ -305,7 +344,7 @@
       z-index: 1000;
       width: 280px;
       box-shadow: 0 0 40px rgba(0, 240, 255, 0.3);
-      max-height: calc(100vh - 140px);
+      max-height: calc(100vh - 120px);
       overflow-y: auto;
     }
 
@@ -354,7 +393,7 @@
 
     #selection-info {
       position: fixed;
-      top: 120px;
+      top: 100px;
       left: 20px;
       background: var(--glass);
       backdrop-filter: blur(30px);
@@ -385,6 +424,37 @@
     .info-value {
       color: white;
       font-family: 'Orbitron', sans-serif;
+    }
+
+    /* PLAYERS LIST */
+    #players-list {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: var(--glass);
+      backdrop-filter: blur(30px);
+      padding: 15px;
+      border-radius: 15px;
+      border: 2px solid rgba(0, 240, 255, 0.3);
+      z-index: 1000;
+      max-width: 250px;
+      box-shadow: 0 0 40px rgba(0, 240, 255, 0.3);
+    }
+
+    .player-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px;
+      margin: 5px 0;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      border-left: 4px solid;
+    }
+
+    .player-name {
+      font-weight: 600;
+      font-size: 14px;
     }
 
     #notifications {
@@ -443,17 +513,11 @@
       transform: translateX(5px);
     }
 
-    #wall-preview {
-      position: fixed;
-      width: 30px;
-      height: 30px;
-      background: rgba(100, 100, 100, 0.5);
-      border: 3px solid var(--neon-cyan);
-      border-radius: 5px;
+    /* WALL LINE PREVIEW */
+    #wall-line-preview {
+      position: absolute;
       pointer-events: none;
-      display: none;
       z-index: 2500;
-      box-shadow: 0 0 20px var(--neon-cyan);
     }
 
     .loading-screen {
@@ -508,17 +572,15 @@
   </style>
 </head>
 <body>
-  <!-- LOADING SCREEN -->
   <div id="loading-screen" class="loading-screen" style="display: none;">
     <div class="spinner"></div>
     <div class="loading-text">Harita Yükleniyor...</div>
   </div>
 
-  <!-- AUTH SCREEN -->
   <div id="auth-screen">
     <div class="auth-container">
       <div class="game-logo">⚔️ GLOBAL CONQUEST</div>
-      <div class="logo-subtitle">REAL-TIME STRATEGY</div>
+      <div class="logo-subtitle">MULTIPLAYER STRATEGY</div>
       
       <div class="auth-box">
         <input type="text" id="player-name" class="input" placeholder="👤 Komutan Adınız" />
@@ -545,9 +607,10 @@
     </div>
   </div>
 
-  <!-- GAME SCREEN -->
   <div id="game-screen">
     <div id="map"></div>
+    
+    <button id="exit-game-btn" onclick="exitGame()">🚪 OYUNDAN ÇIK</button>
 
     <div id="top-hud">
       <div class="hud-item">
@@ -578,9 +641,13 @@
       <div id="info-content"></div>
     </div>
 
+    <div id="players-list">
+      <div class="panel-title" style="font-size: 16px; margin-bottom: 10px;">👥 OYUNCULAR</div>
+      <div id="players-list-content"></div>
+    </div>
+
     <div id="notifications"></div>
     <div id="context-menu"></div>
-    <div id="wall-preview"></div>
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -611,12 +678,14 @@
       buildings: {}
     };
 
+    let allPlayers = {};
     let selectedUnits = [];
     let selectedBuilding = null;
     let selectedColor = '#00f0ff';
     let gameLoop;
     let wallBuildMode = false;
-    let lastWallPoint = null;
+    let wallStartPoint = null;
+    let wallLinePreview = null;
 
     const UNIT_TYPES = {
       infantry: { name: 'Piyade', icon: '🪖', cost: 100, speed: 6, range: 150, attack: 10, health: 100, maxHealth: 100, buildingRequired: 'barracks' },
@@ -674,7 +743,6 @@
       } catch(e) {}
     }
 
-    // COLOR SELECTION
     document.querySelectorAll('.color-option').forEach(option => {
       option.addEventListener('click', function() {
         document.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
@@ -684,10 +752,8 @@
       });
     });
 
-    // Auto-select first color
     document.querySelector('.color-option').classList.add('selected');
 
-    // SAVE & LOAD
     function saveGameState() {
       const state = {
         playerId,
@@ -724,7 +790,6 @@
       return false;
     }
 
-    // Auto-reconnect on page load
     window.addEventListener('load', () => {
       if (loadGameState()) {
         roomRef = db.ref('rooms/' + roomCode);
@@ -736,8 +801,18 @@
       }
     });
 
-    // Save state periodically
     setInterval(saveGameState, 5000);
+
+    function exitGame() {
+      if (confirm('Oyundan çıkmak istediğinize emin misiniz?')) {
+        if (roomRef && playerId) {
+          roomRef.child('players/' + playerId).remove();
+        }
+        localStorage.removeItem('globalConquestState');
+        if (gameLoop) clearInterval(gameLoop);
+        location.reload();
+      }
+    }
 
     function startGame() {
       const nameInput = document.getElementById('player-name').value.trim();
@@ -766,6 +841,9 @@
         roomRef.child('players/' + playerId).set({
           name: playerData.name,
           color: playerData.color,
+          money: playerData.money,
+          energy: playerData.energy,
+          oil: playerData.oil,
           lastUpdate: Date.now()
         });
 
@@ -790,10 +868,11 @@
           zoom: 8,
           mapTypeId: 'satellite',
           disableDefaultUI: true,
-          zoomControl: false,
+          zoomControl: true,
           gestureHandling: 'greedy',
           styles: [
-            { featureType: 'all', elementType: 'labels', stylers: [{ visibility: 'off' }] }
+            { featureType: 'all', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+            { featureType: 'administrative', elementType: 'labels', stylers: [{ visibility: 'off' }] }
           ]
         });
 
@@ -812,12 +891,35 @@
           roomRef.child('units').on('child_changed', updateUnitFromServer);
           roomRef.child('units').on('child_added', addUnitFromServer);
           roomRef.child('units').on('child_removed', removeUnitFromServer);
+          
+          roomRef.child('players').on('value', updatePlayersList);
 
           showNotification('🎮 Oyuna katıldınız! Oda: ' + roomCode);
           sounds.spawn();
           updateHUD();
         });
       }, 100);
+    }
+
+    function updatePlayersList(snapshot) {
+      const playersData = snapshot.val();
+      if (!playersData) return;
+      
+      allPlayers = playersData;
+      const listContent = document.getElementById('players-list-content');
+      listContent.innerHTML = '';
+      
+      Object.keys(playersData).forEach(pid => {
+        const player = playersData[pid];
+        const item = document.createElement('div');
+        item.className = 'player-item';
+        item.style.borderLeftColor = player.color;
+        item.innerHTML = `
+          <div style="width: 12px; height: 12px; border-radius: 50%; background: ${player.color};"></div>
+          <div class="player-name">${player.name}</div>
+        `;
+        listContent.appendChild(item);
+      });
     }
 
     function setupUI() {
@@ -843,23 +945,18 @@
 
     function setupMapEvents() {
       map.addListener('click', (e) => {
-        if (selectedBuilding) {
-          if (selectedBuilding === 'wall') {
-            handleWallBuild(e.latLng);
-          } else {
-            spawnBuilding(selectedBuilding, e.latLng);
-            selectedBuilding = null;
-            document.querySelectorAll('.building-btn').forEach(b => b.classList.remove('selected'));
-          }
+        if (selectedBuilding === 'wall') {
+          handleWallClick(e.latLng);
+        } else if (selectedBuilding) {
+          spawnBuilding(selectedBuilding, e.latLng);
+          selectedBuilding = null;
+          document.querySelectorAll('.building-btn').forEach(b => b.classList.remove('selected'));
         }
       });
 
       map.addListener('rightclick', (e) => {
         if (wallBuildMode) {
-          wallBuildMode = false;
-          lastWallPoint = null;
-          document.getElementById('wall-preview').style.display = 'none';
-          showNotification('🧱 Duvar modu kapatıldı');
+          cancelWallBuild();
           return;
         }
 
@@ -869,20 +966,16 @@
         }
       });
 
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-          clearSelection();
-          wallBuildMode = false;
-          lastWallPoint = null;
+      map.addListener('mousemove', (e) => {
+        if (wallStartPoint && wallLinePreview) {
+          updateWallPreview(e.latLng);
         }
       });
 
-      document.addEventListener('mousemove', (e) => {
-        if (wallBuildMode) {
-          const preview = document.getElementById('wall-preview');
-          preview.style.left = e.clientX - 15 + 'px';
-          preview.style.top = e.clientY - 15 + 'px';
-          preview.style.display = 'block';
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          clearSelection();
+          cancelWallBuild();
         }
       });
     }
@@ -894,62 +987,92 @@
       
       if (type === 'wall') {
         wallBuildMode = true;
-        showNotification('🧱 Duvar modu: Tıklayarak duvar inşa edin');
+        showNotification('🧱 Duvar: 1. Tık = Başlangıç, 2. Tık = Bitiş');
       } else {
-        showNotification(`${BUILDING_TYPES[type].icon} ${BUILDING_TYPES[type].name} seçildi`);
+        showNotification(`${BUILDING_TYPES[type].icon} ${BUILDING_TYPES[type].name} - Haritaya tıklayın`);
       }
       
       sounds.click();
     }
 
-    function handleWallBuild(position) {
-      const cost = BUILDING_TYPES.wall.cost;
+    function handleWallClick(position) {
+      if (!wallStartPoint) {
+        wallStartPoint = position;
+        wallLinePreview = new google.maps.Polyline({
+          path: [wallStartPoint, wallStartPoint],
+          strokeColor: '#00f0ff',
+          strokeOpacity: 0.6,
+          strokeWeight: 4,
+          map: map
+        });
+        showNotification('🧱 Duvar bitiş noktasını seçin (Sağ tık = İptal)');
+      } else {
+        buildWallLine(wallStartPoint, position);
+        cancelWallBuild();
+      }
+    }
+
+    function updateWallPreview(endPosition) {
+      if (wallLinePreview) {
+        wallLinePreview.setPath([wallStartPoint, endPosition]);
+      }
+    }
+
+    function buildWallLine(start, end) {
+      const distance = google.maps.geometry.spherical.computeDistanceBetween(start, end);
+      const segments = Math.max(1, Math.floor(distance / 10));
+      const totalCost = BUILDING_TYPES.wall.cost * segments;
       
-      if (playerData.money < cost) {
-        showNotification('❌ Yetersiz para!');
+      if (playerData.money < totalCost) {
+        showNotification(`❌ Yetersiz para! Gerekli: ${totalCost}$`);
         return;
       }
 
-      if (lastWallPoint) {
-        const distance = google.maps.geometry.spherical.computeDistanceBetween(lastWallPoint, position);
-        const segments = Math.floor(distance / 10);
+      for (let i = 0; i <= segments; i++) {
+        const fraction = i / segments;
+        const heading = google.maps.geometry.spherical.computeHeading(start, end);
+        const wallPos = google.maps.geometry.spherical.computeOffset(start, distance * fraction, heading);
         
-        for (let i = 0; i <= segments; i++) {
-          const fraction = i / segments;
-          const heading = google.maps.geometry.spherical.computeHeading(lastWallPoint, position);
-          const wallPos = google.maps.geometry.spherical.computeOffset(lastWallPoint, distance * fraction, heading);
-          
-          const wallMarker = new google.maps.Marker({
-            position: wallPos,
-            map: map,
-            icon: {
-              path: google.maps.SymbolPath.CIRCLE,
-              scale: 5,
-              fillColor: '#808080',
-              fillOpacity: 1,
-              strokeColor: '#ffffff',
-              strokeWeight: 2
-            },
-            label: { text: '🧱', fontSize: '16px' }
-          });
+        const wallMarker = new google.maps.Marker({
+          position: wallPos,
+          map: map,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 5,
+            fillColor: '#808080',
+            fillOpacity: 1,
+            strokeColor: '#ffffff',
+            strokeWeight: 2
+          },
+          label: { text: '🧱', fontSize: '16px' }
+        });
 
-          const wallId = 'wall_' + Date.now() + '_' + i;
-          playerData.buildings[wallId] = {
-            type: 'wall',
-            position: { lat: wallPos.lat(), lng: wallPos.lng() },
-            marker: wallMarker,
-            health: 500
-          };
-        }
-        
-        playerData.money -= cost * segments;
-        updateHUD();
-        saveGameState();
-        sounds.build();
-        showNotification(`✅ ${segments} duvar bloğu inşa edildi!`);
+        const wallId = 'wall_' + Date.now() + '_' + i;
+        playerData.buildings[wallId] = {
+          type: 'wall',
+          position: { lat: wallPos.lat(), lng: wallPos.lng() },
+          marker: wallMarker,
+          health: 500
+        };
       }
       
-      lastWallPoint = position;
+      playerData.money -= totalCost;
+      updateHUD();
+      saveGameState();
+      sounds.build();
+      showNotification(`✅ ${segments + 1} duvar bloğu inşa edildi! (${totalCost}$)`);
+    }
+
+    function cancelWallBuild() {
+      wallBuildMode = false;
+      wallStartPoint = null;
+      if (wallLinePreview) {
+        wallLinePreview.setMap(null);
+        wallLinePreview = null;
+      }
+      selectedBuilding = null;
+      document.querySelectorAll('.building-btn').forEach(b => b.classList.remove('selected'));
+      showNotification('🧱 Duvar modu iptal edildi');
     }
 
     function spawnBuilding(type, position) {
@@ -990,6 +1113,10 @@
         updateHUD();
         saveGameState();
       }
+
+      roomRef.child('players/' + playerId).update({
+        money: playerData.money
+      });
 
       showNotification(`✅ ${buildingData.name} inşa edildi!`);
       sounds.build();
@@ -1100,6 +1227,10 @@
       updateHUD();
       saveGameState();
       
+      roomRef.child('players/' + playerId).update({
+        money: playerData.money
+      });
+      
       showNotification(`✅ ${unitData.name} üretildi!`);
       sounds.spawn();
     }
@@ -1158,6 +1289,10 @@
         playerData.money += Object.keys(playerData.buildings).length * 15;
         updateHUD();
         saveGameState();
+        
+        roomRef.child('players/' + playerId).update({
+          money: playerData.money
+        });
       }
     }
 
@@ -1292,13 +1427,15 @@
       const data = snapshot.val();
       if (data.owner !== playerId && !playerData.units[unitId]) {
         const unitData = UNIT_TYPES[data.type];
+        const ownerColor = allPlayers[data.owner]?.color || '#ff3366';
+        
         const marker = new google.maps.Marker({
           position: new google.maps.LatLng(data.position.lat, data.position.lng),
           map: map,
           icon: {
             path: google.maps.SymbolPath.CIRCLE,
             scale: 12,
-            fillColor: '#ff3366',
+            fillColor: ownerColor,
             fillOpacity: 1,
             strokeColor: '#ffffff',
             strokeWeight: 2
