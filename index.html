@@ -3,17 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Global Conquest - Online Strategy Game</title>
-
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
-
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-
-  <!-- FontAwesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
+  <title>Global Conquest - RTS</title>
+  
   <style>
     * {
       margin: 0;
@@ -22,1389 +13,1340 @@
     }
 
     :root {
-      --primary-cyan: #00f0ff;
-      --primary-purple: #7b2cbf;
-      --primary-pink: #ff006e;
-      --dark-bg: #0a0a0f;
-      --dark-surface: #16161d;
-      --dark-surface-light: #1e1e2e;
-      --glass-bg: rgba(255, 255, 255, 0.05);
-      --glass-border: rgba(255, 255, 255, 0.1);
-      --text-primary: #ffffff;
-      --text-secondary: #a0a0b0;
+      --primary: #00f0ff;
+      --secondary: #7b2cbf;
+      --danger: #ff3366;
       --success: #00ff88;
       --warning: #ffaa00;
-      --danger: #ff3366;
+      --dark: #0a0a0f;
+      --glass: rgba(255, 255, 255, 0.05);
     }
 
     body {
-      font-family: 'Rajdhani', sans-serif;
-      background: var(--dark-bg);
-      color: var(--text-primary);
-      overflow-x: hidden;
-      position: relative;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--dark);
+      color: white;
+      overflow: hidden;
+      user-select: none;
     }
 
-    /* Animated Background */
-    body::before {
-      content: '';
+    #auth-screen, #game-screen {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: 
-        radial-gradient(circle at 20% 50%, rgba(123, 44, 191, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(0, 240, 255, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 40% 20%, rgba(255, 0, 110, 0.1) 0%, transparent 50%);
-      animation: bgShift 20s ease infinite;
-      z-index: -1;
+      display: none;
     }
 
-    @keyframes bgShift {
-      0%, 100% { transform: scale(1) rotate(0deg); }
-      50% { transform: scale(1.1) rotate(5deg); }
+    #auth-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+    }
+
+    .auth-box {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      padding: 40px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      min-width: 400px;
+    }
+
+    .auth-box h1 {
+      text-align: center;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-size: 42px;
+      margin-bottom: 30px;
+    }
+
+    .input {
+      width: 100%;
+      padding: 15px;
+      margin-bottom: 15px;
+      background: rgba(255,255,255,0.1);
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 10px;
+      color: white;
+      font-size: 16px;
+    }
+
+    .input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 20px rgba(0,240,255,0.3);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 15px;
+      margin-top: 10px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0,240,255,0.5);
+    }
+
+    /* GAME SCREEN */
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* TOP HUD */
+    #top-hud {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      padding: 15px 30px;
+      border-radius: 15px;
+      border: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      gap: 30px;
+      z-index: 1000;
+    }
+
+    .hud-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .hud-value {
+      color: var(--primary);
+      font-size: 18px;
+    }
+
+    /* UNITS PANEL */
+    #units-panel {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      padding: 15px;
+      border-radius: 15px;
+      border: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      gap: 10px;
+      z-index: 1000;
+      max-width: 90%;
+      overflow-x: auto;
+    }
+
+    .unit-btn {
+      width: 80px;
+      height: 80px;
+      background: rgba(255,255,255,0.1);
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      position: relative;
+    }
+
+    .unit-btn:hover {
+      border-color: var(--primary);
+      transform: translateY(-5px);
+      box-shadow: 0 5px 20px rgba(0,240,255,0.4);
+    }
+
+    .unit-btn.selected {
+      border-color: var(--success);
+      background: rgba(0,255,136,0.2);
+    }
+
+    .unit-cost {
+      position: absolute;
+      bottom: 5px;
+      font-size: 11px;
+      color: var(--warning);
+    }
+
+    /* BUILDINGS PANEL */
+    #buildings-panel {
+      position: fixed;
+      top: 100px;
+      right: 20px;
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      padding: 15px;
+      border-radius: 15px;
+      border: 1px solid rgba(255,255,255,0.1);
+      z-index: 1000;
+      width: 250px;
+    }
+
+    .building-btn {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: rgba(255,255,255,0.1);
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .building-btn:hover {
+      border-color: var(--primary);
+      transform: translateX(-5px);
+    }
+
+    .building-btn.selected {
+      border-color: var(--success);
+      background: rgba(0,255,136,0.2);
+    }
+
+    /* SELECTION INFO */
+    #selection-info {
+      position: fixed;
+      top: 100px;
+      left: 20px;
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      padding: 15px;
+      border-radius: 15px;
+      border: 1px solid rgba(255,255,255,0.1);
+      z-index: 1000;
+      min-width: 250px;
+      display: none;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 8px 0;
+      font-size: 14px;
+    }
+
+    .info-label {
+      color: var(--primary);
+    }
+
+    /* NOTIFICATIONS */
+    #notifications {
+      position: fixed;
+      top: 100px;
+      right: 290px;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 300px;
+    }
+
+    .notification {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      padding: 15px;
+      border-radius: 10px;
+      border-left: 4px solid var(--primary);
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    /* CONTEXT MENU */
+    #context-menu {
+      position: fixed;
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      padding: 5px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.1);
+      z-index: 3000;
+      display: none;
+    }
+
+    .context-item {
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: all 0.2s;
+    }
+
+    .context-item:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    /* MINIMAP */
+    #minimap {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 200px;
+      height: 200px;
+      background: rgba(0,0,0,0.7);
+      border: 2px solid var(--primary);
+      border-radius: 10px;
+      z-index: 1000;
+    }
+
+    /* LOADING */
+    .loading {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 24px;
+      color: var(--primary);
     }
 
     /* Scrollbar */
     ::-webkit-scrollbar {
       width: 8px;
+      height: 8px;
     }
 
     ::-webkit-scrollbar-track {
-      background: var(--dark-surface);
+      background: rgba(255,255,255,0.1);
     }
 
     ::-webkit-scrollbar-thumb {
-      background: linear-gradient(180deg, var(--primary-cyan), var(--primary-purple));
-      border-radius: 10px;
+      background: var(--primary);
+      border-radius: 4px;
     }
 
-    h1, h2, h3, h4 {
-      font-family: 'Orbitron', sans-serif;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-    }
-
-    /* Glass Effect */
-    .glass {
-      background: var(--glass-bg);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    }
-
-    /* Glow Effect */
-    .glow {
-      box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
-    }
-
-    /* Button Styles */
-    .btn {
-      padding: 14px 32px;
-      border: none;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .btn::before {
-      content: '';
+    /* Health Bar */
+    .health-bar {
       position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 0;
-      height: 0;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.2);
-      transform: translate(-50%, -50%);
-      transition: width 0.6s, height 0.6s;
-    }
-
-    .btn:hover::before {
-      width: 300px;
-      height: 300px;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary-cyan), var(--primary-purple));
-      color: white;
-      box-shadow: 0 4px 20px rgba(0, 240, 255, 0.3);
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 30px rgba(0, 240, 255, 0.5);
-    }
-
-    .btn-secondary {
-      background: linear-gradient(135deg, var(--primary-pink), var(--primary-purple));
-      color: white;
-      box-shadow: 0 4px 20px rgba(255, 0, 110, 0.3);
-    }
-
-    .btn-secondary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 30px rgba(255, 0, 110, 0.5);
-    }
-
-    .btn-danger {
-      background: linear-gradient(135deg, #ff3366, #cc0033);
-      color: white;
-    }
-
-    .btn-success {
-      background: linear-gradient(135deg, #00ff88, #00cc66);
-      color: #000;
-    }
-
-    /* Input Styles */
-    .input {
-      width: 100%;
-      padding: 14px 20px;
-      background: var(--dark-surface-light);
-      border: 2px solid var(--glass-border);
-      border-radius: 12px;
-      color: var(--text-primary);
-      font-size: 16px;
-      transition: all 0.3s;
-      font-family: 'Rajdhani', sans-serif;
-    }
-
-    .input:focus {
-      outline: none;
-      border-color: var(--primary-cyan);
-      box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
-    }
-
-    .input::placeholder {
-      color: var(--text-secondary);
-    }
-
-    /* Container Pages */
-    .container-page {
-      display: none;
-      min-height: 100vh;
-      animation: fadeIn 0.6s ease;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* =============== AUTH PAGE =============== */
-    #auth-container {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 20px;
-    }
-
-    #auth-wrapper {
-      width: 100%;
-      max-width: 480px;
-      animation: slideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(50px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .auth-header {
-      text-align: center;
-      margin-bottom: 40px;
-    }
-
-    .auth-header h1 {
-      font-size: 48px;
-      background: linear-gradient(135deg, var(--primary-cyan), var(--primary-pink));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 10px;
-      animation: glow 2s ease-in-out infinite;
-    }
-
-    @keyframes glow {
-      0%, 100% { filter: drop-shadow(0 0 20px rgba(0, 240, 255, 0.5)); }
-      50% { filter: drop-shadow(0 0 40px rgba(0, 240, 255, 0.8)); }
-    }
-
-    .auth-subtitle {
-      color: var(--text-secondary);
-      font-size: 18px;
-      letter-spacing: 2px;
-    }
-
-    .auth-card {
-      padding: 40px;
-      border-radius: 24px;
-    }
-
-    .auth-tabs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 30px;
-    }
-
-    .auth-tab {
-      flex: 1;
-      padding: 14px;
-      text-align: center;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.3s;
-      font-weight: 600;
-      font-size: 16px;
-      background: var(--dark-surface);
-      border: 2px solid transparent;
-    }
-
-    .auth-tab:hover {
-      border-color: var(--glass-border);
-    }
-
-    .auth-tab.active {
-      background: linear-gradient(135deg, var(--primary-cyan), var(--primary-purple));
-      box-shadow: 0 4px 20px rgba(0, 240, 255, 0.3);
-    }
-
-    .auth-form {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .auth-form button {
-      margin-top: 10px;
-    }
-
-    /* =============== PROFILE PAGE =============== */
-    #profile-container {
-      padding: 30px;
-      min-height: 100vh;
-    }
-
-    #profile-header {
-      padding: 30px;
-      border-radius: 24px;
-      margin-bottom: 30px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 20px;
-    }
-
-    #profile-header h2 {
-      font-size: 32px;
-      background: linear-gradient(135deg, var(--primary-cyan), var(--primary-pink));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .profile-buttons {
-      display: flex;
-      gap: 15px;
-      flex-wrap: wrap;
-    }
-
-    #profile-content {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 20px;
-    }
-
-    .profile-section {
-      padding: 25px;
-      border-radius: 20px;
-      transition: all 0.3s;
-    }
-
-    .profile-section:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 12px 40px rgba(0, 240, 255, 0.2);
-    }
-
-    .profile-section h3 {
-      font-size: 20px;
-      margin-bottom: 20px;
-      color: var(--primary-cyan);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .profile-section h3 i {
-      font-size: 24px;
-    }
-
-    .friend-item, .friend-request-item {
-      padding: 15px;
-      margin-bottom: 12px;
-      border-radius: 12px;
-      background: var(--dark-surface);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: all 0.3s;
-      border: 1px solid transparent;
-    }
-
-    .friend-item:hover, .friend-request-item:hover {
-      border-color: var(--primary-cyan);
-      transform: translateX(5px);
-    }
-
-    .friend-item button, .friend-request-item button {
-      padding: 8px 16px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 600;
-      transition: all 0.3s;
-    }
-
-    .scrollable-list {
-      max-height: 300px;
-      overflow-y: auto;
-    }
-
-    /* =============== LOBBY PAGE =============== */
-    #lobby-container {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 20px;
-    }
-
-    #lobby-wrapper {
-      width: 100%;
-      max-width: 600px;
-    }
-
-    .lobby-header {
-      text-align: center;
-      margin-bottom: 40px;
-    }
-
-    .lobby-header h1 {
-      font-size: 56px;
-      background: linear-gradient(135deg, var(--primary-cyan), var(--primary-pink));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 10px;
-    }
-
-    .lobby-card {
-      padding: 40px;
-      border-radius: 24px;
-      margin-bottom: 20px;
-    }
-
-    .lobby-section {
-      margin-bottom: 30px;
-    }
-
-    .lobby-section h2 {
-      font-size: 24px;
-      margin-bottom: 20px;
-      color: var(--primary-cyan);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .color-options {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin: 20px 0;
-    }
-
-    .global-color-option {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      cursor: pointer;
-      border: 3px solid transparent;
-      transition: all 0.3s;
-      position: relative;
-    }
-
-    .global-color-option:hover {
-      transform: scale(1.15);
-      border-color: white;
-    }
-
-    .global-color-option.selected {
-      border-color: var(--primary-cyan);
-      box-shadow: 0 0 20px currentColor;
-      transform: scale(1.2);
-    }
-
-    .global-color-option.selected::after {
-      content: '✓';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: white;
-      font-size: 24px;
-      font-weight: bold;
-      text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
-    }
-
-    .input-group {
-      margin-bottom: 20px;
-    }
-
-    .input-group label {
-      display: block;
-      margin-bottom: 8px;
-      color: var(--text-secondary);
-      font-size: 14px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .divider {
-      height: 2px;
-      background: linear-gradient(90deg, transparent, var(--primary-cyan), transparent);
-      margin: 40px 0;
-    }
-
-    /* =============== GAME CONTAINER =============== */
-    #game-container {
-      display: none;
-      height: 100vh;
-      position: relative;
-      overflow: hidden;
-    }
-
-    #map-container {
-      width: 100%;
-      height: 100%;
-      position: relative;
-    }
-
-    #map {
-      width: 100%;
-      height: 100%;
-      background: #0a1929;
-    }
-
-    /* Top Info Bar */
-    #top-info {
-      position: fixed;
-      top: 20px;
+      bottom: -8px;
       left: 50%;
       transform: translateX(-50%);
-      z-index: 3000;
-      padding: 15px 30px;
-      border-radius: 20px;
-      display: flex;
-      align-items: center;
-      gap: 30px;
-      animation: slideDown 0.6s ease;
+      width: 40px;
+      height: 4px;
+      background: rgba(255,0,0,0.3);
+      border-radius: 2px;
     }
 
-    @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translate(-50%, -50px);
-      }
-      to {
-        opacity: 1;
-        transform: translate(-50%, 0);
-      }
+    .health-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ff3366, #00ff88);
+      border-radius: 2px;
+      transition: width 0.3s;
     }
 
-    #top-info p {
-      margin: 0;
-      font-size: 16px;
-      color: var(--text-secondary);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    #top-info p span {
-      color: var(--primary-cyan);
-      font-weight: 700;
-      font-size: 18px;
-    }
-
-    #top-info .separator {
-      width: 2px;
-      height: 30px;
-      background: var(--glass-border);
-    }
-
-    #end-turn-btn, #start-game-btn {
-      padding: 10px 20px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 15px;
-    }
-
-    #turn-timer {
-      background: var(--dark-surface);
-      padding: 6px 12px;
-      border-radius: 8px;
-      font-weight: 700;
-      color: var(--warning);
-    }
-
-    /* Bottom Icons */
-    #bottom-icons {
-      position: fixed;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 15px;
-      z-index: 3000;
-      animation: slideUp 0.6s ease 0.3s both;
-    }
-
-    .bottom-icon-btn {
-      width: 60px;
-      height: 60px;
-      border: none;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--primary-cyan), var(--primary-purple));
-      color: white;
-      font-size: 24px;
-      cursor: pointer;
-      transition: all 0.3s;
-      position: relative;
-      box-shadow: 0 4px 20px rgba(0, 240, 255, 0.3);
-    }
-
-    .bottom-icon-btn:hover {
-      transform: translateY(-8px) scale(1.1);
-      box-shadow: 0 8px 30px rgba(0, 240, 255, 0.5);
-    }
-
-    .bottom-icon-btn[data-badge]:not([data-badge=""]):after {
-      content: attr(data-badge);
+    /* Range Circle */
+    .range-circle {
       position: absolute;
-      top: -5px;
-      right: -5px;
-      background: var(--danger);
-      color: white;
+      border: 2px solid var(--primary);
       border-radius: 50%;
-      min-width: 24px;
-      height: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: 700;
+      background: rgba(0,240,255,0.1);
+      pointer-events: none;
       animation: pulse 2s infinite;
     }
 
     @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.1); }
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 0.8; }
     }
 
-    #exit-room-btn {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      z-index: 3000;
-      animation: slideUp 0.6s ease 0.3s both;
-    }
-
-    #toggle-info-cards {
+    /* Attack Effect */
+    .attack-line {
       position: absolute;
-      top: 20px;
-      right: 20px;
-      z-index: 1100;
-      width: 50px;
-      height: 50px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--danger), transparent);
+      pointer-events: none;
+      animation: attackFlash 0.3s ease;
+    }
+
+    @keyframes attackFlash {
+      0%, 100% { opacity: 0; }
+      50% { opacity: 1; }
+    }
+
+    .explosion {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      background: radial-gradient(circle, var(--warning), transparent);
       border-radius: 50%;
-      background: var(--glass-bg);
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--glass-border);
-      color: white;
-      font-size: 20px;
-      cursor: pointer;
-      transition: all 0.3s;
+      pointer-events: none;
+      animation: explode 0.5s ease forwards;
     }
 
-    #toggle-info-cards:hover {
-      transform: scale(1.1);
-      background: var(--primary-cyan);
-    }
-
-    /* Popups */
-    .modern-popup, .chat-popup, .market-popup {
-      position: fixed;
-      bottom: 110px;
-      right: 30px;
-      width: 500px;
-      max-height: 75vh;
-      border-radius: 24px;
-      display: none;
-      flex-direction: column;
-      z-index: 3002;
-      animation: popupSlide 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      overflow: hidden;
-    }
-
-    @keyframes popupSlide {
-      from {
-        opacity: 0;
-        transform: translateY(30px) scale(0.95);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-    }
-
-    #players-popup {
-      right: auto;
-      left: 30px;
-    }
-
-    .popup-header, .chat-header, .market-header {
-      padding: 20px 25px;
-      background: linear-gradient(135deg, var(--primary-cyan), var(--primary-purple));
-      color: white;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-    }
-
-    .popup-header h2, .popup-header span {
-      font-size: 20px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .popup-header button, .chat-header button, .market-header button {
-      background: transparent;
-      border: none;
-      color: white;
-      font-size: 28px;
-      cursor: pointer;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      transition: all 0.3s;
-    }
-
-    .popup-header button:hover {
-      background: rgba(255, 255, 255, 0.2);
-      transform: rotate(90deg);
-    }
-
-    .popup-content {
-      flex: 1;
-      padding: 25px;
-      overflow-y: auto;
-      background: var(--dark-surface);
-    }
-
-    .popup-content h3 {
-      font-size: 18px;
-      color: var(--primary-cyan);
-      margin: 20px 0 15px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .popup-content h3:first-child {
-      margin-top: 0;
-    }
-
-    .popup-content button {
-      width: 100%;
-      margin-bottom: 15px;
-    }
-
-    .popup-content input, .popup-content select {
-      width: 100%;
-      margin-bottom: 15px;
-    }
-
-    .popup-content p {
-      color: var(--text-secondary);
-      font-size: 14px;
-      margin-bottom: 10px;
-      line-height: 1.6;
-    }
-
-    /* Chat Specific */
-    .chat-messages {
-      flex: 1;
-      padding: 20px;
-      overflow-y: auto;
-      background: var(--dark-surface);
-      min-height: 200px;
-    }
-
-    .chat-messages > div {
-      padding: 10px 15px;
-      margin-bottom: 10px;
-      border-radius: 12px;
-      background: var(--dark-surface-light);
-      animation: messageSlide 0.3s ease;
-    }
-
-    @keyframes messageSlide {
-      from {
-        opacity: 0;
-        transform: translateX(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-
-    .chat-input-container {
-      display: flex;
-      border-top: 2px solid var(--glass-border);
-      background: var(--dark-surface-light);
-    }
-
-    .chat-input-container input {
-      flex: 1;
-      padding: 18px 20px;
-      background: transparent;
-      border: none;
-      color: white;
-      font-size: 16px;
-    }
-
-    .chat-input-container input:focus {
-      outline: none;
-    }
-
-    .chat-input-container button {
-      padding: 18px 25px;
-      background: linear-gradient(135deg, var(--primary-cyan), var(--primary-purple));
-      border: none;
-      color: white;
-      font-size: 20px;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-
-    .chat-input-container button:hover {
-      background: linear-gradient(135deg, var(--primary-purple), var(--primary-pink));
-    }
-
-    .chat-private-container {
-      padding: 20px;
-      background: var(--dark-surface-light);
-      border-top: 2px solid var(--glass-border);
-    }
-
-    .chat-private-container h4 {
-      color: var(--primary-cyan);
-      margin-bottom: 15px;
-      font-size: 16px;
-    }
-
-    /* Notifications */
-    #notification-area {
-      position: fixed;
-      top: 100px;
-      right: 30px;
-      z-index: 4000;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      max-width: 400px;
-    }
-
-    .notification-item {
-      padding: 18px 25px;
-      border-radius: 16px;
-      background: var(--glass-bg);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
-      color: white;
-      font-size: 15px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-      animation: notifSlide 0.4s ease, notifFade 0.4s ease 4.6s forwards;
-      border-left: 4px solid var(--primary-cyan);
-    }
-
-    @keyframes notifSlide {
-      from {
-        opacity: 0;
-        transform: translateX(100px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-
-    @keyframes notifFade {
-      to {
-        opacity: 0;
-        transform: translateX(100px);
-      }
-    }
-
-    /* Player Info Cards */
-    .player-info {
-      padding: 20px;
-      margin-bottom: 15px;
-      border-radius: 16px;
-      background: var(--dark-surface-light);
-      border: 2px solid var(--glass-border);
-      transition: all 0.3s;
-    }
-
-    .player-info:hover {
-      border-color: var(--primary-cyan);
-      transform: translateX(5px);
-    }
-
-    .player-info p {
-      margin: 8px 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .player-info strong {
-      color: var(--primary-cyan);
-      font-size: 18px;
-    }
-
-    /* Offer Items */
-    .offer-item, .pact-offer-item, .active-pact-item {
-      padding: 20px;
-      margin-bottom: 15px;
-      border-radius: 16px;
-      background: var(--dark-surface-light);
-      border: 2px solid var(--glass-border);
-      transition: all 0.3s;
-    }
-
-    .offer-item:hover, .pact-offer-item:hover {
-      border-color: var(--primary-cyan);
-      transform: translateY(-2px);
-    }
-
-    .offer-item button {
-      margin-top: 10px;
-    }
-
-    .offer-item input {
-      margin: 10px 0;
-    }
-
-    /* Leaflet Tooltip */
-    .country-popup-tooltip {
-      background: var(--dark-surface) !important;
-      border: 2px solid var(--primary-cyan) !important;
-      border-radius: 12px !important;
-      padding: 12px 16px !important;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
-      color: white !important;
-    }
-
-    .country-popup-tooltip p {
-      margin: 6px 0;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .country-popup-tooltip i {
-      color: var(--primary-cyan);
-      width: 20px;
-    }
-
-    /* Responsive */
-    @media screen and (max-width: 1024px) {
-      .modern-popup, .chat-popup, .market-popup, #players-popup {
-        width: calc(100% - 40px);
-        left: 20px !important;
-        right: 20px !important;
-        bottom: 110px;
-      }
-
-      #profile-content {
-        grid-template-columns: 1fr;
-      }
-
-      #top-info {
-        flex-wrap: wrap;
-        gap: 15px;
-        padding: 15px 20px;
-      }
-
-      #bottom-icons {
-        gap: 10px;
-      }
-
-      .bottom-icon-btn {
-        width: 50px;
-        height: 50px;
-        font-size: 20px;
-      }
-    }
-
-    @media screen and (max-width: 768px) {
-      .auth-header h1, .lobby-header h1 {
-        font-size: 36px;
-      }
-
-      .modern-popup, .chat-popup, .market-popup, #players-popup {
-        max-height: 60vh;
-      }
-
-      #notification-area {
-        right: 10px;
-        max-width: calc(100% - 20px);
-      }
-    }
-
-    /* Loading Animation */
-    .loading {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      border-top-color: var(--primary-cyan);
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* Success/Error States */
-    .success {
-      border-color: var(--success) !important;
-    }
-
-    .error {
-      border-color: var(--danger) !important;
+    @keyframes explode {
+      0% { transform: scale(0); opacity: 1; }
+      100% { transform: scale(3); opacity: 0; }
     }
   </style>
 </head>
-
 <body>
-  <!-- =============== AUTH PAGE =============== -->
-  <div id="auth-container" class="container-page">
-    <div id="auth-wrapper">
-      <div class="auth-header">
-        <h1>GLOBAL CONQUEST</h1>
-        <p class="auth-subtitle">Online Strategy Warfare</p>
-      </div>
-
-      <div class="auth-card glass">
-        <div class="auth-tabs">
-          <div id="login-tab" class="auth-tab active">
-            <i class="fas fa-sign-in-alt"></i> Giriş Yap
-          </div>
-          <div id="register-tab" class="auth-tab">
-            <i class="fas fa-user-plus"></i> Kayıt Ol
-          </div>
-        </div>
-
-        <div id="login-form" class="auth-form">
-          <input type="email" id="login-email" class="input" placeholder="E-Posta Adresiniz" />
-          <input type="password" id="login-password" class="input" placeholder="Şifreniz" />
-          <button id="login-btn" class="btn btn-primary">
-            <i class="fas fa-rocket"></i> Giriş Yap
-          </button>
-        </div>
-
-        <div id="register-form" class="auth-form" style="display:none;">
-          <input type="email" id="register-email" class="input" placeholder="E-Posta Adresiniz" />
-          <input type="password" id="register-password" class="input" placeholder="Şifre Oluşturun" />
-          <input type="password" id="register-confirm-password" class="input" placeholder="Şifre Tekrar" />
-          <input type="text" id="register-display-name" class="input" placeholder="Kullanıcı Adınız" />
-          <button id="register-btn" class="btn btn-primary">
-            <i class="fas fa-star"></i> Kayıt Ol
-          </button>
-        </div>
-      </div>
+  <!-- AUTH SCREEN -->
+  <div id="auth-screen">
+    <div class="auth-box">
+      <h1>GLOBAL CONQUEST</h1>
+      <input type="text" id="player-name" class="input" placeholder="Komutan Adınız" />
+      <input type="text" id="room-code" class="input" placeholder="Oda Kodu (Boş bırak = Yeni Oda)" />
+      <button class="btn" onclick="startGame()">🚀 SAVAŞA BAŞLA</button>
     </div>
   </div>
 
-  <!-- =============== PROFILE PAGE =============== -->
-  <div id="profile-container" class="container-page">
-    <div id="profile-header" class="glass">
-      <h2><i class="fas fa-user-circle"></i> <span id="profile-username">Profil</span></h2>
-      <div class="profile-buttons">
-        <button id="go-lobby-btn" class="btn btn-primary">
-          <i class="fas fa-gamepad"></i> Oyuna Başla
-        </button>
-        <button id="profile-logout-btn" class="btn btn-danger">
-          <i class="fas fa-sign-out-alt"></i> Çıkış
-        </button>
+  <!-- GAME SCREEN -->
+  <div id="game-screen">
+    <div id="map"></div>
+
+    <!-- TOP HUD -->
+    <div id="top-hud">
+      <div class="hud-item">
+        <span>💰</span>
+        <span class="hud-value" id="money">5000</span>
+      </div>
+      <div class="hud-item">
+        <span>⚡</span>
+        <span class="hud-value" id="energy">1000</span>
+      </div>
+      <div class="hud-item">
+        <span>🛢️</span>
+        <span class="hud-value" id="oil">500</span>
+      </div>
+      <div class="hud-item">
+        <span>🎯</span>
+        <span class="hud-value" id="selected-count">0</span>
       </div>
     </div>
 
-    <div id="profile-content">
-      <div class="profile-section glass">
-        <h3><i class="fas fa-users"></i> Arkadaşlar</h3>
-        <div class="scrollable-list" id="friend-list"></div>
-      </div>
+    <!-- UNITS PANEL -->
+    <div id="units-panel"></div>
 
-      <div class="profile-section glass">
-        <h3><i class="fas fa-user-clock"></i> Gelen İstekler</h3>
-        <div class="scrollable-list" id="friend-request-list"></div>
-      </div>
-
-      <div class="profile-section glass">
-        <h3><i class="fas fa-envelope"></i> Oda Davetleri</h3>
-        <div class="scrollable-list" id="room-invite-list"></div>
-      </div>
-
-      <div class="profile-section glass">
-        <h3><i class="fas fa-user-plus"></i> Arkadaş Ekle</h3>
-        <input type="text" id="add-friend-username" class="input" placeholder="Kullanıcı Adı" />
-        <button id="send-friend-request-btn" class="btn btn-primary">
-          <i class="fas fa-paper-plane"></i> İstek Gönder
-        </button>
-      </div>
-
-      <div class="profile-section glass">
-        <h3><i class="fas fa-door-open"></i> Arkadaşları Davet Et</h3>
-        <div class="scrollable-list" id="invite-friend-list"></div>
-        <button id="create-room-invite-btn" class="btn btn-secondary">
-          <i class="fas fa-plus-circle"></i> Oda Oluştur & Davet
-        </button>
-      </div>
+    <!-- BUILDINGS PANEL -->
+    <div id="buildings-panel">
+      <h3 style="margin-bottom: 15px; color: var(--primary);">⚒️ İnşaat</h3>
+      <div id="buildings-list"></div>
     </div>
+
+    <!-- SELECTION INFO -->
+    <div id="selection-info">
+      <h3 style="margin-bottom: 10px; color: var(--primary);">📊 Seçili Birim</h3>
+      <div id="info-content"></div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div id="notifications"></div>
+
+    <!-- CONTEXT MENU -->
+    <div id="context-menu">
+      <div class="context-item" onclick="contextAttack()">⚔️ Saldır</div>
+      <div class="context-item" onclick="contextMove()">🏃 Hareket</div>
+      <div class="context-item" onclick="contextStop()">✋ Dur</div>
+    </div>
+
+    <!-- MINIMAP -->
+    <div id="minimap"></div>
   </div>
 
-  <!-- =============== LOBBY PAGE =============== -->
-  <div id="lobby-container" class="container-page">
-    <div id="lobby-wrapper">
-      <div class="lobby-header">
-        <h1>GLOBAL CONQUEST</h1>
-        <p class="auth-subtitle">Strateji ve Fetih</p>
-      </div>
-
-      <div class="lobby-card glass">
-        <div class="lobby-section">
-          <h2><i class="fas fa-plus-circle"></i> Oda Oluştur</h2>
-          <div class="input-group">
-            <label>Oyuncu Adınız</label>
-            <input type="text" id="creator-player-name" class="input" placeholder="Komutan adınızı girin" />
-          </div>
-          <div class="input-group">
-            <label>Renk Seçin</label>
-            <div class="color-options" id="creator-color-options"></div>
-          </div>
-          <div class="input-group">
-            <label>Maksimum Oyuncu Sayısı</label>
-            <input type="number" id="max-players" class="input" placeholder="2-8 arası" min="2" max="8" value="4" />
-          </div>
-          <button id="create-room-btn" class="btn btn-primary">
-            <i class="fas fa-rocket"></i> Oda Oluştur
-          </button>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="lobby-section">
-          <h2><i class="fas fa-sign-in-alt"></i> Odaya Katıl</h2>
-          <div class="input-group">
-            <label>Oyuncu Adınız</label>
-            <input type="text" id="join-player-name" class="input" placeholder="Komutan adınızı girin" />
-          </div>
-          <div class="input-group">
-            <label>Renk Seçin</label>
-            <div class="color-options" id="join-color-options"></div>
-          </div>
-          <div class="input-group">
-            <label>Oda Kodu</label>
-            <input type="text" id="room-code" class="input" placeholder="Örn: AB12CD" />
-          </div>
-          <button id="join-room-btn" class="btn btn-secondary">
-            <i class="fas fa-door-open"></i> Odaya Katıl
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- =============== NOTIFICATION AREA =============== -->
-  <div id="notification-area"></div>
-
-  <!-- =============== GAME CONTAINER =============== -->
-  <div id="game-container">
-    <div id="top-info" class="glass">
-      <p><i class="fas fa-key"></i> Kod: <span id="display-room-code">-</span></p>
-      <div class="separator"></div>
-      <p><i class="fas fa-sync-alt"></i> Tur: <span id="current-round">1</span></p>
-      <div class="separator"></div>
-      <p><i class="fas fa-chess-knight"></i> Sıra: <span id="current-player">?</span></p>
-      <button id="end-turn-btn" class="btn btn-secondary">
-        <i class="fas fa-forward"></i> Tur Sonu
-        <span id="turn-timer">60s</span>
-      </button>
-      <button id="start-game-btn" class="btn btn-success" style="display:none;">
-        <i class="fas fa-play"></i> Başlat
-      </button>
-      <span id="start-countdown" style="display:none; color: var(--warning); font-size: 20px; font-weight: 700;"></span>
-    </div>
-
-    <div id="map-container">
-      <div id="map"></div>
-      <button id="toggle-info-cards">
-        <i class="fas fa-eye-slash"></i>
-      </button>
-    </div>
-
-    <button id="exit-room-btn" class="btn btn-danger">
-      <i class="fas fa-door-closed"></i> Odadan Çık
-    </button>
-
-    <div id="bottom-icons">
-      <button id="open-players-btn" class="bottom-icon-btn" title="Oyuncular">
-        <i class="fas fa-users"></i>
-      </button>
-      <button id="open-military-btn" class="bottom-icon-btn" title="Asker">
-        <i class="fas fa-shield-alt"></i>
-      </button>
-      <button id="open-building-btn" class="bottom-icon-btn" title="Bina">
-        <i class="fas fa-building"></i>
-      </button>
-      <button id="open-resource-btn" class="bottom-icon-btn" title="Kaynak">
-        <i class="fas fa-coins"></i>
-      </button>
-      <button id="open-market-btn" class="bottom-icon-btn" title="Market">
-        <i class="fas fa-store"></i>
-      </button>
-      <button id="open-pact-btn" class="bottom-icon-btn" title="Pakt">
-        <i class="fas fa-handshake"></i>
-      </button>
-      <button id="open-chat-btn" class="bottom-icon-btn" data-badge="" title="Sohbet">
-        <i class="fas fa-comments"></i>
-      </button>
-      <button id="open-notifications-btn" class="bottom-icon-btn" title="Bildirimler">
-        <i class="fas fa-bell"></i>
-      </button>
-    </div>
-  </div>
-
-  <!-- =============== MILITARY POPUP =============== -->
-  <div id="military-popup" class="modern-popup glass">
-    <div class="popup-header">
-      <span><i class="fas fa-shield-alt"></i> Asker İşlemleri</span>
-      <button id="close-military-btn">&times;</button>
-    </div>
-    <div class="popup-content">
-      <h3><i class="fas fa-crosshairs"></i> Saldırı</h3>
-      <p>Hedef ülkeyi haritadan seçin ve asker sayısı girin (1 asker = 1 varil petrol)</p>
-      <input type="number" id="attack-soldiers" class="input" placeholder="Asker sayısı" min="1" />
-      <button id="attack-btn" class="btn btn-danger">
-        <i class="fas fa-crosshairs"></i> Saldırı Yap
-      </button>
-
-      <h3><i class="fas fa-user-plus"></i> Asker Satın Al</h3>
-      <p>1 Asker = 10$ + 25 Buğday</p>
-      <input type="number" id="soldiers-to-buy" class="input" placeholder="Adet" min="1" />
-      <button id="buy-soldiers-btn" class="btn btn-primary">
-        <i class="fas fa-shopping-cart"></i> Satın Al
-      </button>
-
-      <h3><i class="fas fa-running"></i> Asker Çek</h3>
-      <input type="number" id="pull-soldiers-count" class="input" placeholder="Asker sayısı" min="1" />
-      <button id="pull-soldiers-btn" class="btn btn-primary">
-        <i class="fas fa-arrow-left"></i> Asker Çek
-      </button>
-
-      <h3><i class="fas fa-hands-helping"></i> Askeri Destek</h3>
-      <select id="support-recipient" class="input"></select>
-      <select id="support-recipient-country" class="input"></select>
-      <input type="number" id="support-soldiers" class="input" placeholder="Asker sayısı" min="1" />
-      <button id="send-support-btn" class="btn btn-success">
-        <i class="fas fa-hands-helping"></i> Destek Gönder
-      </button>
-    </div>
-  </div>
-
-  <!-- =============== BUILDING POPUP =============== -->
-  <div id="building-popup" class="modern-popup glass">
-    <div class="popup-header">
-      <span><i class="fas fa-building"></i> Bina Kurma</span>
-      <button id="close-building-btn">&times;</button>
-    </div>
-    <div class="popup-content">
-      <h3><i class="fas fa-fort-awesome"></i> Kışla Kur</h3>
-      <p>1 Kışla = 300$ + 50 Varil + 120 Buğday</p>
-      <input type="number" id="barracks-quantity" class="input" placeholder="Adet" min="1" />
-      <button id="buy-barracks-btn" class="btn btn-primary">Kışla Kur</button>
-
-      <h3><i class="fas fa-industry"></i> Fabrika Kur</h3>
-      <p>1 Fabrika = 500$ + 130 Varil</p>
-      <input type="number" id="factory-quantity" class="input" placeholder="Adet" min="1" />
-      <button id="build-factory-btn" class="btn btn-primary">Fabrika Kur</button>
-
-      <h3><i class="fas fa-oil-can"></i> Rafine Kur</h3>
-      <p>1 Rafine = 800$ + 250 Varil</p>
-      <input type="number" id="refinery-quantity" class="input" placeholder="Adet" min="1" />
-      <button id="build-refinery-btn" class="btn btn-primary">Rafine Kur</button>
-
-      <h3><i class="fas fa-wheat-awn"></i> Değirmen Kur</h3>
-      <p>1 Değirmen = 200$ + 100 Varil</p>
-      <input type="number" id="grainmill-quantity" class="input" placeholder="Adet" min="1" />
-      <button id="build-grainmill-btn" class="btn btn-primary">Değirmen Kur</button>
-
-      <h3><i class="fas fa-chess-rook"></i> Kale Kur</h3>
-      <p>1 Kale = 1000$ + 1000 Varil + 1000 Buğday (Savunma %5)</p>
-      <button id="build-castle-btn" class="btn btn-secondary">Kale Kur</button>
-
-      <h3><i class="fas fa-arrow-up"></i> Kale Güçlendir</h3>
-      <p>Her güçlendirme +%5 savunma (Max %30)</p>
-      <p>Maliyet: <span id="castle-upgrade-cost-text">-</span></p>
-      <button id="upgrade-castle-btn" class="btn btn-success">Güçlendir</button>
-    </div>
-  </div>
-
-  <!-- =============== RESOURCE POPUP =============== -->
-  <div id="resource-popup" class="modern-popup glass">
-    <div class="popup-header">
-      <span><i class="fas fa-coins"></i> Kaynak Gönder</span>
-      <button id="close-resource-btn">&times;</button>
-    </div>
-    <div class="popup-content">
-      <h3><i class="fas fa-dollar-sign"></i> Para Gönder</h3>
-      <input type="number" id="money-to-send" class="input" placeholder="Miktar ($)" min="1" />
-      <select id="recipient-player" class="input"></select>
-      <button id="send-money-btn" class="btn btn-primary">Para Gönder</button>
-
-      <h3><i class="fas fa-gas-pump"></i> Petrol Gönder</h3>
-      <input type="number" id="petrol-to-send" class="input" placeholder="Varil" min="1" />
-      <select id="recipient-player-petrol" class="input"></select>
-      <button id="send-petrol-btn" class="btn btn-primary">Petrol Gönder</button>
-
-      <h3><i class="fas fa-wheat-awn"></i> Buğday Gönder</h3>
-      <input type="number" id="wheat-to-send" class="input" placeholder="Buğday" min="1" />
-      <select id="recipient-player-wheat" class="input"></select>
-      <button id="send-wheat-btn" class="btn btn-primary">Buğday Gönder</button>
-    </div>
-  </div>
-
-  <!-- =============== PLAYERS POPUP =============== -->
-  <div id="players-popup" class="modern-popup glass">
-    <div class="popup-header">
-      <span><i class="fas fa-users"></i> Oyuncular</span>
-      <button id="close-players-btn">&times;</button>
-    </div>
-    <div class="popup-content" id="players-info"></div>
-  </div>
-
-  <!-- =============== CHAT POPUP =============== -->
-  <div id="chat-popup" class="chat-popup glass">
-    <div class="chat-header">
-      <span><i class="fas fa-comments"></i> Sohbet</span>
-      <button id="close-chat-btn">&times;</button>
-    </div>
-    <div id="chat-messages" class="chat-messages"></div>
-    <div class="chat-input-container">
-      <input type="text" id="chat-input" placeholder="Mesajınızı yazın..." />
-      <button id="send-chat-btn"><i class="fas fa-paper-plane"></i></button>
-    </div>
-    <div class="chat-private-container">
-      <h4><i class="fas fa-user-secret"></i> Özel Mesaj</h4>
-      <select id="private-message-recipient" class="input"></select>
-      <input type="text" id="private-message-input" class="input" placeholder="Özel mesaj..." />
-      <button id="send-private-message-btn" class="btn btn-primary">Gönder</button>
-    </div>
-  </div>
-
-  <!-- =============== PACT POPUP =============== -->
-  <div id="pact-popup" class="modern-popup glass">
-    <div class="popup-header">
-      <span><i class="fas fa-handshake"></i> Pakt</span>
-      <button id="close-pact-btn">&times;</button>
-    </div>
-    <div class="popup-content">
-      <h3><i class="fas fa-file-signature"></i> Yeni Pakt Teklifi</h3>
-      <select id="pact-offer-recipient" class="input"></select>
-      <input type="number" id="pact-duration" class="input" placeholder="Tur sayısı" />
-      <input type="number" id="pact-cost" class="input" placeholder="Para ($)" />
-      <button id="send-pact-offer-btn" class="btn btn-primary">Teklif Gönder</button>
-
-      <h3><i class="fas fa-inbox"></i> Gelen Teklifler</h3>
-      <div id="pact-pending-offers"></div>
-
-      <h3><i class="fas fa-check-circle"></i> Aktif Paktlar</h3>
-      <div id="active-pacts-container"></div>
-    </div>
-  </div>
-
-  <!-- =============== MARKET POPUP =============== -->
-  <div id="market-popup" class="market-popup glass">
-    <div class="market-header">
-      <span><i class="fas fa-store"></i> Ticaret Merkezi</span>
-      <button id="close-market-btn">&times;</button>
-    </div>
-    <div class="market-content">
-      <h3><i class="fas fa-plus-circle"></i> Yeni Teklif Oluştur</h3>
-      <select id="trade-item-type" class="input">
-        <option value="petrol">Petrol</option>
-        <option value="wheat">Buğday</option>
-      </select>
-      <input type="number" id="trade-quantity" class="input" placeholder="Miktar" min="1" />
-      <input type="number" id="trade-price" class="input" placeholder="Birim Fiyat ($)" min="1" />
-      <label style="color: var(--text-secondary); font-size: 14px; margin: 10px 0;">Ambargo (Oyuncular):</label>
-      <select id="embargo-players" multiple class="input" style="min-height: 80px;"></select>
-      <button id="create-trade-offer-btn" class="btn btn-primary">Teklif Oluştur</button>
-
-      <h3 style="margin-top: 30px;"><i class="fas fa-list"></i> Mevcut Teklifler</h3>
-      <div id="trade-offers-list"></div>
-    </div>
-  </div>
-
-  <!-- Scripts -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-  <script src="gameLogic.js"></script>
+
+  <script>
+    // ==================== FIREBASE SETUP ====================
+    const firebaseConfig = {
+      apiKey: "AIzaSyCINihMNGs-qRYIIBLzXyeaLnM_Lhp-iwg",
+      authDomain: "warmapg-77acb.firebaseapp.com",
+      databaseURL: "https://warmapg-77acb-default-rtdb.firebaseio.com",
+      projectId: "warmapg-77acb",
+      storageBucket: "warmapg-77acb.appspot.com",
+      messagingSenderId: "895613631339",
+      appId: "1:895613631339:web:a7ecc0cfd8ab3ae7e02a2e"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // ==================== GAME STATE ====================
+    let map, playerId, roomCode, roomRef;
+    let playerData = {
+      name: '',
+      color: '#00f0ff',
+      money: 5000,
+      energy: 1000,
+      oil: 500,
+      units: {},
+      buildings: {}
+    };
+
+    let selectedUnits = [];
+    let selectedUnitType = null;
+    let selectedBuilding = null;
+    let gameLoop;
+
+    // ==================== UNIT TYPES ====================
+    const UNIT_TYPES = {
+      infantry: {
+        name: 'Piyade',
+        icon: '🪖',
+        cost: 100,
+        speed: 2,
+        range: 50,
+        attack: 10,
+        health: 100,
+        maxHealth: 100
+      },
+      tank: {
+        name: 'Tank',
+        icon: '🚜',
+        cost: 500,
+        speed: 1.5,
+        range: 150,
+        attack: 50,
+        health: 300,
+        maxHealth: 300
+      },
+      artillery: {
+        name: 'Topçu',
+        icon: '🎯',
+        cost: 800,
+        speed: 1,
+        range: 300,
+        attack: 80,
+        health: 150,
+        maxHealth: 150
+      },
+      helicopter: {
+        name: 'Helikopter',
+        icon: '🚁',
+        cost: 1200,
+        speed: 4,
+        range: 200,
+        attack: 40,
+        health: 200,
+        maxHealth: 200
+      },
+      fighter: {
+        name: 'F-35',
+        icon: '✈️',
+        cost: 2000,
+        speed: 6,
+        range: 400,
+        attack: 100,
+        health: 250,
+        maxHealth: 250
+      },
+      bomber: {
+        name: 'Bombardıman',
+        icon: '🛩️',
+        cost: 3000,
+        speed: 5,
+        range: 500,
+        attack: 150,
+        health: 300,
+        maxHealth: 300
+      },
+      submarine: {
+        name: 'Denizaltı',
+        icon: '🚢',
+        cost: 1500,
+        speed: 2,
+        range: 250,
+        attack: 70,
+        health: 400,
+        maxHealth: 400
+      },
+      destroyer: {
+        name: 'Destroyır',
+        icon: '⛴️',
+        cost: 2500,
+        speed: 2.5,
+        range: 300,
+        attack: 90,
+        health: 500,
+        maxHealth: 500
+      },
+      missile: {
+        name: 'Füze Sistemi',
+        icon: '🚀',
+        cost: 5000,
+        speed: 0.5,
+        range: 800,
+        attack: 200,
+        health: 100,
+        maxHealth: 100
+      },
+      drone: {
+        name: 'Drone',
+        icon: '🛸',
+        cost: 600,
+        speed: 5,
+        range: 150,
+        attack: 30,
+        health: 80,
+        maxHealth: 80
+      },
+      sniper: {
+        name: 'Keskin Nişancı',
+        icon: '🎯',
+        cost: 400,
+        speed: 1.5,
+        range: 400,
+        attack: 60,
+        health: 80,
+        maxHealth: 80
+      },
+      engineer: {
+        name: 'Mühendis',
+        icon: '👷',
+        cost: 200,
+        speed: 2,
+        range: 30,
+        attack: 5,
+        health: 100,
+        maxHealth: 100
+      },
+      medic: {
+        name: 'Sağlıkçı',
+        icon: '⚕️',
+        cost: 300,
+        speed: 2,
+        range: 50,
+        attack: 0,
+        health: 100,
+        maxHealth: 100
+      },
+      commando: {
+        name: 'Komando',
+        icon: '🥷',
+        cost: 700,
+        speed: 3,
+        range: 100,
+        attack: 40,
+        health: 150,
+        maxHealth: 150
+      },
+      machinegun: {
+        name: 'Ağır Makineli',
+        icon: '🔫',
+        cost: 350,
+        speed: 1.5,
+        range: 120,
+        attack: 25,
+        health: 120,
+        maxHealth: 120
+      },
+      mortar: {
+        name: 'Havan Topu',
+        icon: '💣',
+        cost: 600,
+        speed: 1,
+        range: 250,
+        attack: 65,
+        health: 100,
+        maxHealth: 100
+      },
+      rocket: {
+        name: 'Roketatar',
+        icon: '🧨',
+        cost: 900,
+        speed: 1.5,
+        range: 200,
+        attack: 75,
+        health: 130,
+        maxHealth: 130
+      },
+      radar: {
+        name: 'Radar',
+        icon: '📡',
+        cost: 1000,
+        speed: 0,
+        range: 600,
+        attack: 0,
+        health: 150,
+        maxHealth: 150
+      },
+      sam: {
+        name: 'Hava Savunma',
+        icon: '🎆',
+        cost: 1800,
+        speed: 0,
+        range: 450,
+        attack: 85,
+        health: 200,
+        maxHealth: 200
+      },
+      carrier: {
+        name: 'Uçak Gemisi',
+        icon: '🛳️',
+        cost: 10000,
+        speed: 1,
+        range: 100,
+        attack: 20,
+        health: 2000,
+        maxHealth: 2000
+      }
+    };
+
+    // ==================== BUILDING TYPES ====================
+    const BUILDING_TYPES = {
+      barracks: {
+        name: 'Kışla',
+        icon: '🏰',
+        cost: 500
+      },
+      factory: {
+        name: 'Fabrika',
+        icon: '🏭',
+        cost: 1000
+      },
+      airbase: {
+        name: 'Hava Üssü',
+        icon: '✈️',
+        cost: 2000
+      },
+      naval: {
+        name: 'Deniz Üssü',
+        icon: '⚓',
+        cost: 2500
+      },
+      power: {
+        name: 'Enerji Santrali',
+        icon: '⚡',
+        cost: 1500
+      },
+      refinery: {
+        name: 'Rafineri',
+        icon: '🛢️',
+        cost: 1200
+      }
+    };
+
+    // ==================== AUDIO SYSTEM ====================
+    const sounds = {
+      click: () => playSound(1000, 0.1, 0.05),
+      build: () => playSound(500, 0.2, 0.1),
+      attack: () => playSound(200, 0.3, 0.05),
+      explosion: () => playSound(100, 0.5, 0.1),
+      move: () => playSound(800, 0.05, 0.02)
+    };
+
+    function playSound(freq, vol, dur) {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      
+      oscillator.frequency.value = freq;
+      oscillator.type = 'sine';
+      gainNode.gain.value = vol;
+      
+      oscillator.start();
+      setTimeout(() => oscillator.stop(), dur * 1000);
+    }
+
+    // ==================== START GAME ====================
+    function startGame() {
+      const nameInput = document.getElementById('player-name').value.trim();
+      const roomInput = document.getElementById('room-code').value.trim();
+
+      if (!nameInput) {
+        alert('Lütfen bir komutan adı girin!');
+        return;
+      }
+
+      playerData.name = nameInput;
+      playerId = 'player_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      
+      if (roomInput) {
+        roomCode = roomInput.toUpperCase();
+      } else {
+        roomCode = generateRoomCode();
+      }
+
+      roomRef = db.ref('rooms/' + roomCode);
+      
+      roomRef.once('value').then(snapshot => {
+        if (!snapshot.exists()) {
+          // Create new room
+          roomRef.set({
+            created: Date.now(),
+            players: {}
+          });
+        }
+        
+        // Join room
+        roomRef.child('players/' + playerId).set({
+          name: playerData.name,
+          color: playerData.color,
+          money: playerData.money,
+          energy: playerData.energy,
+          oil: playerData.oil,
+          lastUpdate: Date.now()
+        });
+
+        initGame();
+      });
+    }
+
+    function generateRoomCode() {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let code = '';
+      for (let i = 0; i < 6; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return code;
+    }
+
+    // ==================== INIT GAME ====================
+    function initGame() {
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('game-screen').style.display = 'block';
+
+      // Init Google Maps
+      map = new google.maps.Map(document.getElementById('map'), {
+        center: { lat: 39.9334, lng: 32.8597 }, // Ankara
+        zoom: 6,
+        mapTypeId: 'satellite',
+        disableDefaultUI: true,
+        zoomControl: true,
+        gestureHandling: 'greedy'
+      });
+
+      // Setup UI
+      setupUnitsPanel();
+      setupBuildingsPanel();
+      setupEventListeners();
+      
+      // Start game loop
+      gameLoop = setInterval(updateGame, 50); // 20 FPS
+
+      // Listen to Firebase
+      roomRef.child('units').on('child_changed', updateUnitFromServer);
+      roomRef.child('units').on('child_added', addUnitFromServer);
+      roomRef.child('units').on('child_removed', removeUnitFromServer);
+
+      showNotification('🎮 Oyuna katıldınız! Oda Kodu: ' + roomCode);
+    }
+
+    // ==================== SETUP UI ====================
+    function setupUnitsPanel() {
+      const panel = document.getElementById('units-panel');
+      Object.keys(UNIT_TYPES).forEach(type => {
+        const unit = UNIT_TYPES[type];
+        const btn = document.createElement('div');
+        btn.className = 'unit-btn';
+        btn.innerHTML = `
+          ${unit.icon}
+          <div class="unit-cost">${unit.cost}$</div>
+        `;
+        btn.title = `${unit.name}\n💰 ${unit.cost}\n⚡ Menzil: ${unit.range}m\n⚔️ Güç: ${unit.attack}\n❤️ Can: ${unit.health}`;
+        btn.onclick = () => selectUnitType(type);
+        panel.appendChild(btn);
+      });
+    }
+
+    function setupBuildingsPanel() {
+      const list = document.getElementById('buildings-list');
+      Object.keys(BUILDING_TYPES).forEach(type => {
+        const building = BUILDING_TYPES[type];
+        const btn = document.createElement('div');
+        btn.className = 'building-btn';
+        btn.innerHTML = `${building.icon} ${building.name} (${building.cost}$)`;
+        btn.onclick = () => selectBuildingType(type);
+        list.appendChild(btn);
+      });
+    }
+
+    function setupEventListeners() {
+      // Map click - spawn unit or place building
+      map.addListener('click', (e) => {
+        if (selectedUnitType) {
+          spawnUnit(selectedUnitType, e.latLng);
+        } else if (selectedBuilding) {
+          placeBuilding(selectedBuilding, e.latLng);
+        }
+      });
+
+      // Map right click - move selected units
+      map.addListener('rightclick', (e) => {
+        if (selectedUnits.length > 0) {
+          selectedUnits.forEach(unit => {
+            moveUnitTo(unit, e.latLng);
+          });
+          sounds.move();
+        }
+      });
+
+      // Key bindings
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          clearSelection();
+        } else if (e.key === 's') {
+          selectedUnits.forEach(unit => unit.targetPosition = null);
+        }
+      });
+    }
+
+    // ==================== UNIT MANAGEMENT ====================
+    function selectUnitType(type) {
+      selectedUnitType = type;
+      selectedBuilding = null;
+      
+      document.querySelectorAll('.unit-btn').forEach(btn => btn.classList.remove('selected'));
+      event.currentTarget.classList.add('selected');
+      
+      showNotification(`${UNIT_TYPES[type].icon} ${UNIT_TYPES[type].name} seçildi`);
+      sounds.click();
+    }
+
+    function spawnUnit(type, position) {
+      const unitData = UNIT_TYPES[type];
+      
+      if (playerData.money < unitData.cost) {
+        showNotification('❌ Yetersiz para!');
+        return;
+      }
+
+      const unitId = 'unit_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      
+      const unit = {
+        id: unitId,
+        type: type,
+        owner: playerId,
+        position: { lat: position.lat(), lng: position.lng() },
+        health: unitData.health,
+        maxHealth: unitData.maxHealth,
+        targetPosition: null,
+        targetUnit: null,
+        lastAttack: 0
+      };
+
+      // Create marker
+      const marker = new google.maps.Marker({
+        position: unit.position,
+        map: map,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 10,
+          fillColor: playerData.color,
+          fillOpacity: 1,
+          strokeColor: '#ffffff',
+          strokeWeight: 2
+        },
+        label: {
+          text: unitData.icon,
+          fontSize: '20px'
+        },
+        draggable: false
+      });
+
+      marker.addListener('click', () => selectUnit(unit));
+      marker.addListener('rightclick', (e) => {
+        showContextMenu(e.domEvent.clientX, e.domEvent.clientY, unit);
+      });
+
+      unit.marker = marker;
+      playerData.units[unitId] = unit;
+
+      // Update Firebase
+      roomRef.child('units/' + unitId).set({
+        type: type,
+        owner: playerId,
+        position: unit.position,
+        health: unit.health,
+        maxHealth: unit.maxHealth,
+        timestamp: Date.now()
+      });
+
+      playerData.money -= unitData.cost;
+      updateHUD();
+      
+      showNotification(`✅ ${unitData.name} oluşturuldu!`);
+      sounds.build();
+    }
+
+    function selectUnit(unit) {
+      if (selectedUnits.includes(unit)) {
+        selectedUnits = selectedUnits.filter(u => u !== unit);
+      } else {
+        selectedUnits.push(unit);
+      }
+      
+      updateSelectionInfo();
+      sounds.click();
+    }
+
+    function clearSelection() {
+      selectedUnits = [];
+      selectedUnitType = null;
+      selectedBuilding = null;
+      
+      document.querySelectorAll('.unit-btn, .building-btn').forEach(btn => {
+        btn.classList.remove('selected');
+      });
+      
+      updateSelectionInfo();
+    }
+
+    function moveUnitTo(unit, target) {
+      unit.targetPosition = { lat: target.lat(), lng: target.lng() };
+      unit.targetUnit = null;
+      
+      // Update Firebase
+      roomRef.child('units/' + unit.id + '/targetPosition').set(unit.targetPosition);
+    }
+
+    // ==================== BUILDING MANAGEMENT ====================
+    function selectBuildingType(type) {
+      selectedBuilding = type;
+      selectedUnitType = null;
+      
+      document.querySelectorAll('.building-btn').forEach(btn => btn.classList.remove('selected'));
+      event.currentTarget.classList.add('selected');
+      
+      showNotification(`${BUILDING_TYPES[type].icon} ${BUILDING_TYPES[type].name} seçildi`);
+      sounds.click();
+    }
+
+    function placeBuilding(type, position) {
+      const buildingData = BUILDING_TYPES[type];
+      
+      if (playerData.money < buildingData.cost) {
+        showNotification('❌ Yetersiz para!');
+        return;
+      }
+
+      const buildingId = 'building_' + Date.now();
+      
+      const marker = new google.maps.Marker({
+        position: { lat: position.lat(), lng: position.lng() },
+        map: map,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 15,
+          fillColor: '#ffaa00',
+          fillOpacity: 0.8,
+          strokeColor: playerData.color,
+          strokeWeight: 3
+        },
+        label: {
+          text: buildingData.icon,
+          fontSize: '24px'
+        }
+      });
+
+      playerData.buildings[buildingId] = {
+        type: type,
+        position: { lat: position.lat(), lng: position.lng() },
+        marker: marker
+      };
+
+      playerData.money -= buildingData.cost;
+      updateHUD();
+      
+      showNotification(`✅ ${buildingData.name} inşa edildi!`);
+      sounds.build();
+      
+      selectedBuilding = null;
+      document.querySelectorAll('.building-btn').forEach(btn => btn.classList.remove('selected'));
+    }
+
+    // ==================== GAME LOOP ====================
+    function updateGame() {
+      Object.values(playerData.units).forEach(unit => {
+        const unitData = UNIT_TYPES[unit.type];
+        
+        // Move towards target
+        if (unit.targetPosition) {
+          const current = unit.marker.getPosition();
+          const target = new google.maps.LatLng(unit.targetPosition.lat, unit.targetPosition.lng);
+          const distance = google.maps.geometry.spherical.computeDistanceBetween(current, target);
+          
+          if (distance < 10) {
+            unit.targetPosition = null;
+          } else {
+            const heading = google.maps.geometry.spherical.computeHeading(current, target);
+            const newPos = google.maps.geometry.spherical.computeOffset(current, unitData.speed, heading);
+            unit.marker.setPosition(newPos);
+            unit.position = { lat: newPos.lat(), lng: newPos.lng() };
+          }
+        }
+
+        // Auto-attack enemies in range
+        const now = Date.now();
+        if (now - unit.lastAttack > 1000) { // 1 second cooldown
+          Object.values(playerData.units).forEach(enemy => {
+            if (enemy.owner !== playerId) {
+              const distance = google.maps.geometry.spherical.computeDistanceBetween(
+                unit.marker.getPosition(),
+                enemy.marker.getPosition()
+              );
+              
+              if (distance <= unitData.range) {
+                attackUnit(unit, enemy);
+                unit.lastAttack = now;
+              }
+            }
+          });
+        }
+      });
+
+      // Resource generation
+      if (Date.now() % 2000 < 50) { // Every 2 seconds
+        playerData.money += Object.keys(playerData.buildings).length * 10;
+        updateHUD();
+      }
+    }
+
+    function attackUnit(attacker, target) {
+      const attackerData = UNIT_TYPES[attacker.type];
+      
+      target.health -= attackerData.attack;
+      
+      // Visual effects
+      createAttackLine(attacker.marker.getPosition(), target.marker.getPosition());
+      createExplosion(target.marker.getPosition());
+      sounds.attack();
+      
+      if (target.health <= 0) {
+        // Unit destroyed
+        target.marker.setMap(null);
+        delete playerData.units[target.id];
+        roomRef.child('units/' + target.id).remove();
+        sounds.explosion();
+        showNotification(`💥 Düşman ${UNIT_TYPES[target.type].name} yok edildi!`);
+      } else {
+        // Update health
+        roomRef.child('units/' + target.id + '/health').set(target.health);
+      }
+    }
+
+    // ==================== VISUAL EFFECTS ====================
+    function createAttackLine(from, to) {
+      const overlay = new google.maps.Polyline({
+        path: [from, to],
+        strokeColor: '#ff3366',
+        strokeOpacity: 0.8,
+        strokeWeight: 2,
+        map: map
+      });
+      
+      setTimeout(() => overlay.setMap(null), 300);
+    }
+
+    function createExplosion(position) {
+      const explosion = new google.maps.Circle({
+        center: position,
+        radius: 10,
+        fillColor: '#ffaa00',
+        fillOpacity: 0.6,
+        strokeWeight: 0,
+        map: map
+      });
+      
+      let radius = 10;
+      const interval = setInterval(() => {
+        radius += 5;
+        explosion.setRadius(radius);
+        explosion.setOptions({ fillOpacity: explosion.get('fillOpacity') * 0.9 });
+        
+        if (radius > 50) {
+          clearInterval(interval);
+          explosion.setMap(null);
+        }
+      }, 50);
+    }
+
+    // ==================== UI UPDATES ====================
+    function updateHUD() {
+      document.getElementById('money').textContent = Math.floor(playerData.money);
+      document.getElementById('energy').textContent = Math.floor(playerData.energy);
+      document.getElementById('oil').textContent = Math.floor(playerData.oil);
+      document.getElementById('selected-count').textContent = selectedUnits.length;
+    }
+
+    function updateSelectionInfo() {
+      const info = document.getElementById('selection-info');
+      const content = document.getElementById('info-content');
+      
+      if (selectedUnits.length === 0) {
+        info.style.display = 'none';
+        return;
+      }
+      
+      info.style.display = 'block';
+      
+      if (selectedUnits.length === 1) {
+        const unit = selectedUnits[0];
+        const unitData = UNIT_TYPES[unit.type];
+        
+        content.innerHTML = `
+          <div class="info-row">
+            <span class="info-label">Birim:</span>
+            <span>${unitData.icon} ${unitData.name}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Can:</span>
+            <span>${Math.floor(unit.health)}/${unit.maxHealth}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Saldırı:</span>
+            <span>${unitData.attack}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Menzil:</span>
+            <span>${unitData.range}m</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Hız:</span>
+            <span>${unitData.speed}m/s</span>
+          </div>
+        `;
+      } else {
+        content.innerHTML = `
+          <div class="info-row">
+            <span class="info-label">Seçili:</span>
+            <span>${selectedUnits.length} birim</span>
+          </div>
+        `;
+      }
+    }
+
+    function showNotification(message) {
+      const notif = document.createElement('div');
+      notif.className = 'notification';
+      notif.textContent = message;
+      
+      document.getElementById('notifications').appendChild(notif);
+      
+      setTimeout(() => {
+        notif.style.animation = 'slideIn 0.3s ease reverse';
+        setTimeout(() => notif.remove(), 300);
+      }, 3000);
+    }
+
+    // ==================== CONTEXT MENU ====================
+    function showContextMenu(x, y, unit) {
+      const menu = document.getElementById('context-menu');
+      menu.style.left = x + 'px';
+      menu.style.top = y + 'px';
+      menu.style.display = 'block';
+      
+      window.contextUnit = unit;
+      
+      document.addEventListener('click', () => {
+        menu.style.display = 'none';
+      }, { once: true });
+    }
+
+    function contextAttack() {
+      showNotification('🎯 Hedef seçin...');
+      // Implement attack targeting
+    }
+
+    function contextMove() {
+      showNotification('🏃 Hareket noktası seçin...');
+      // Implement move command
+    }
+
+    function contextStop() {
+      if (window.contextUnit) {
+        window.contextUnit.targetPosition = null;
+        window.contextUnit.targetUnit = null;
+        showNotification('✋ Birim durduruldu');
+      }
+    }
+
+    // ==================== FIREBASE SYNC ====================
+    function updateUnitFromServer(snapshot) {
+      const unitId = snapshot.key;
+      const data = snapshot.val();
+      
+      if (data.owner !== playerId && playerData.units[unitId]) {
+        playerData.units[unitId].position = data.position;
+        playerData.units[unitId].health = data.health;
+        playerData.units[unitId].marker.setPosition(new google.maps.LatLng(data.position.lat, data.position.lng));
+      }
+    }
+
+    function addUnitFromServer(snapshot) {
+      const unitId = snapshot.key;
+      const data = snapshot.val();
+      
+      if (data.owner !== playerId && !playerData.units[unitId]) {
+        const unitData = UNIT_TYPES[data.type];
+        
+        const marker = new google.maps.Marker({
+          position: new google.maps.LatLng(data.position.lat, data.position.lng),
+          map: map,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 10,
+            fillColor: '#ff3366',
+            fillOpacity: 1,
+            strokeColor: '#ffffff',
+            strokeWeight: 2
+          },
+          label: {
+            text: unitData.icon,
+            fontSize: '20px'
+          }
+        });
+        
+        playerData.units[unitId] = {
+          id: unitId,
+          type: data.type,
+          owner: data.owner,
+          position: data.position,
+          health: data.health,
+          maxHealth: data.maxHealth,
+          marker: marker
+        };
+      }
+    }
+
+    function removeUnitFromServer(snapshot) {
+      const unitId = snapshot.key;
+      if (playerData.units[unitId]) {
+        playerData.units[unitId].marker.setMap(null);
+        delete playerData.units[unitId];
+      }
+    }
+
+    // Initialize
+    updateHUD();
+  </script>
+
+  <!-- Google Maps API -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=geometry"></script>
 </body>
 </html>
